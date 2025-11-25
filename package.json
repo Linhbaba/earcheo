@@ -1,0 +1,17 @@
+{
+  "name": "earcheo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "start": "concurrently \"npm run server --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
+    "dev": "npm run start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
