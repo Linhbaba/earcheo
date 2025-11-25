@@ -226,10 +226,10 @@ export const FeatureRequests = () => {
                     {feature.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-white/30 text-xs font-mono">
-                      <span>{feature.authorName}</span>
-                      <span>•</span>
-                      <span>{new Date(feature.createdAt).toLocaleDateString('cs-CZ')}</span>
+                  <div className="flex items-center gap-4 text-white/30 text-xs font-mono">
+                    <span>{feature.authorName}</span>
+                    <span>•</span>
+                    <span>{new Date(feature.createdAt).toLocaleDateString('cs-CZ')}</span>
                     </div>
                     {/* Delete button - only for author */}
                     {user?.sub === feature.authorId && feature.authorId !== 'system' && (

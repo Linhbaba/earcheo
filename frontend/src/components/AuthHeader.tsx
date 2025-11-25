@@ -217,13 +217,13 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
                     </button>
                   </div>
                   <div className="border-t border-white/10">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Odhlásit se
-                    </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Odhlásit se
+                  </button>
                   </div>
                 </div>
               </>
@@ -315,9 +315,9 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
             >
               OK
             </button>
-          </div>
         </div>
       </div>
+    </div>
     )}
     </>
   );

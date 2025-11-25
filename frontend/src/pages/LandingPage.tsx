@@ -69,28 +69,28 @@ export const LandingPage = () => {
           <rect width="100%" height="100%" fill="url(#topo-pattern)" />
         </svg>
 
-        {/* Animated background grid */}
+      {/* Animated background grid */}
         <div className="absolute inset-0 opacity-10">
-          <div 
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px)
-              `,
-              backgroundSize: '50px 50px',
-              animation: 'gridMove 20s linear infinite'
-            }}
-          />
-        </div>
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+            animation: 'gridMove 20s linear infinite'
+          }}
+        />
+      </div>
 
-        {/* Radial glow */}
+      {/* Radial glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px]" />
-        
-        {/* Scanlines overlay */}
+      
+      {/* Scanlines overlay */}
         <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 243, 255, 0.1) 2px, rgba(0, 243, 255, 0.1) 4px)'
-        }} />
+        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 243, 255, 0.1) 2px, rgba(0, 243, 255, 0.1) 4px)'
+      }} />
       </div>
 
       {/* Header */}
