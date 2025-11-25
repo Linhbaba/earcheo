@@ -12,10 +12,10 @@ interface SEOHeadProps {
 }
 
 const DEFAULT_TITLE = 'eArcheo - Dálkový průzkum krajiny České republiky';
-const DEFAULT_DESCRIPTION = 'Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat, digitálních modelů reliéfu DMR5G a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele.';
-const DEFAULT_KEYWORDS = 'lidar, dmr5g, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie';
+const DEFAULT_DESCRIPTION = 'Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele.';
+const DEFAULT_KEYWORDS = 'lidar, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie';
 const DEFAULT_OG_IMAGE = '/og-image.png';
-const SITE_URL = 'https://earcheo.vercel.app';
+const SITE_URL = 'https://earcheo.cz';
 
 export const SEOHead = ({
   title,
@@ -64,7 +64,7 @@ export const SEOHead = ({
         },
         featureList: [
           'LiDAR data vizualizace',
-          'DMR5G digitální model reliéfu',
+          'Digitální model reliéfu',
           'Ortofoto letecké snímky',
           'Interaktivní 3D mapa',
           'Historické mapy overlay'

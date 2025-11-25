@@ -94,7 +94,7 @@ export const SwipeMap = ({
 
 
 
-  // Handle drag
+  // Handle drag (mouse)
   const onMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     const axisSize = splitMode === 'horizontal' ? window.innerHeight : window.innerWidth;
@@ -107,19 +107,41 @@ export const SwipeMap = ({
     setIsDragging(false);
   }, []);
 
+  // Handle touch drag (mobile)
+  const onTouchMove = useCallback((e: TouchEvent) => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const axisSize = splitMode === 'horizontal' ? window.innerHeight : window.innerWidth;
+    const coord = splitMode === 'horizontal' ? touch.clientY : touch.clientX;
+    const percent = (coord / axisSize) * 100;
+    setSliderPosition(Math.min(Math.max(percent, 0), 100));
+  }, [isDragging, splitMode]);
+
+  const onTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   useEffect(() => {
     if (isDragging) {
+      // Mouse events
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
+      // Touch events
+      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchend', onTouchEnd);
     } else {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
     }
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
     };
-  }, [isDragging, onMouseMove, onMouseUp]);
+  }, [isDragging, onMouseMove, onMouseUp, onTouchMove, onTouchEnd]);
 
 
   // --- RENDER LOGIC ---
@@ -340,10 +362,12 @@ export const SwipeMap = ({
     );
   }
 
+  // Pro vertikální: satelit vlevo, LiDAR vpravo
+  // Pro horizontální: LiDAR nahoře, satelit dole (pro mobil praktičtější)
   const clipStyle =
     splitMode === 'horizontal'
-      ? { clipPath: `inset(${sliderPosition}% 0 0 0)` }
-      : { clipPath: `inset(0 0 0 ${sliderPosition}%)` };
+      ? { clipPath: `inset(0 0 ${100 - sliderPosition}% 0)` }  // LiDAR nahoře, ořez zespodu
+      : { clipPath: `inset(0 0 0 ${sliderPosition}%)` };       // LiDAR vpravo, ořez zleva
 
   const sliderStyle =
     splitMode === 'horizontal'
@@ -352,9 +376,11 @@ export const SwipeMap = ({
 
   return (
     <div className="absolute inset-0 w-full h-full font-mono">
+      {/* Základní vrstva */}
       <div className="absolute inset-0">
-        {renderLeftMap()}
+        {splitMode === 'horizontal' ? renderLeftMap() : renderLeftMap()}
       </div>
+      {/* Překryvná vrstva s ořezem */}
       <div 
         className="absolute inset-0 pointer-events-auto overflow-hidden"
         style={clipStyle}
@@ -364,14 +390,15 @@ export const SwipeMap = ({
       <div 
         className={
           splitMode === 'horizontal'
-            ? "absolute left-0 right-0 h-[2px] bg-primary cursor-ns-resize z-40 flex items-center justify-center group shadow-[0_0_20px_rgba(0,243,255,0.5)]"
-            : "absolute top-0 bottom-0 w-[2px] bg-primary cursor-ew-resize z-40 flex items-center justify-center group shadow-[0_0_20px_rgba(0,243,255,0.5)]"
+            ? "absolute left-0 right-0 h-[2px] bg-primary cursor-ns-resize z-40 flex items-center justify-center group shadow-[0_0_20px_rgba(0,243,255,0.5)] touch-none"
+            : "absolute top-0 bottom-0 w-[2px] bg-primary cursor-ew-resize z-40 flex items-center justify-center group shadow-[0_0_20px_rgba(0,243,255,0.5)] touch-none"
         }
         style={sliderStyle}
         onMouseDown={() => setIsDragging(true)}
+        onTouchStart={() => setIsDragging(true)}
       >
-        <div className="w-8 h-8 bg-black/80 backdrop-blur border-2 border-primary rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-            <Move className="w-4 h-4 text-primary" />
+        <div className="w-10 h-10 bg-black/80 backdrop-blur border-2 border-primary rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 active:scale-110 transition-transform">
+            <Move className="w-5 h-5 text-primary" />
         </div>
         {splitMode === 'horizontal' ? (
           <div className="absolute left-0 right-0 h-full bg-primary/40" />

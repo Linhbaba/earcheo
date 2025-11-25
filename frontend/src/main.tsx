@@ -13,34 +13,34 @@ import './index.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
-      <BrowserRouter>
-        <Auth0ProviderWithNavigate>
-          <Routes>
-            {/* Public route */}
-            <Route path="/" element={<LandingPage />} />
-            
-            {/* Protected routes */}
-            <Route 
-              path="/map" 
-              element={
-                <ProtectedRoute>
-                  <MapPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/features" 
-              element={
-                <ProtectedRoute>
-                  <FeaturesLayout>
-                    <FeatureRequests />
-                  </FeaturesLayout>
-                </ProtectedRoute>
-              } 
-            />
-          </Routes>
-        </Auth0ProviderWithNavigate>
-      </BrowserRouter>
+    <BrowserRouter>
+      <Auth0ProviderWithNavigate>
+        <Routes>
+          {/* Public route */}
+          <Route path="/" element={<LandingPage />} />
+          
+          {/* Protected routes */}
+          <Route 
+            path="/map" 
+            element={
+              <ProtectedRoute>
+                <MapPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/features" 
+            element={
+              <ProtectedRoute>
+                <FeaturesLayout>
+                  <FeatureRequests />
+                </FeaturesLayout>
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </Auth0ProviderWithNavigate>
+    </BrowserRouter>
     </HelmetProvider>
   </StrictMode>,
 );

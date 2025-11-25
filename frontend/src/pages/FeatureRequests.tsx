@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { ThumbsUp, Plus, X, Sparkles, TrendingUp, Clock } from 'lucide-react';
+import { ThumbsUp, Plus, X, Sparkles, TrendingUp, Clock, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { SEOHead } from '../components/SEOHead';
 
@@ -16,42 +16,20 @@ interface FeatureRequest {
   status: 'new' | 'planned' | 'in-progress' | 'done';
 }
 
-const STORAGE_KEY = 'earcheo-features';
+const STORAGE_KEY = 'earcheo-features-v2';
 
 // Default features to show
 const DEFAULT_FEATURES: FeatureRequest[] = [
   {
     id: '1',
-    title: 'Export do GeoTIFF',
-    description: 'Možnost exportovat aktuální pohled jako georeferovaný TIFF soubor pro použití v GIS software.',
-    votes: 12,
+    title: 'Možnost zvolit si na jaké straně který druh mapy mít',
+    description: 'Při rozdělení obrazovky možnost výběru, zda chci mít LiDAR na levé nebo pravé straně a optic na druhé straně.',
+    votes: 0,
     votedBy: [],
     authorId: 'system',
     authorName: 'eArcheo',
-    createdAt: Date.now() - 86400000 * 7,
-    status: 'planned'
-  },
-  {
-    id: '2',
-    title: 'Měření vzdáleností a ploch',
-    description: 'Nástroj pro měření vzdáleností mezi body a výpočet ploch vybraných oblastí.',
-    votes: 8,
-    votedBy: [],
-    authorId: 'system',
-    authorName: 'eArcheo',
-    createdAt: Date.now() - 86400000 * 5,
+    createdAt: Date.now(),
     status: 'new'
-  },
-  {
-    id: '3',
-    title: 'Uložení oblíbených lokací',
-    description: 'Možnost ukládat a pojmenovávat oblíbené lokace pro rychlý přístup.',
-    votes: 15,
-    votedBy: [],
-    authorId: 'system',
-    authorName: 'eArcheo',
-    createdAt: Date.now() - 86400000 * 3,
-    status: 'in-progress'
   }
 ];
 
@@ -62,6 +40,7 @@ export const FeatureRequests = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [sortBy, setSortBy] = useState<'votes' | 'newest'>('votes');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Load features from localStorage
   useEffect(() => {
@@ -121,6 +100,12 @@ export const FeatureRequests = () => {
     setIsModalOpen(false);
   };
 
+  const handleDelete = (featureId: string) => {
+    const updated = features.filter(f => f.id !== featureId);
+    saveFeatures(updated);
+    setDeleteConfirmId(null);
+  };
+
   const sortedFeatures = [...features].sort((a, b) => {
     if (sortBy === 'votes') return b.votes - a.votes;
     return b.createdAt - a.createdAt;
@@ -147,9 +132,9 @@ export const FeatureRequests = () => {
   return (
     <>
       <SEOHead
-        title="Feature Requests"
+        title="Návrhy funkcí"
         description="Navrhujte nové funkce a hlasujte o tom, co chcete vidět dál v eArcheo. Komunitní návrhy a prioritizace funkcí pro dálkový archeologický průzkum."
-        keywords="feature requests, nové funkce, hlasování, komunita, návrhy funkcí, eArcheo roadmap"
+        keywords="návrhy funkcí, nové funkce, hlasování, komunita, feature requests, eArcheo roadmap"
         canonicalUrl="/features"
         noindex={true}
       />
@@ -159,7 +144,7 @@ export const FeatureRequests = () => {
         <div className="max-w-4xl mx-auto px-6 py-8">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="font-display text-3xl text-white mb-2">Feature Requests</h1>
+              <h1 className="font-display text-3xl text-white mb-2">Návrhy funkcí</h1>
               <p className="text-white/50 font-mono text-sm">
                 Navrhujte nové funkce a hlasujte o tom, co chcete vidět dál.
               </p>
@@ -240,10 +225,23 @@ export const FeatureRequests = () => {
                   <p className="text-white/50 font-mono text-sm mb-4 leading-relaxed">
                     {feature.description}
                   </p>
-                  <div className="flex items-center gap-4 text-white/30 text-xs font-mono">
-                    <span>{feature.authorName}</span>
-                    <span>•</span>
-                    <span>{new Date(feature.createdAt).toLocaleDateString('cs-CZ')}</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-white/30 text-xs font-mono">
+                      <span>{feature.authorName}</span>
+                      <span>•</span>
+                      <span>{new Date(feature.createdAt).toLocaleDateString('cs-CZ')}</span>
+                    </div>
+                    {/* Delete button - only for author */}
+                    {user?.sub === feature.authorId && feature.authorId !== 'system' && (
+                      <button
+                        onClick={() => setDeleteConfirmId(feature.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg font-mono text-xs transition-all"
+                        title="Smazat návrh"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Smazat
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -259,9 +257,39 @@ export const FeatureRequests = () => {
         )}
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setDeleteConfirmId(null)}
+          />
+          <div className="relative bg-surface border border-red-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h2 className="font-display text-xl text-white mb-3">Smazat návrh?</h2>
+            <p className="text-white/50 font-mono text-sm mb-6">
+              Opravdu chcete smazat tento návrh? Tato akce je nevratná.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 font-mono text-sm transition-colors"
+              >
+                Zrušit
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirmId)}
+                className="flex-1 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-xl text-red-400 font-mono text-sm transition-all"
+              >
+                Smazat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* New Feature Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div 
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setIsModalOpen(false)}

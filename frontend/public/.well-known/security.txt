@@ -11,7 +11,7 @@ Acknowledgments: https://github.com/your-username/cyber-archeology/security/advi
 Policy: https://github.com/your-username/cyber-archeology/blob/main/SECURITY.md
 
 # Canonical URL
-Canonical: https://earcheo.vercel.app/.well-known/security.txt
+Canonical: https://earcheo.cz/.well-known/security.txt
 
 # Encryption (optional - add PGP key if available)
 # Encryption: https://earcheo.vercel.app/pgp-key.txt

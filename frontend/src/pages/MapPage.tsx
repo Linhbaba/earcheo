@@ -7,12 +7,17 @@ import { MapStyleSelector } from '../components/MapStyleSelector';
 import { CompassControl } from '../components/CompassControl';
 import { LocationControl, type UserLocation } from '../components/LocationControl';
 import { TerrainControls } from '../components/TerrainControls';
+import { MobileCommandDeck } from '../components/MobileCommandDeck';
+import { MobileMapHeader } from '../components/MobileMapHeader';
+import { useIsMobile } from '../hooks/useIsMobile';
 import type { MapStyleKey } from '../components/SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import { defaultVisualFilters } from '../types/visualFilters';
 import { SEOHead } from '../components/SEOHead';
 
 export const MapPage = () => {
+  const isMobile = useIsMobile();
+  
   const [mode, setMode] = useState<'LIDAR' | 'OPTIC'>('LIDAR');
   const [splitMode, setSplitMode] = useState<'vertical' | 'horizontal' | 'none'>('vertical');
   const [preferredSplitMode, setPreferredSplitMode] = useState<'vertical' | 'horizontal'>('vertical');
@@ -55,104 +60,155 @@ export const MapPage = () => {
     }
   };
 
+  // Na mobilu defaultně vypnout split mode, ale nechat uživatele ho zapnout
+  useEffect(() => {
+    // Pouze při první detekci mobilu, ne při každé změně
+    if (isMobile && splitMode === 'vertical') {
+      // Výchozí hodnota na mobilu - bez rozdělení, uživatel může změnit
+      setSplitMode('none');
+    }
+  }, [isMobile]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (mode === 'OPTIC') {
       if (splitMode !== 'none') {
         setSplitMode('none');
       }
       setWasSplitForced(true);
-    } else if (wasSplitForced) {
+    } else if (wasSplitForced && !isMobile) {
       setSplitMode(preferredSplitMode);
       setWasSplitForced(false);
     }
-  }, [mode, splitMode, preferredSplitMode, wasSplitForced]);
+  }, [mode, splitMode, preferredSplitMode, wasSplitForced, isMobile]);
 
   const splitModeLocked = mode === 'OPTIC';
+
+  // Mobile-specific handlers
+  const handleResetNorth = () => {
+    setViewState(prev => ({ ...prev, bearing: 0 }));
+  };
 
   return (
     <>
       <SEOHead
         title="Interaktivní mapa"
-        description="Interaktivní 3D vizualizace terénu České republiky. Prohlížejte LiDAR data DMR5G, ortofoto a historické mapy v reálném čase. Nástroje pro terénní analýzu a archeologický průzkum."
-        keywords="interaktivní mapa, lidar visualizace, 3d terén, dmr5g prohlížeč, ortofoto mapa, historické mapy, terénní analýza"
+        description="Interaktivní 3D vizualizace terénu České republiky. Prohlížejte LiDAR data, ortofoto a historické mapy v reálném čase. Nástroje pro terénní analýzu a archeologický průzkum."
+        keywords="interaktivní mapa, lidar visualizace, 3d terén, ortofoto mapa, historické mapy, terénní analýza"
         canonicalUrl="/map"
         noindex={true}
       />
       <div className="relative w-screen h-screen bg-background overflow-hidden text-white selection:bg-primary/30">
         
         <MapBoard 
-        mode={mode} 
-        viewState={viewState}
-        setViewState={setViewState}
-        splitMode={splitMode}
-        exaggeration={exaggeration}
-        isHistoryActive={isHistoryActive}
-        historyOpacity={historyOpacity}
-        isOrtofotoActive={isOrtofotoActive}
-        ortofotoOpacity={ortofotoOpacity}
-        mapStyleKey={mapStyleKey}
-        visualFilters={visualFilters}
-        filtersEnabled={filtersEnabled}
-        userLocation={userLocation}
-      />
-
-      {/* UI Overlays */}
-      <AuthHeader onLocationSelect={handleLocationSelect} />
-      
-      {/* Right Side Control Panel */}
-      <div className="absolute top-24 right-6 z-40 flex flex-col items-end gap-4 pointer-events-none">
-        <MapStyleSelector activeKey={mapStyleKey} onSelect={setMapStyleKey} />
-        
-        <CompassControl 
-          viewState={viewState} 
-          setViewState={setViewState} 
-        />
-
-        <LocationControl 
+          mode={mode} 
+          viewState={viewState}
           setViewState={setViewState}
-          onLocationChange={setUserLocation}
+          splitMode={splitMode}
+          exaggeration={exaggeration}
+          isHistoryActive={isHistoryActive}
+          historyOpacity={historyOpacity}
+          isOrtofotoActive={isOrtofotoActive}
+          ortofotoOpacity={ortofotoOpacity}
+          mapStyleKey={mapStyleKey}
+          visualFilters={visualFilters}
+          filtersEnabled={filtersEnabled}
+          userLocation={userLocation}
         />
 
-        {mode === 'LIDAR' && (
-          <TerrainControls
-            exaggeration={exaggeration}
-            onExaggerationChange={setExaggeration}
-            pitch={viewState.pitch || 0}
-            onPitchChange={(pitch) => setViewState(prev => ({ ...prev, pitch }))}
-          />
-        )}
-      </div>
+        {/* MOBILE UI */}
+        {isMobile ? (
+          <>
+            <MobileMapHeader 
+              onLocationSelect={handleLocationSelect}
+              setViewState={setViewState}
+              onLocationChange={setUserLocation}
+              bearing={viewState.bearing}
+            />
 
-      <CommandDeck 
-        activeMode={mode}
-        setMode={setMode}
-        splitMode={splitMode}
-        setSplitMode={handleSplitModeChange}
-        splitModeLocked={splitModeLocked}
-        isHistoryActive={isHistoryActive}
-        toggleHistory={() => setIsHistoryActive(!isHistoryActive)}
-        historyOpacity={historyOpacity}
-        setHistoryOpacity={setHistoryOpacity}
-        isOrtofotoActive={isOrtofotoActive}
-        toggleOrtofoto={() => setIsOrtofotoActive(!isOrtofotoActive)}
-        ortofotoOpacity={ortofotoOpacity}
-        setOrtofotoOpacity={setOrtofotoOpacity}
-        filtersOpen={filtersOpen}
-        toggleFilters={() => setFiltersOpen(!filtersOpen)}
-        filters={visualFilters}
-        onFiltersChange={(key, value) => setVisualFilters(prev => ({ ...prev, [key]: value }))}
-        filtersEnabled={filtersEnabled}
-        toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
-        onResetFilters={() => setVisualFilters(defaultVisualFilters)}
-      />
-      
-        {/* Corner Decorations */}
-        <div className="absolute top-20 left-6 w-8 h-8 border-t-2 border-l-2 border-white/20 pointer-events-none" />
-        <div className="absolute top-20 right-6 w-8 h-8 border-t-2 border-r-2 border-white/20 pointer-events-none" />
-        <div className="absolute bottom-20 left-6 w-8 h-8 border-b-2 border-l-2 border-white/20 pointer-events-none" />
-        <div className="absolute bottom-20 right-6 w-8 h-8 border-b-2 border-r-2 border-white/20 pointer-events-none" />
+            <MobileCommandDeck
+              activeMode={mode}
+              setMode={setMode}
+              splitMode={splitMode}
+              setSplitMode={handleSplitModeChange}
+              isOrtofotoActive={isOrtofotoActive}
+              toggleOrtofoto={() => setIsOrtofotoActive(!isOrtofotoActive)}
+              ortofotoOpacity={ortofotoOpacity}
+              setOrtofotoOpacity={setOrtofotoOpacity}
+              filtersEnabled={filtersEnabled}
+              toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
+              filters={visualFilters}
+              onFiltersChange={(key, value) => setVisualFilters(prev => ({ ...prev, [key]: value }))}
+              onResetFilters={() => setVisualFilters(defaultVisualFilters)}
+              mapStyleKey={mapStyleKey}
+              setMapStyleKey={setMapStyleKey}
+              exaggeration={exaggeration}
+              onExaggerationChange={setExaggeration}
+              pitch={viewState.pitch || 0}
+              onPitchChange={(pitch) => setViewState(prev => ({ ...prev, pitch }))}
+              bearing={viewState.bearing || 0}
+              onResetNorth={handleResetNorth}
+            />
+          </>
+        ) : (
+          /* DESKTOP UI */
+          <>
+            <AuthHeader onLocationSelect={handleLocationSelect} />
+            
+            {/* Right Side Control Panel */}
+            <div className="absolute top-24 right-6 z-40 flex flex-col items-end gap-4 pointer-events-none">
+              <MapStyleSelector activeKey={mapStyleKey} onSelect={setMapStyleKey} />
+              
+              <CompassControl 
+                viewState={viewState} 
+                setViewState={setViewState} 
+              />
+
+              <LocationControl 
+                setViewState={setViewState}
+                onLocationChange={setUserLocation}
+              />
+
+              {mode === 'LIDAR' && (
+                <TerrainControls
+                  exaggeration={exaggeration}
+                  onExaggerationChange={setExaggeration}
+                  pitch={viewState.pitch || 0}
+                  onPitchChange={(pitch) => setViewState(prev => ({ ...prev, pitch }))}
+                />
+              )}
+            </div>
+
+            <CommandDeck 
+              activeMode={mode}
+              setMode={setMode}
+              splitMode={splitMode}
+              setSplitMode={handleSplitModeChange}
+              splitModeLocked={splitModeLocked}
+              isHistoryActive={isHistoryActive}
+              toggleHistory={() => setIsHistoryActive(!isHistoryActive)}
+              historyOpacity={historyOpacity}
+              setHistoryOpacity={setHistoryOpacity}
+              isOrtofotoActive={isOrtofotoActive}
+              toggleOrtofoto={() => setIsOrtofotoActive(!isOrtofotoActive)}
+              ortofotoOpacity={ortofotoOpacity}
+              setOrtofotoOpacity={setOrtofotoOpacity}
+              filtersOpen={filtersOpen}
+              toggleFilters={() => setFiltersOpen(!filtersOpen)}
+              filters={visualFilters}
+              onFiltersChange={(key, value) => setVisualFilters(prev => ({ ...prev, [key]: value }))}
+              filtersEnabled={filtersEnabled}
+              toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
+              onResetFilters={() => setVisualFilters(defaultVisualFilters)}
+            />
+            
+            {/* Corner Decorations */}
+            <div className="absolute top-20 left-6 w-8 h-8 border-t-2 border-l-2 border-white/20 pointer-events-none" />
+            <div className="absolute top-20 right-6 w-8 h-8 border-t-2 border-r-2 border-white/20 pointer-events-none" />
+            <div className="absolute bottom-20 left-6 w-8 h-8 border-b-2 border-l-2 border-white/20 pointer-events-none" />
+            <div className="absolute bottom-20 right-6 w-8 h-8 border-b-2 border-r-2 border-white/20 pointer-events-none" />
+          </>
+        )}
       </div>
     </>
   );
 };
-

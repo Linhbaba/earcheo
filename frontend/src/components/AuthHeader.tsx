@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Map, Lightbulb, LogOut, User, ChevronDown } from 'lucide-react';
+import { Search, Map, Lightbulb, LogOut, User, ChevronDown, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface AuthHeaderProps {
@@ -19,6 +19,8 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleSearch = async (searchQuery: string) => {
     setQuery(searchQuery);
@@ -54,12 +56,35 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
     logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
+  const handleDeleteAccount = () => {
+    setShowUserMenu(false);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    // Clear local storage data
+    localStorage.clear();
+    
+    // Show info message
+    setShowDeleteConfirm(false);
+    setNotificationMessage({
+      type: 'success',
+      message: 'Pro dokončení smazání účtu nás prosím kontaktujte na ahoj@earcheo.cz'
+    });
+    
+    // Logout after showing message (delayed)
+    setTimeout(() => {
+      logout({ logoutParams: { returnTo: window.location.origin } });
+    }, 3000);
+  };
+
   const navItems = [
     { path: '/map', label: 'Mapa', icon: Map },
-    { path: '/features', label: 'Features', icon: Lightbulb },
+    { path: '/features', label: 'Navrhnout funkci', icon: Lightbulb },
   ];
 
   return (
+    <>
     <div className="absolute top-0 left-0 w-full z-50 pointer-events-none">
       <div className="flex items-center gap-4 px-6 py-3 bg-surface/80 backdrop-blur-md border-b border-white/10">
         
@@ -139,9 +164,19 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
           </div>
         )}
 
+        {/* Spacer when search is hidden */}
+        {!showSearch && <div className="flex-1" />}
+
+        {/* Version badge */}
+        <div className="text-right pointer-events-auto">
+          <span className="bg-amber-500/20 px-3 py-1 rounded-lg text-amber-400 border border-amber-500/30 text-[10px] font-mono tracking-wider">
+            BETA v1.0
+          </span>
+        </div>
+
         {/* User Menu */}
         {isAuthenticated && user && (
-          <div className="relative pointer-events-auto ml-auto">
+          <div className="relative pointer-events-auto">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 px-3 py-1.5 bg-black/40 hover:bg-black/60 border border-white/10 rounded-lg transition-colors"
@@ -164,35 +199,127 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
             {showUserMenu && (
               <>
                 <div 
-                  className="fixed inset-0 z-40" 
+                  className="fixed inset-0 z-[70]" 
                   onClick={() => setShowUserMenu(false)} 
                 />
-                <div className="absolute right-0 mt-2 w-48 bg-surface/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-surface/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-[71] pointer-events-auto">
                   <div className="px-4 py-3 border-b border-white/10">
                     <p className="text-white font-mono text-sm truncate">{user.name}</p>
                     <p className="text-white/40 font-mono text-xs truncate">{user.email}</p>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Odhlásit se
-                  </button>
+                  <div className="py-1">
+                    <button
+                      onClick={handleDeleteAccount}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Smazat účet
+                    </button>
+                  </div>
+                  <div className="border-t border-white/10">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Odhlásit se
+                    </button>
+                  </div>
                 </div>
               </>
             )}
           </div>
         )}
-
-        {/* Version badge */}
-        <div className="text-right pointer-events-auto ml-auto">
-          <span className="bg-amber-500/20 px-3 py-1 rounded-lg text-amber-400 border border-amber-500/30 text-[10px] font-mono tracking-wider">
-            BETA v1.0
-          </span>
-        </div>
       </div>
     </div>
+
+    {/* Delete Account Confirmation Modal - Outside of pointer-events-none wrapper */}
+    {showDeleteConfirm && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div 
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowDeleteConfirm(false)}
+        />
+        <div className="relative bg-surface border border-red-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+              <Trash2 className="w-5 h-5 text-red-400" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl text-white mb-2">Smazat účet?</h2>
+              <p className="text-white/70 font-mono text-sm leading-relaxed">
+                Opravdu chcete trvale smazat svůj účet? Tato akce je <span className="text-red-400">nevratná</span> a všechna vaše data budou ztracena.
+              </p>
+            </div>
+          </div>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
+            <p className="text-red-400/90 font-mono text-xs">
+              ⚠️ Budou smazána: uložené lokace, návrhy funkcí a osobní nastavení
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 font-mono text-sm transition-colors"
+            >
+              Zrušit
+            </button>
+            <button
+              onClick={confirmDeleteAccount}
+              className="flex-1 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-xl text-red-400 font-mono text-sm transition-all"
+            >
+              Smazat účet
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Notification Modal */}
+    {notificationMessage && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div 
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={() => setNotificationMessage(null)}
+        />
+        <div className={`relative rounded-2xl p-6 w-full max-w-md shadow-2xl ${
+          notificationMessage.type === 'success' 
+            ? 'bg-surface border border-primary/30' 
+            : 'bg-surface border border-red-500/30'
+        }`}>
+          <div className="flex items-start gap-4">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+              notificationMessage.type === 'success'
+                ? 'bg-primary/20'
+                : 'bg-red-500/20'
+            }`}>
+              {notificationMessage.type === 'success' ? (
+                <CheckCircle className="w-6 h-6 text-primary" />
+              ) : (
+                <XCircle className="w-6 h-6 text-red-400" />
+              )}
+            </div>
+            <div className="flex-1">
+              <h3 className="font-display text-lg text-white mb-2">
+                {notificationMessage.type === 'success' ? 'Úspěch' : 'Chyba'}
+              </h3>
+              <p className="text-white/70 font-mono text-sm leading-relaxed">
+                {notificationMessage.message}
+              </p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <button
+              onClick={() => setNotificationMessage(null)}
+              className="w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white font-mono text-sm transition-colors"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

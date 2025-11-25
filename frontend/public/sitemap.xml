@@ -6,7 +6,7 @@
   
   <!-- Homepage - Main landing page -->
   <url>
-    <loc>https://earcheo.vercel.app/</loc>
+    <loc>https://earcheo.cz/</loc>
     <lastmod>2025-11-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
   
   <!-- Map Page - Interactive map (protected, but listed for reference) -->
   <url>
-    <loc>https://earcheo.vercel.app/map</loc>
+    <loc>https://earcheo.cz/map</loc>
     <lastmod>2025-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -22,7 +22,7 @@
   
   <!-- Feature Requests Page (protected, but listed for reference) -->
   <url>
-    <loc>https://earcheo.vercel.app/features</loc>
+    <loc>https://earcheo.cz/features</loc>
     <lastmod>2025-11-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>

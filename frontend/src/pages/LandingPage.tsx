@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Map, Layers, Radar, ChevronRight } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
+import { TopFeatureRequests } from '../components/TopFeatureRequests';
 
 export const LandingPage = () => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
@@ -34,34 +35,63 @@ export const LandingPage = () => {
     <>
       <SEOHead
         title="Dálkový průzkum krajiny České republiky"
-        description="Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat, digitálních modelů reliéfu DMR5G a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele."
+        description="Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele."
         keywords="lidar, dmr5g, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie, historické mapy"
         canonicalUrl="/"
         ogType="website"
       />
-      <div className="min-h-screen bg-background relative overflow-hidden">
-        {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-20">
-        <div 
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-            animation: 'gridMove 20s linear infinite'
-          }}
-        />
-      </div>
+    <div className="min-h-screen bg-background relative">
+      {/* Background container - fixed to prevent scroll issues */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Animated topographic map effect */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.15]" style={{ animation: 'topoFloat 30s ease-in-out infinite' }}>
+          <defs>
+            <pattern id="topo-pattern" x="0" y="0" width="400" height="400" patternUnits="userSpaceOnUse">
+              {/* Concentric circles like contour lines */}
+              <circle cx="200" cy="200" r="50" fill="none" stroke="rgba(0, 243, 255, 0.15)" strokeWidth="1" />
+              <circle cx="200" cy="200" r="80" fill="none" stroke="rgba(0, 243, 255, 0.12)" strokeWidth="1" />
+              <circle cx="200" cy="200" r="120" fill="none" stroke="rgba(0, 243, 255, 0.1)" strokeWidth="1" />
+              <circle cx="200" cy="200" r="170" fill="none" stroke="rgba(0, 243, 255, 0.08)" strokeWidth="1" />
+              
+              {/* Offset circles for variety */}
+              <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(0, 243, 255, 0.1)" strokeWidth="1" />
+              <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(0, 243, 255, 0.08)" strokeWidth="1" />
+              
+              <circle cx="300" cy="100" r="35" fill="none" stroke="rgba(0, 243, 255, 0.12)" strokeWidth="1" />
+              <circle cx="300" cy="100" r="60" fill="none" stroke="rgba(0, 243, 255, 0.09)" strokeWidth="1" />
+              
+              {/* Small elevation points */}
+              <circle cx="50" cy="50" r="2" fill="rgba(0, 243, 255, 0.3)" />
+              <circle cx="150" cy="300" r="2" fill="rgba(0, 243, 255, 0.3)" />
+              <circle cx="350" cy="250" r="2" fill="rgba(0, 243, 255, 0.3)" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#topo-pattern)" />
+        </svg>
 
-      {/* Radial glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
-      
-      {/* Scanlines overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02]" style={{
-        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 243, 255, 0.1) 2px, rgba(0, 243, 255, 0.1) 4px)'
-      }} />
+        {/* Animated background grid */}
+        <div className="absolute inset-0 opacity-10">
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px)
+              `,
+              backgroundSize: '50px 50px',
+              animation: 'gridMove 20s linear infinite'
+            }}
+          />
+        </div>
+
+        {/* Radial glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px]" />
+        
+        {/* Scanlines overlay */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 243, 255, 0.1) 2px, rgba(0, 243, 255, 0.1) 4px)'
+        }} />
+      </div>
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-8 py-6">
@@ -103,12 +133,12 @@ export const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-8">
+      <main className="relative z-10 flex flex-col items-center px-8 pt-12 pb-8">
         <div className="text-center max-w-3xl">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-white/60 font-mono text-xs tracking-wider">LIDAR DATA • DMR5G • ORTOFOTO</span>
+            <span className="text-white/60 font-mono text-xs tracking-wider">LIDAR DATA • ORTOFOTO</span>
           </div>
 
           {/* Main heading */}
@@ -130,7 +160,7 @@ export const LandingPage = () => {
               onClick={handleSignUp}
               className="group flex items-center gap-3 px-8 py-4 bg-primary hover:bg-primary/90 rounded-xl text-background font-display text-lg tracking-wider transition-all hover:shadow-[0_0_40px_rgba(0,243,255,0.4)] hover:scale-105"
             >
-              Začít zdarma
+              Registrace
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
@@ -147,7 +177,7 @@ export const LandingPage = () => {
           <FeatureCard 
             icon={<Layers className="w-6 h-6" />}
             title="LiDAR Data"
-            description="Vysoké rozlišení DMR5G z ČÚZK"
+            description="Vysoké rozlišení z ČÚZK"
           />
           <FeatureCard 
             icon={<Map className="w-6 h-6" />}
@@ -162,21 +192,39 @@ export const LandingPage = () => {
         </div>
       </main>
 
+      {/* Top Feature Requests */}
+      <TopFeatureRequests />
+
       {/* Footer */}
       <footer className="relative z-10 text-center py-8">
         <p className="text-white/30 font-mono text-xs">
           © 2025 eArcheo • Data: ČÚZK, Mapbox
         </p>
+        <p className="text-white/20 font-mono text-xs mt-2">
+          <a href="mailto:ahoj@earcheo.cz" className="hover:text-primary/70 transition-colors">
+            ahoj@earcheo.cz
+          </a>
+        </p>
       </footer>
 
-        {/* CSS Animation */}
-        <style>{`
-          @keyframes gridMove {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
+      {/* CSS Animation */}
+      <style>{`
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(50px, 50px); }
+        }
+        @keyframes topoFloat {
+          0%, 100% { 
+            transform: translate(0, 0) scale(1); 
+            opacity: 0.15;
           }
-        `}</style>
-      </div>
+          50% { 
+            transform: translate(-20px, -20px) scale(1.05); 
+            opacity: 0.08;
+          }
+        }
+      `}</style>
+    </div>
     </>
   );
 };

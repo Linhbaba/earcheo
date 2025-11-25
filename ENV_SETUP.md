@@ -23,9 +23,9 @@ NODE_ENV=development
 1. Přihlaste se do [Auth0 Dashboard](https://manage.auth0.com/)
 2. Vytvořte novou aplikaci typu "Single Page Application"
 3. Nakonfigurujte:
-   - **Allowed Callback URLs**: `http://localhost:5173, https://earcheo.vercel.app`
-   - **Allowed Logout URLs**: `http://localhost:5173, https://earcheo.vercel.app`
-   - **Allowed Web Origins**: `http://localhost:5173, https://earcheo.vercel.app`
+   - **Allowed Callback URLs**: `http://localhost:5173, https://earcheo.cz`
+   - **Allowed Logout URLs**: `http://localhost:5173, https://earcheo.cz`
+   - **Allowed Web Origins**: `http://localhost:5173, https://earcheo.cz`
 4. Zkopírujte Domain a Client ID do `.env` souboru
 
 ## Vercel Deployment
@@ -36,7 +36,7 @@ Pro nasazení na Vercel nastavte environment variables v Vercel Dashboard:
 VITE_AUTH0_DOMAIN=your-tenant.auth0.com
 VITE_AUTH0_CLIENT_ID=your_client_id_here
 VITE_AUTH0_AUDIENCE=https://your-api-identifier
-VITE_AUTH0_REDIRECT_URI=https://earcheo.vercel.app
+VITE_AUTH0_REDIRECT_URI=https://earcheo.cz
 ```
 
 ## Poznámky
