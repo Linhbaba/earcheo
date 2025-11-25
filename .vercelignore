@@ -1,0 +1,44 @@
+# Dependencies - budou se instalovat během buildu
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Python
+backend/venv/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
+
+# Data files (HUGE!)
+backend/data_cache/
+data_cache/
+*.laz
+*.LAZ
+*.las
+*.LAS
+
+# Development files
+backend/
+.git/
+.vscode/
+docs/
+
+# Build outputs (rebuilds on Vercel)
+frontend/dist/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+backend/.env
+
+# Temporary
+*.tmp
+*.bak
+proxy_response.dat
+curl_log.txt
+test_tile.png
+caps.xml
+

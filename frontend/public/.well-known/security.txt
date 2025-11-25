@@ -1,0 +1,23 @@
+# Security Policy for eArcheo
+# According to RFC 9116: https://www.rfc-editor.org/rfc/rfc9116.html
+
+Contact: mailto:security@earcheo.app
+Contact: https://github.com/your-username/cyber-archeology/security/advisories/new
+Preferred-Languages: cs, en
+Expires: 2026-12-31T23:59:59.000Z
+Acknowledgments: https://github.com/your-username/cyber-archeology/security/advisories
+
+# Security Policy
+Policy: https://github.com/your-username/cyber-archeology/blob/main/SECURITY.md
+
+# Canonical URL
+Canonical: https://earcheo.vercel.app/.well-known/security.txt
+
+# Encryption (optional - add PGP key if available)
+# Encryption: https://earcheo.vercel.app/pgp-key.txt
+
+# Additional Information
+# If you discover a security vulnerability, please report it privately.
+# We will respond as quickly as possible and work with you to address the issue.
+# Please do not disclose the vulnerability publicly until we have had a chance to address it.
+

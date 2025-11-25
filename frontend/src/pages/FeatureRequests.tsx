@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { ThumbsUp, Plus, X, Sparkles, TrendingUp, Clock } from 'lucide-react';
 import { clsx } from 'clsx';
+import { SEOHead } from '../components/SEOHead';
 
 interface FeatureRequest {
   id: string;
@@ -144,9 +145,17 @@ export const FeatureRequests = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-surface/50 border-b border-white/10">
+    <>
+      <SEOHead
+        title="Feature Requests"
+        description="Navrhujte nové funkce a hlasujte o tom, co chcete vidět dál v eArcheo. Komunitní návrhy a prioritizace funkcí pro dálkový archeologický průzkum."
+        keywords="feature requests, nové funkce, hlasování, komunita, návrhy funkcí, eArcheo roadmap"
+        canonicalUrl="/features"
+        noindex={true}
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="bg-surface/50 border-b border-white/10">
         <div className="max-w-4xl mx-auto px-6 py-8">
           <div className="flex items-start justify-between">
             <div>
@@ -312,7 +321,8 @@ export const FeatureRequests = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

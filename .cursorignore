@@ -1,0 +1,21 @@
+# Allow editing of environment variable files
+!.env
+!.env.*
+!.env.example
+!.env.local
+!.env.development
+!.env.production
+
+# Allow editing of common config files
+!*.config.js
+!*.config.ts
+!.eslintrc*
+!.prettierrc*
+!tsconfig*.json
+
+# Allow editing of package files
+!package.json
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml
+

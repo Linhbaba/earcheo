@@ -86,3 +86,4 @@ get-pip.py
 # Debug files
 DEBUG-*.md
 
+.vercel

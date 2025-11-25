@@ -2,6 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Map, Layers, Radar, ChevronRight } from 'lucide-react';
+import { SEOHead } from '../components/SEOHead';
 
 export const LandingPage = () => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
@@ -30,8 +31,16 @@ export const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated background grid */}
+    <>
+      <SEOHead
+        title="Dálkový průzkum krajiny České republiky"
+        description="Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat, digitálních modelů reliéfu DMR5G a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele."
+        keywords="lidar, dmr5g, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie, historické mapy"
+        canonicalUrl="/"
+        ogType="website"
+      />
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        {/* Animated background grid */}
       <div className="absolute inset-0 opacity-20">
         <div 
           className="absolute inset-0"
@@ -160,14 +169,15 @@ export const LandingPage = () => {
         </p>
       </footer>
 
-      {/* CSS Animation */}
-      <style>{`
-        @keyframes gridMove {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(50px, 50px); }
-        }
-      `}</style>
-    </div>
+        {/* CSS Animation */}
+        <style>{`
+          @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+          }
+        `}</style>
+      </div>
+    </>
   );
 };
 

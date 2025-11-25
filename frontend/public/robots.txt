@@ -1,0 +1,53 @@
+# robots.txt for eArcheo
+# Allow AI crawlers and search engines to index public content
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /map
+Disallow: /features
+
+# AI Crawlers - Explicitly allow
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: Anthropic-AI
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /map
+Disallow: /features
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /map
+Disallow: /features
+
+# Sitemap
+Sitemap: https://earcheo.vercel.app/sitemap.xml
+

@@ -10,6 +10,7 @@ import { TerrainControls } from '../components/TerrainControls';
 import type { MapStyleKey } from '../components/SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import { defaultVisualFilters } from '../types/visualFilters';
+import { SEOHead } from '../components/SEOHead';
 
 export const MapPage = () => {
   const [mode, setMode] = useState<'LIDAR' | 'OPTIC'>('LIDAR');
@@ -69,9 +70,17 @@ export const MapPage = () => {
   const splitModeLocked = mode === 'OPTIC';
 
   return (
-    <div className="relative w-screen h-screen bg-background overflow-hidden text-white selection:bg-primary/30">
-      
-      <MapBoard 
+    <>
+      <SEOHead
+        title="Interaktivní mapa"
+        description="Interaktivní 3D vizualizace terénu České republiky. Prohlížejte LiDAR data DMR5G, ortofoto a historické mapy v reálném čase. Nástroje pro terénní analýzu a archeologický průzkum."
+        keywords="interaktivní mapa, lidar visualizace, 3d terén, dmr5g prohlížeč, ortofoto mapa, historické mapy, terénní analýza"
+        canonicalUrl="/map"
+        noindex={true}
+      />
+      <div className="relative w-screen h-screen bg-background overflow-hidden text-white selection:bg-primary/30">
+        
+        <MapBoard 
         mode={mode} 
         viewState={viewState}
         setViewState={setViewState}
@@ -137,12 +146,13 @@ export const MapPage = () => {
         onResetFilters={() => setVisualFilters(defaultVisualFilters)}
       />
       
-      {/* Corner Decorations */}
-      <div className="absolute top-20 left-6 w-8 h-8 border-t-2 border-l-2 border-white/20 pointer-events-none" />
-      <div className="absolute top-20 right-6 w-8 h-8 border-t-2 border-r-2 border-white/20 pointer-events-none" />
-      <div className="absolute bottom-20 left-6 w-8 h-8 border-b-2 border-l-2 border-white/20 pointer-events-none" />
-      <div className="absolute bottom-20 right-6 w-8 h-8 border-b-2 border-r-2 border-white/20 pointer-events-none" />
-    </div>
+        {/* Corner Decorations */}
+        <div className="absolute top-20 left-6 w-8 h-8 border-t-2 border-l-2 border-white/20 pointer-events-none" />
+        <div className="absolute top-20 right-6 w-8 h-8 border-t-2 border-r-2 border-white/20 pointer-events-none" />
+        <div className="absolute bottom-20 left-6 w-8 h-8 border-b-2 border-l-2 border-white/20 pointer-events-none" />
+        <div className="absolute bottom-20 right-6 w-8 h-8 border-b-2 border-r-2 border-white/20 pointer-events-none" />
+      </div>
+    </>
   );
 };
 
