@@ -115,17 +115,17 @@ export const TopFeatureRequests = () => {
   };
 
   return (
-    <section className="relative z-10 max-w-4xl mx-auto px-8 py-16">
+    <section className="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16">
       {/* Section header */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-4">
+      <div className="text-center mb-8 sm:mb-10">
+        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-3 sm:mb-4">
           <TrendingUp className="w-3.5 h-3.5 text-primary" />
-          <span className="text-white/60 font-mono text-xs tracking-wider uppercase">Nejžádanější funkce</span>
+          <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider uppercase">Nejžádanější funkce</span>
         </div>
-        <h3 className="font-display text-3xl md:text-4xl text-white mb-3">
+        <h3 className="font-display text-2xl sm:text-3xl md:text-4xl text-white mb-2 sm:mb-3 px-4">
           Co chcete vidět dál?
         </h3>
-        <p className="text-white/50 font-mono text-sm">
+        <p className="text-white/50 font-mono text-xs sm:text-sm px-4">
           Hlasujte o funkcích, které byste rádi viděli v eArcheo
         </p>
       </div>
@@ -135,26 +135,26 @@ export const TopFeatureRequests = () => {
         {topFeatures.map((feature, index) => (
           <div
             key={feature.id}
-            className="group bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-primary/30 transition-all"
+            className="group bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4 hover:border-primary/30 transition-all"
           >
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-2 sm:gap-4 items-center">
               {/* Rank badge */}
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
-                <span className="font-display text-primary text-sm">#{index + 1}</span>
+              <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
+                <span className="font-display text-primary text-xs sm:text-sm">#{index + 1}</span>
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-display text-white text-base truncate">{feature.title}</h4>
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                  <h4 className="font-display text-white text-sm sm:text-base truncate">{feature.title}</h4>
                   <span className={clsx(
-                    "px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
+                    "px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
                     getStatusColor(feature.status)
                   )}>
                     {getStatusLabel(feature.status)}
                   </span>
                 </div>
-                <p className="text-white/40 font-mono text-xs line-clamp-1">
+                <p className="text-white/40 font-mono text-[10px] sm:text-xs line-clamp-1">
                   {feature.description}
                 </p>
               </div>
@@ -164,7 +164,7 @@ export const TopFeatureRequests = () => {
                 onClick={() => handleVote(feature.id)}
                 disabled={!isAuthenticated}
                 className={clsx(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all flex-shrink-0",
+                  "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg border transition-all flex-shrink-0",
                   isAuthenticated && user?.sub && feature.votedBy.includes(user.sub)
                     ? "bg-primary/20 border-primary/50 text-primary"
                     : "bg-white/5 border-white/10 text-white/60 hover:border-primary/30 hover:text-primary",
@@ -172,8 +172,8 @@ export const TopFeatureRequests = () => {
                 )}
                 title={!isAuthenticated ? "Přihlaste se pro hlasování" : ""}
               >
-                <ThumbsUp className="w-4 h-4" />
-                <span className="font-mono text-sm font-bold">{feature.votes}</span>
+                <ThumbsUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="font-mono text-xs sm:text-sm font-bold">{feature.votes}</span>
               </button>
             </div>
           </div>
@@ -181,12 +181,13 @@ export const TopFeatureRequests = () => {
       </div>
 
       {/* Call to action */}
-      <div className="text-center">
+      <div className="text-center px-4">
         <button
           onClick={handleSeeAll}
-          className="group inline-flex items-center gap-2 px-6 py-3 bg-surface/60 hover:bg-surface/80 border border-white/10 hover:border-primary/30 rounded-xl text-white/70 hover:text-primary font-mono text-sm transition-all"
+          className="group inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-surface/60 hover:bg-surface/80 border border-white/10 hover:border-primary/30 rounded-xl text-white/70 hover:text-primary font-mono text-xs sm:text-sm transition-all"
         >
-          {isAuthenticated ? 'Zobrazit všechny návrhy' : 'Přihlásit se a navrhnout funkci'}
+          <span className="hidden sm:inline">{isAuthenticated ? 'Zobrazit všechny návrhy' : 'Přihlásit se a navrhnout funkci'}</span>
+          <span className="sm:hidden">{isAuthenticated ? 'Všechny návrhy' : 'Navrhnout funkci'}</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
