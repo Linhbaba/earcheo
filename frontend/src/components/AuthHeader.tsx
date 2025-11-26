@@ -7,11 +7,12 @@ import { clsx } from 'clsx';
 interface AuthHeaderProps {
   onLocationSelect?: (lng: number, lat: number, label?: string) => void;
   showSearch?: boolean;
+  onOpenFindings?: () => void;
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderProps) => {
+export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings }: AuthHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const location = useLocation();
   const [query, setQuery] = useState('');
@@ -79,8 +80,9 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
   };
 
   const navItems = [
-    { path: '/map', label: 'Mapa', icon: Map },
-    { path: '/features', label: 'Navrhnout funkci', icon: Lightbulb },
+    { path: '/map', label: 'Mapa', icon: Map, type: 'route' as const },
+    { path: '/findings', label: 'Nálezy', icon: Search, type: 'modal' as const },
+    { path: '/features', label: 'Navrhnout funkci', icon: Lightbulb, type: 'route' as const },
   ];
 
   return (
@@ -111,21 +113,41 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true }: AuthHeaderPr
         {/* Navigation */}
         {isAuthenticated && (
           <nav className="flex items-center gap-1 ml-6 pointer-events-auto">
-            {navItems.map(item => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={clsx(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm transition-all",
-                  location.pathname === item.path
-                    ? "bg-primary/20 text-primary border border-primary/30"
-                    : "text-white/50 hover:text-white hover:bg-white/5"
-                )}
-              >
-                <item.icon className="w-4 h-4" />
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map(item => {
+              const isActive = location.pathname === item.path;
+              const className = clsx(
+                "flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm transition-all",
+                isActive
+                  ? "bg-primary/20 text-primary border border-primary/30"
+                  : "text-white/50 hover:text-white hover:bg-white/5"
+              );
+              
+              // Modal type - použije onClick místo routingu
+              if (item.type === 'modal' && item.path === '/findings') {
+                return (
+                  <button
+                    key={item.path}
+                    onClick={onOpenFindings}
+                    className={className}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </button>
+                );
+              }
+              
+              // Běžný route link
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={className}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         )}
 

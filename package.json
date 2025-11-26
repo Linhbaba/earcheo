@@ -9,14 +9,24 @@
   "scripts": {
     "start": "concurrently \"npm run server --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
-    "dev": "npm run start"
+    "dev": "npm run start",
+    "dev:api": "npx tsx dev-server.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "vercel:dev": "vercel dev --listen 3000"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.20.6"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "@vercel/blob": "^0.27.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "express-jwt": "^8.5.1",
     "jwks-rsa": "^3.2.0",
     "prisma": "^6.19.0",

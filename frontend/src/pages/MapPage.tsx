@@ -9,6 +9,7 @@ import { LocationControl, type UserLocation } from '../components/LocationContro
 import { TerrainControls } from '../components/TerrainControls';
 import { MobileCommandDeck } from '../components/MobileCommandDeck';
 import { MobileMapHeader } from '../components/MobileMapHeader';
+import { FindingsModal } from '../components/findings/FindingsModal';
 import { useIsMobile } from '../hooks/useIsMobile';
 import type { MapStyleKey } from '../components/SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
@@ -32,6 +33,7 @@ export const MapPage = () => {
   const [filtersEnabled, setFiltersEnabled] = useState(true);
   const [mapStyleKey, setMapStyleKey] = useState<MapStyleKey>('SATELLITE');
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [isFindingsOpen, setIsFindingsOpen] = useState(false);
 
   const [viewState, setViewState] = useState<ViewState>({
     longitude: 14.665,
@@ -152,7 +154,10 @@ export const MapPage = () => {
         ) : (
           /* DESKTOP UI */
           <>
-            <AuthHeader onLocationSelect={handleLocationSelect} />
+            <AuthHeader 
+              onLocationSelect={handleLocationSelect}
+              onOpenFindings={() => setIsFindingsOpen(true)}
+            />
             
             {/* Right Side Control Panel */}
             <div className="absolute top-24 right-6 z-40 flex flex-col items-end gap-4 pointer-events-none">
@@ -208,6 +213,12 @@ export const MapPage = () => {
             <div className="absolute bottom-20 right-6 w-8 h-8 border-b-2 border-r-2 border-white/20 pointer-events-none" />
           </>
         )}
+        
+        {/* Findings Modal */}
+        <FindingsModal 
+          isOpen={isFindingsOpen}
+          onClose={() => setIsFindingsOpen(false)}
+        />
       </div>
     </>
   );
