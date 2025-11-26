@@ -11,6 +11,7 @@ import { MobileCommandDeck } from '../components/MobileCommandDeck';
 import { MobileMapHeader } from '../components/MobileMapHeader';
 import { FindingsModal } from '../components/findings/FindingsModal';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useProfile } from '../hooks/useProfile';
 import type { MapStyleKey } from '../components/SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import { defaultVisualFilters } from '../types/visualFilters';
@@ -18,6 +19,9 @@ import { SEOHead } from '../components/SEOHead';
 
 export const MapPage = () => {
   const isMobile = useIsMobile();
+  
+  // Initialize user profile (creates profile on first login)
+  useProfile();
   
   const [mode, setMode] = useState<'LIDAR' | 'OPTIC'>('LIDAR');
   const [splitMode, setSplitMode] = useState<'vertical' | 'horizontal' | 'none'>('vertical');
