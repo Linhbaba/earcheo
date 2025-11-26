@@ -94,10 +94,10 @@ export const LandingPage = () => {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-8 py-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border border-primary/30 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="w-6 h-6">
+      <header className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border border-primary/30 flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6">
               <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" className="text-primary/60" strokeWidth="1.5"/>
               <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" className="text-primary/80" strokeWidth="1.5"/>
               <circle cx="12" cy="12" r="1.5" fill="currentColor" className="text-primary"/>
@@ -107,25 +107,26 @@ export const LandingPage = () => {
               <line x1="18" y1="12" x2="22" y2="12" stroke="currentColor" className="text-primary/50" strokeWidth="1.5"/>
             </svg>
           </div>
-          <div>
-            <h1 className="font-display text-lg text-white tracking-wider">eArcheo</h1>
-            <p className="text-[10px] text-white/40 font-mono tracking-widest uppercase">Dálkový průzkum krajiny</p>
+          <div className="min-w-0">
+            <h1 className="font-display text-base sm:text-lg text-white tracking-wider">eArcheo</h1>
+            <p className="text-[9px] sm:text-[10px] text-white/40 font-mono tracking-widest uppercase hidden xs:block">Dálkový průzkum krajiny</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[10px] font-mono tracking-wider">
-            BETA v1.0
+        <div className="flex items-center gap-1.5 sm:gap-4">
+          <span className="px-2 py-1 sm:px-3 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[9px] sm:text-[10px] font-mono tracking-wider">
+            BETA
           </span>
           <button
             onClick={handleLogin}
-            className="px-4 py-2 text-white/70 hover:text-white font-mono text-sm transition-colors"
+            className="px-2 py-1.5 sm:px-4 sm:py-2 text-white/70 hover:text-white font-mono text-xs sm:text-sm transition-colors"
           >
-            Přihlásit se
+            <span className="hidden sm:inline">Přihlásit se</span>
+            <span className="sm:hidden">Přihlásit</span>
           </button>
           <button
             onClick={handleSignUp}
-            className="px-5 py-2.5 bg-primary/20 hover:bg-primary/30 border border-primary/50 hover:border-primary rounded-lg text-primary font-mono text-sm transition-all hover:shadow-[0_0_20px_rgba(0,243,255,0.3)]"
+            className="px-3 py-1.5 sm:px-5 sm:py-2.5 bg-primary/20 hover:bg-primary/30 border border-primary/50 hover:border-primary rounded-lg text-primary font-mono text-xs sm:text-sm transition-all hover:shadow-[0_0_20px_rgba(0,243,255,0.3)]"
           >
             Registrace
           </button>
@@ -133,23 +134,23 @@ export const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex flex-col items-center px-8 pt-12 pb-8">
-        <div className="text-center max-w-3xl">
+      <main className="relative z-10 flex flex-col items-center px-4 sm:px-8 pt-8 sm:pt-12 pb-8">
+        <div className="text-center max-w-3xl w-full">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-white/60 font-mono text-xs tracking-wider">LIDAR DATA • ORTOFOTO</span>
+            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">LIDAR DATA • ORTOFOTO</span>
           </div>
 
           {/* Main heading */}
-          <h2 className="font-display text-5xl md:text-7xl text-white mb-6 leading-tight">
+          <h2 className="font-display text-3xl sm:text-5xl md:text-7xl text-white mb-4 sm:mb-6 leading-tight px-4">
             Prozkoumejte
             <span className="block text-primary drop-shadow-[0_0_30px_rgba(0,243,255,0.5)]">
               krajinu z výšky
             </span>
           </h2>
 
-          <p className="text-white/50 text-lg md:text-xl font-mono mb-12 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-white/50 text-sm sm:text-lg md:text-xl font-mono mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed px-4">
             Přístup k detailním LiDAR datům, digitálním modelům reliéfu 
             a leteckým snímkům České republiky.
           </p>
