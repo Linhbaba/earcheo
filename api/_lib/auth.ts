@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { expressjwt as jwt, GetVerificationKey } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
+import { prisma } from './db';
 
 // Auth0 configuration
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || 'dev-jsfkqesvxjhvsnkd.us.auth0.com';
@@ -29,6 +30,48 @@ export function getUserId(req: VercelRequest): string {
   return auth.sub;
 }
 
+// Helper to extract user info from Auth0 token
+function getUserInfo(req: VercelRequest): { sub: string; email?: string; nickname?: string; picture?: string } {
+  const auth = (req as any).auth;
+  return {
+    sub: auth.sub,
+    email: auth.email || auth['https://earcheo.cz/email'],
+    nickname: auth.nickname || auth['https://earcheo.cz/nickname'],
+    picture: auth.picture || auth['https://earcheo.cz/picture'],
+  };
+}
+
+// Ensure user exists in database (auto-create if needed)
+async function ensureUserExists(req: VercelRequest, userId: string): Promise<void> {
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!existingUser) {
+      const userInfo = getUserInfo(req);
+      
+      // Create user profile automatically
+      await prisma.user.create({
+        data: {
+          id: userId,
+          email: userInfo.email || `${userId}@unknown.com`,
+          nickname: userInfo.nickname,
+          avatarUrl: userInfo.picture,
+        },
+      });
+      
+      console.log(`Auto-created profile for user: ${userId}`);
+    }
+  } catch (error: any) {
+    // Ignore duplicate errors (race condition)
+    if (error.code !== 'P2002') {
+      console.error('Error ensuring user exists:', error);
+    }
+  }
+}
+
 // Wrapper for protected API routes
 export function withAuth(
   handler: (req: VercelRequest, res: VercelResponse, userId: string) => Promise<void>
@@ -44,6 +87,10 @@ export function withAuth(
       });
 
       const userId = getUserId(req);
+      
+      // Ensure user profile exists in database (auto-create if needed)
+      await ensureUserExists(req, userId);
+      
       await handler(req, res, userId);
     } catch (error: any) {
       console.error('Auth error:', error);
