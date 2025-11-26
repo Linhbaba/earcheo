@@ -1,0 +1,168 @@
+// Earcheo Database Schema
+// User profiles, equipment, findings with image storage via Vercel Blob
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User profile (mapped to Auth0 user)
+model User {
+  id        String   @id // Auth0 sub
+  email     String   @unique
+  nickname  String?
+  bio       String?
+  avatarUrl String?
+  location  String?
+  
+  // Rozšířené informace
+  contact   String?
+  experience String?
+  
+  socialLinks       SocialLink[]
+  favoriteLocations FavoriteLocation[]
+  equipment         Equipment[]
+  findings          Finding[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([email])
+}
+
+// Sociální odkazy uživatele (místo JSON pole)
+model SocialLink {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  platform String // "facebook", "instagram", "youtube", atd.
+  url      String
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+}
+
+// Oblíbené lokality (místo JSON pole)
+model FavoriteLocation {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name      String
+  latitude  Float
+  longitude Float
+  notes     String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+}
+
+// Vybavení uživatele
+model Equipment {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name         String
+  type         EquipmentType
+  manufacturer String?
+  model        String?
+  notes        String?
+  
+  // Relace k nálezům kde bylo použito
+  findings     FindingEquipment[]
+  
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([type])
+}
+
+enum EquipmentType {
+  DETECTOR
+  GPS
+  OTHER
+}
+
+// Nálezy
+model Finding {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Základní informace (vždy viditelné)
+  title       String
+  latitude    Float
+  longitude   Float
+  date        DateTime
+  description String
+  category    String
+  
+  // Rozšířené informace (zobrazit při kliknutí "Více")
+  condition         String?  // stav nálezu
+  depth             Float?   // hloubka v cm
+  locationName      String?  // název lokace
+  historicalContext String?  // historický kontext
+  material          String?  // materiál
+  
+  // Viditelnost
+  isPublic    Boolean   @default(false)
+  
+  // Relace
+  images      FindingImage[]
+  equipment   FindingEquipment[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([isPublic])
+  @@index([date])
+  @@index([category])
+}
+
+// Junction table pro M:N vztah Finding <-> Equipment
+model FindingEquipment {
+  id          String    @id @default(cuid())
+  findingId   String
+  finding     Finding   @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime  @default(now())
+  
+  @@unique([findingId, equipmentId])
+  @@index([findingId])
+  @@index([equipmentId])
+}
+
+// Fotky nálezů (Vercel Blob URLs)
+model FindingImage {
+  id           String   @id @default(cuid())
+  findingId    String
+  finding      Finding  @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  
+  // Vercel Blob URLs
+  originalUrl  String   // original upload
+  thumbnailUrl String   // 200x200 thumbnail
+  mediumUrl    String   // 800x600 medium
+  
+  // Metadata
+  order        Int      @default(0) // pořadí zobrazení
+  filename     String
+  filesize     Int      // v bytech
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([findingId])
+  @@index([findingId, order])
+}

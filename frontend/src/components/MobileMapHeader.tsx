@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Search, X, Navigation, Crosshair } from 'lucide-react';
+import { Search, X, Navigation, Crosshair, User, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import { clsx } from 'clsx';
 import type { ViewState } from 'react-map-gl/maplibre';
 import type { UserLocation } from './LocationControl';
@@ -20,11 +21,17 @@ export const MobileMapHeader = ({
   onLocationChange,
   bearing = 0 
 }: MobileMapHeaderProps) => {
+  const { user, logout, isAuthenticated } = useAuth0();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Array<{ id: string; place_name: string; center: [number, number]; }>>([]);
   const [loading, setLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+
+  const handleLogout = () => {
+    logout({ logoutParams: { returnTo: window.location.origin } });
+  };
 
   const handleSearch = async (searchQuery: string) => {
     setQuery(searchQuery);
@@ -132,6 +139,29 @@ export const MobileMapHeader = ({
             >
               {isSearchOpen ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
             </button>
+
+            {/* User Menu */}
+            {isAuthenticated && (
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className={clsx(
+                  'p-1 rounded-xl transition-all',
+                  isUserMenuOpen
+                    ? 'bg-primary/20'
+                    : 'bg-white/10 active:bg-white/20'
+                )}
+              >
+                {user?.picture ? (
+                  <img 
+                    src={user.picture} 
+                    alt={user.name || 'User'} 
+                    className="w-8 h-8 rounded-lg"
+                  />
+                ) : (
+                  <User className="w-5 h-5 text-white/60" />
+                )}
+              </button>
+            )}
           </div>
         </div>
 
@@ -179,6 +209,45 @@ export const MobileMapHeader = ({
           </div>
         )}
       </div>
+
+      {/* User Menu Dropdown */}
+      {isUserMenuOpen && isAuthenticated && (
+        <>
+          <div 
+            className="fixed inset-0 z-40"
+            onClick={() => setIsUserMenuOpen(false)}
+          />
+          <div className="fixed top-14 right-3 z-50 w-56 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden animate-fade-in safe-area-inset-top">
+            {/* User Info */}
+            <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
+              {user?.picture ? (
+                <img 
+                  src={user.picture} 
+                  alt={user.name || 'User'} 
+                  className="w-10 h-10 rounded-lg"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white/50" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-mono text-sm truncate">{user?.name}</p>
+                <p className="text-white/40 font-mono text-[10px] truncate">{user?.email}</p>
+              </div>
+            </div>
+            
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 text-red-400 active:bg-red-500/20 font-mono text-sm transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              Odhlásit se
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Floating Compass - Only show when rotated */}
       {bearing !== 0 && (

@@ -174,7 +174,7 @@ export const LandingPage = () => {
         </div>
 
         {/* Feature cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 max-w-4xl w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-4xl w-full px-4">
           <FeatureCard 
             icon={<Layers className="w-6 h-6" />}
             title="LiDAR Data"

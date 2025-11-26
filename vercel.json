@@ -23,6 +23,12 @@
     { "source": "/api/wms-proxy", "destination": "/api/wms-proxy" },
     { "source": "/api/ortofoto-proxy", "destination": "/api/ortofoto-proxy" },
     { "source": "/api/history-proxy", "destination": "/api/history-proxy" },
+    { "source": "/api/profile", "destination": "/api/profile" },
+    { "source": "/api/equipment", "destination": "/api/equipment/index" },
+    { "source": "/api/equipment/:id", "destination": "/api/equipment/[id]" },
+    { "source": "/api/findings", "destination": "/api/findings/index" },
+    { "source": "/api/findings/:id", "destination": "/api/findings/[id]" },
+    { "source": "/api/findings/:id/images", "destination": "/api/findings/[id]/images" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -72,7 +78,6 @@
   ],
   "functions": {
     "api/*.ts": {
-      "memory": 1024,
       "maxDuration": 30
     }
   }

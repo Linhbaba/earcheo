@@ -44,6 +44,10 @@ data_cache/
 .env.production.local
 backend/.env
 
+# Google Cloud credentials
+client_secret_*.json
+**/client_secret_*.json
+
 # Logs
 logs/
 *.log
@@ -87,3 +91,5 @@ get-pip.py
 DEBUG-*.md
 
 .vercel
+
+/generated/prisma
