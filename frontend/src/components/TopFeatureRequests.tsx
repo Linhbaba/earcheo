@@ -2,60 +2,60 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { ThumbsUp, TrendingUp, ArrowRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface FeatureRequest {
   id: string;
   title: string;
   description: string;
+  category: string;
   votes: number;
-  votedBy: string[];
-  authorId: string;
-  authorName: string;
-  createdAt: number;
-  status: 'new' | 'planned' | 'in-progress' | 'done';
+  userVoted: boolean;
+  userId: string;
+  createdAt: string;
 }
 
-const STORAGE_KEY = 'earcheo-features-v2';
-
-// Default features to show (same as in FeatureRequests.tsx)
-const DEFAULT_FEATURES: FeatureRequest[] = [
-  {
-    id: '1',
-    title: 'Možnost zvolit si na jaké straně který druh mapy mít',
-    description: 'Při rozdělení obrazovky možnost výběru, zda chci mít LiDAR na levé nebo pravé straně a optic na druhé straně.',
-    votes: 0,
-    votedBy: [],
-    authorId: 'system',
-    authorName: 'eArcheo',
-    createdAt: Date.now(),
-    status: 'new'
-  }
-];
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export const TopFeatureRequests = () => {
-  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
-  const navigate = useNavigate();
+  const { isAuthenticated, loginWithRedirect, getAccessTokenSilently } = useAuth0();
   const [features, setFeatures] = useState<FeatureRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load features from localStorage
+  // Fetch features from API (public endpoint - no auth required)
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setFeatures(JSON.parse(stored));
-    } else {
-      setFeatures(DEFAULT_FEATURES);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_FEATURES));
-    }
-  }, []);
+    const fetchFeatures = async () => {
+      try {
+        setLoading(true);
+        
+        // Try to get token if authenticated
+        let headers: HeadersInit = {};
+        if (isAuthenticated) {
+          try {
+            const token = await getAccessTokenSilently();
+            headers = { 'Authorization': `Bearer ${token}` };
+          } catch (err) {
+            // User not authenticated, continue without token
+          }
+        }
 
-  // Save features to localStorage
-  const saveFeatures = (newFeatures: FeatureRequest[]) => {
-    setFeatures(newFeatures);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newFeatures));
-  };
+        const response = await fetch(`${API_URL}/api/features`, { headers });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setFeatures(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch features:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleVote = (featureId: string) => {
+    fetchFeatures();
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  const handleVote = async (featureId: string) => {
     if (!isAuthenticated) {
       loginWithRedirect({
         appState: { returnTo: '/' }
@@ -63,31 +63,37 @@ export const TopFeatureRequests = () => {
       return;
     }
     
-    if (!user?.sub) return;
-    
-    const updated = features.map(f => {
-      if (f.id === featureId) {
-        const hasVoted = f.votedBy.includes(user.sub!);
-        return {
-          ...f,
-          votes: hasVoted ? f.votes - 1 : f.votes + 1,
-          votedBy: hasVoted 
-            ? f.votedBy.filter(id => id !== user.sub)
-            : [...f.votedBy, user.sub!]
-        };
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(`${API_URL}/api/features/${featureId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle vote');
       }
-      return f;
-    });
-    saveFeatures(updated);
+
+      const updated = await response.json();
+      
+      // Update feature in list
+      setFeatures(prev => prev.map(f => f.id === featureId ? updated : f));
+    } catch (error) {
+      console.error('Vote error:', error);
+      toast.error('Nepodařilo se hlasovat');
+    }
   };
 
   const handleSeeAll = () => {
     if (!isAuthenticated) {
       loginWithRedirect({
-        appState: { returnTo: '/features' }
+        appState: { returnTo: '/' }
       });
     } else {
-      navigate('/features');
+      // Open feature requests modal or navigate
+      window.location.href = '/map'; // User can then open feature requests from menu
     }
   };
 
@@ -96,21 +102,13 @@ export const TopFeatureRequests = () => {
     .sort((a, b) => b.votes - a.votes)
     .slice(0, 3);
 
-  const getStatusColor = (status: FeatureRequest['status']) => {
-    switch (status) {
-      case 'new': return 'bg-white/10 text-white/60';
-      case 'planned': return 'bg-blue-500/20 text-blue-400';
-      case 'in-progress': return 'bg-amber-500/20 text-amber-400';
-      case 'done': return 'bg-green-500/20 text-green-400';
-    }
-  };
-
-  const getStatusLabel = (status: FeatureRequest['status']) => {
-    switch (status) {
-      case 'new': return 'Nový';
-      case 'planned': return 'Plánováno';
-      case 'in-progress': return 'V realizaci';
-      case 'done': return 'Hotovo';
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'mapa': return 'bg-blue-500/20 text-blue-400';
+      case 'nálezy': return 'bg-amber-500/20 text-amber-400';
+      case 'ui/ux': return 'bg-purple-500/20 text-purple-400';
+      case 'data': return 'bg-green-500/20 text-green-400';
+      default: return 'bg-white/10 text-white/60';
     }
   };
 
@@ -132,52 +130,62 @@ export const TopFeatureRequests = () => {
 
       {/* Feature cards */}
       <div className="space-y-3 mb-6">
-        {topFeatures.map((feature, index) => (
-          <div
-            key={feature.id}
-            className="group bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4 hover:border-primary/30 transition-all"
-          >
-            <div className="flex gap-2 sm:gap-4 items-center">
-              {/* Rank badge */}
-              <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
-                <span className="font-display text-primary text-xs sm:text-sm">#{index + 1}</span>
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
-                  <h4 className="font-display text-white text-sm sm:text-base truncate">{feature.title}</h4>
-                  <span className={clsx(
-                    "px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
-                    getStatusColor(feature.status)
-                  )}>
-                    {getStatusLabel(feature.status)}
-                  </span>
-                </div>
-                <p className="text-white/40 font-mono text-[10px] sm:text-xs line-clamp-1">
-                  {feature.description}
-                </p>
-              </div>
-
-              {/* Vote button */}
-              <button
-                onClick={() => handleVote(feature.id)}
-                disabled={!isAuthenticated}
-                className={clsx(
-                  "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg border transition-all flex-shrink-0",
-                  isAuthenticated && user?.sub && feature.votedBy.includes(user.sub)
-                    ? "bg-primary/20 border-primary/50 text-primary"
-                    : "bg-white/5 border-white/10 text-white/60 hover:border-primary/30 hover:text-primary",
-                  !isAuthenticated && "cursor-pointer hover:bg-primary/10"
-                )}
-                title={!isAuthenticated ? "Přihlaste se pro hlasování" : ""}
-              >
-                <ThumbsUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="font-mono text-xs sm:text-sm font-bold">{feature.votes}</span>
-              </button>
-            </div>
+        {loading ? (
+          <div className="text-center text-white/30 font-mono text-sm py-8">
+            Načítání návrhů...
           </div>
-        ))}
+        ) : topFeatures.length === 0 ? (
+          <div className="text-center text-white/30 font-mono text-sm py-8">
+            Zatím žádné návrhy funkcí
+          </div>
+        ) : (
+          topFeatures.map((feature, index) => (
+            <div
+              key={feature.id}
+              className="group bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4 hover:border-primary/30 transition-all"
+            >
+              <div className="flex gap-2 sm:gap-4 items-center">
+                {/* Rank badge */}
+                <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
+                  <span className="font-display text-primary text-xs sm:text-sm">#{index + 1}</span>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                    <h4 className="font-display text-white text-sm sm:text-base truncate">{feature.title}</h4>
+                    <span className={clsx(
+                      "px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
+                      getCategoryColor(feature.category)
+                    )}>
+                      {feature.category}
+                    </span>
+                  </div>
+                  <p className="text-white/40 font-mono text-[10px] sm:text-xs line-clamp-1">
+                    {feature.description}
+                  </p>
+                </div>
+
+                {/* Vote button */}
+                <button
+                  onClick={() => handleVote(feature.id)}
+                  disabled={!isAuthenticated}
+                  className={clsx(
+                    "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg border transition-all flex-shrink-0",
+                    isAuthenticated && feature.userVoted
+                      ? "bg-primary/20 border-primary/50 text-primary"
+                      : "bg-white/5 border-white/10 text-white/60 hover:border-primary/30 hover:text-primary",
+                    !isAuthenticated && "cursor-pointer hover:bg-primary/10"
+                  )}
+                  title={!isAuthenticated ? "Přihlaste se pro hlasování" : ""}
+                >
+                  <ThumbsUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-mono text-xs sm:text-sm font-bold">{feature.votes}</span>
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Call to action */}
