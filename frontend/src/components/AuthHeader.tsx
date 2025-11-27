@@ -82,8 +82,6 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
 
   const navItems = [
     { path: '/map', label: 'Mapa', icon: Map, type: 'route' as const },
-    { path: '/findings', label: 'Nálezy', icon: Search, type: 'modal' as const },
-    { path: '/features', label: 'Navrhnout funkci', icon: Lightbulb, type: 'modal' as const },
   ];
 
   return (
@@ -123,22 +121,6 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
                   : "text-white/50 hover:text-white hover:bg-white/5"
               );
               
-              // Modal type - použije onClick místo routingu
-              if (item.type === 'modal') {
-                const handleClick = item.path === '/findings' ? onOpenFindings : item.path === '/features' ? onOpenFeatureRequests : undefined;
-                return (
-                  <button
-                    key={item.path}
-                    onClick={handleClick}
-                    className={className}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.label}
-                  </button>
-                );
-              }
-              
-              // Běžný route link
               return (
                 <Link
                   key={item.path}
