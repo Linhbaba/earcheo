@@ -8,7 +8,7 @@ interface FeatureRequest {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category?: string; // Optional because old data might not have it
   votes: number;
   userVoted: boolean;
   userId: string;
@@ -102,7 +102,9 @@ export const TopFeatureRequests = () => {
     .sort((a, b) => b.votes - a.votes)
     .slice(0, 3);
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category?: string) => {
+    if (!category) return 'bg-white/10 text-white/60';
+    
     switch (category.toLowerCase()) {
       case 'mapa': return 'bg-blue-500/20 text-blue-400';
       case 'nálezy': return 'bg-amber-500/20 text-amber-400';
@@ -154,12 +156,14 @@ export const TopFeatureRequests = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                     <h4 className="font-display text-white text-sm sm:text-base truncate">{feature.title}</h4>
-                    <span className={clsx(
-                      "px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
-                      getCategoryColor(feature.category)
-                    )}>
-                      {feature.category}
-                    </span>
+                    {feature.category && (
+                      <span className={clsx(
+                        "px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
+                        getCategoryColor(feature.category)
+                      )}>
+                        {feature.category}
+                      </span>
+                    )}
                   </div>
                   <p className="text-white/40 font-mono text-[10px] sm:text-xs line-clamp-1">
                     {feature.description}

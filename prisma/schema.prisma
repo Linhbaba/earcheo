@@ -177,6 +177,7 @@ model FeatureRequest {
   
   title       String
   description String
+  category    String   @default("Ostatní")
   status      FeatureStatus @default(NEW)
   
   votes       FeatureVote[]
@@ -185,6 +186,7 @@ model FeatureRequest {
   updatedAt   DateTime @updatedAt
   
   @@index([userId])
+  @@index([category])
   @@index([status])
   @@index([createdAt])
 }
