@@ -65,6 +65,8 @@ interface SwipeMapProps {
   visualFilters: VisualFilters;
   filtersEnabled: boolean;
   userLocation?: UserLocation | null;
+  findings?: Finding[];
+  onFindingClick?: (finding: Finding) => void;
 }
 
 export const SwipeMap = ({ 
@@ -395,7 +397,7 @@ export const SwipeMap = ({
                 )}
 
                 {/* Finding Markers */}
-                {findings.map((finding) => {
+                {findings.map((finding: Finding) => {
                   // Color based on first category (or default)
                   const firstCategory = finding.category ? finding.category.split(',')[0].trim().toLowerCase() : '';
                   const categoryColors: Record<string, string> = {
@@ -567,7 +569,7 @@ export const SwipeMap = ({
                   )}
 
                   {/* Finding Markers */}
-                  {findings.map((finding) => {
+                  {findings.map((finding: Finding) => {
                     const firstCategory = finding.category ? finding.category.split(',')[0].trim().toLowerCase() : '';
                     const categoryColors: Record<string, string> = {
                       'mince': '#ffae00',

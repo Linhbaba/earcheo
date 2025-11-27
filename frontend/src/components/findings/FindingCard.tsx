@@ -1,5 +1,5 @@
 import { MapPin, Calendar, Package } from 'lucide-react';
-import { BaseCard, StatusBadge } from '../shared';
+import { BaseCard } from '../shared';
 import type { Finding } from '../../types/database';
 
 interface FindingCardProps {
