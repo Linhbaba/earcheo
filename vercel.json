@@ -2,9 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "name": "earcheo",
   "version": 2,
-  "buildCommand": "npm install && npx prisma generate && cd frontend && npm install && npm run build",
+  "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install",
+  "installCommand": "npm install && cd frontend && npm install",
   "framework": null,
   "redirects": [
     {

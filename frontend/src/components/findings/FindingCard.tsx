@@ -25,7 +25,6 @@ export const FindingCard = ({ finding, onClick }: FindingCardProps) => {
               alt={finding.title}
               loading="lazy"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-surface">
