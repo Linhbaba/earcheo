@@ -1,4 +1,4 @@
-# Implementation Summary - Vercel Postgres + Prisma + Sharp.js
+ # Implementation Summary - Vercel Postgres + Prisma + Sharp.js
 
 Tento dokument shrnuje implementaci databázového systému pro Earcheo aplikaci.
 

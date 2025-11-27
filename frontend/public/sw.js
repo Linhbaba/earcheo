@@ -1,5 +1,5 @@
 // Service Worker for caching map tiles and static assets
-const CACHE_NAME = 'earcheo-v1.1';
+const CACHE_NAME = 'earcheo-v1.2';
 const MAP_TILE_CACHE = 'earcheo-map-tiles-v1';
 
 // Assets to cache immediately

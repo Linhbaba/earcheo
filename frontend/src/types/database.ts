@@ -44,6 +44,7 @@ export interface Equipment {
   manufacturer?: string | null;
   model?: string | null;
   notes?: string | null;
+  usageCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -164,6 +165,7 @@ export interface UploadImageRequest {
   image: string; // base64 encoded
   filename: string;
 }
+
 
 // Feature Requests
 export interface FeatureRequest {

@@ -33,62 +33,74 @@ Kompletní specifikace: [docs/cuzk-dmr5g-specification.md](docs/cuzk-dmr5g-speci
 
 ## 🚀 Quickstart
 
-### Prerekvizity
-
-- **Python 3.13+** (backend)
-- **Node.js 18+** (frontend + proxy)
-- **Sentinel Hub Account** (pro NDVI, volitelné)
-
-### Instalace
+### ⚡ Rychlé spuštění (doporučeno)
 
 ```bash
-# 1. Clone repository
-git clone <repository-url>
-cd earcheo
-
-# 2. Backend setup (Python)
-cd backend
-python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-pip install -r requirements.txt
-
-# 3. Frontend setup
-cd ../frontend
+# 1. Instalace závislostí
 npm install
 
-# 4. Proxy setup (Node.js)
-cd ../backend
-npm install
-```
-
-### Konfigurace
-
-Vytvořte `backend/.env`:
-
-```env
-# Volitelné - pro NDVI analýzu
-SENTINEL_CLIENT_ID=your_client_id
-SENTINEL_CLIENT_SECRET=your_client_secret
-```
-
-### Spuštění
-
-```bash
-# Terminál 1: Python backend (port 8000)
-cd backend
-source venv/bin/activate
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-
-# Terminál 2: Node.js proxy (port 3010)
-cd backend
-node index.js
-
-# Terminál 3: Frontend (port 5173)
-cd frontend
+# 2. Spuštění aplikace
 npm run dev
 ```
 
 Aplikace běží na: **http://localhost:5173**
+
+> 💡 Pro podrobný návod lokálního vývoje viz [LOCAL_DEV_GUIDE.md](LOCAL_DEV_GUIDE.md)
+
+> ✅ Pro kontrolu služeb spusťte: `./check-services.sh`
+
+### 📝 Požadavky
+
+- **Node.js 18+** (frontend + proxy)
+- **Python 3.13+** (volitelné - pro NDVI analýzy)
+
+### ⚙️ Environment proměnné
+
+Vytvořte `frontend/.env`:
+
+```env
+# Auth0 Configuration
+VITE_AUTH0_DOMAIN=dev-jsfkqesvxjhvsnkd.us.auth0.com
+VITE_AUTH0_CLIENT_ID=nmaeKAn8ceXcFeowxRu4fSrlYezSw70R
+VITE_AUTH0_AUDIENCE=https://api.earcheo.cz
+VITE_MAPBOX_TOKEN=<váš_token>
+
+# API URL (leave empty for localhost proxy)
+VITE_API_URL=
+```
+
+Root `.env`:
+
+```env
+# Neon Database
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
+
+# Auth0
+AUTH0_DOMAIN="dev-jsfkqesvxjhvsnkd.us.auth0.com"
+AUTH0_AUDIENCE="https://api.earcheo.cz"
+AUTH0_ISSUER="https://dev-jsfkqesvxjhvsnkd.us.auth0.com/"
+
+# Vercel Blob
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_..."
+```
+
+### 🔧 Manuální spuštění (pro debugging)
+
+```bash
+# Terminál 1: Node.js proxy (port 3010)
+cd backend
+node index.js
+
+# Terminál 2: Frontend (port 5173)
+cd frontend
+npm run dev
+
+# Terminál 3: Python backend (port 8000) - VOLITELNÉ
+cd backend
+source venv/bin/activate
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
 ## 🎨 Funkce
 

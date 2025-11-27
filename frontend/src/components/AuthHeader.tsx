@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Map, Lightbulb, LogOut, User, ChevronDown, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Map, Lightbulb, LogOut, User, ChevronDown, Trash2, CheckCircle, XCircle, Package } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface AuthHeaderProps {
@@ -9,9 +9,11 @@ interface AuthHeaderProps {
   showSearch?: boolean;
   onOpenFindings?: () => void;
   onOpenFeatureRequests?: () => void;
+  onOpenEquipment?: () => void;
+  onOpenProfile?: () => void;
 }
 
-export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings, onOpenFeatureRequests }: AuthHeaderProps) => {
+export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings, onOpenFeatureRequests, onOpenEquipment, onOpenProfile }: AuthHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const location = useLocation();
   const [query, setQuery] = useState('');
@@ -185,7 +187,7 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
         {/* Version badge */}
         <div className="text-right pointer-events-auto">
           <span className="bg-amber-500/20 px-3 py-1 rounded-lg text-amber-400 border border-amber-500/30 text-[10px] font-mono tracking-wider">
-            BETA v1.1
+            BETA v1.2
           </span>
         </div>
 
@@ -227,12 +229,32 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
                     <button
                       onClick={() => {
                         setShowUserMenu(false);
+                        onOpenProfile?.();
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 font-mono text-sm transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      Profil
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
                         onOpenFindings?.();
                       }}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 font-mono text-sm transition-colors"
                     >
                       <Search className="w-4 h-4" />
                       Nálezy
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        onOpenEquipment?.();
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 font-mono text-sm transition-colors"
+                    >
+                      <Package className="w-4 h-4" />
+                      Vybavení
                     </button>
                     <button
                       onClick={() => {

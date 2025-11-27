@@ -122,7 +122,7 @@ export const Header = ({ onLocationSelect }: HeaderProps) => {
 
         <div className="text-right pointer-events-auto ml-auto">
            <span className="bg-amber-500/20 px-3 py-1 rounded-lg text-amber-400 border border-amber-500/30 text-[10px] font-mono tracking-wider">
-             BETA v1.1
+             BETA v1.2
            </span>
         </div>
       </div>

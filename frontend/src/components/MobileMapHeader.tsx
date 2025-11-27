@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb } from 'lucide-react';
+import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { clsx } from 'clsx';
@@ -13,6 +13,7 @@ interface MobileMapHeaderProps {
   bearing?: number;
   onOpenFindings?: () => void;
   onOpenFeatureRequests?: () => void;
+  onAddFinding?: () => void;
 }
 
 export const MobileMapHeader = ({ 
@@ -21,7 +22,8 @@ export const MobileMapHeader = ({
   onLocationChange,
   bearing = 0,
   onOpenFindings,
-  onOpenFeatureRequests
+  onOpenFeatureRequests,
+  onAddFinding
 }: MobileMapHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -283,6 +285,16 @@ export const MobileMapHeader = ({
             
             {/* Menu Items */}
             <div className="py-1">
+              <button
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  onAddFinding?.();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-primary/90 active:bg-primary/10 font-mono text-sm transition-colors font-semibold"
+              >
+                <Plus className="w-5 h-5" />
+                Přidat nález
+              </button>
               <button
                 onClick={() => {
                   setIsUserMenuOpen(false);

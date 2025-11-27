@@ -4,13 +4,18 @@ import type { Equipment, CreateEquipmentRequest, UpdateEquipmentRequest } from '
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-export function useEquipment() {
+interface UseEquipmentOptions {
+  autoFetch?: boolean;
+}
+
+export function useEquipment(options: UseEquipmentOptions = {}) {
+  const { autoFetch = true } = options;
   const { getAccessTokenSilently } = useAuth0();
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch all equipment
+  // Fetch all user's equipment
   const fetchEquipment = async () => {
     try {
       setLoading(true);
@@ -32,6 +37,7 @@ export function useEquipment() {
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Fetch equipment error:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -54,7 +60,8 @@ export function useEquipment() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create equipment');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create equipment');
       }
 
       const newEquipment = await response.json();
@@ -62,6 +69,7 @@ export function useEquipment() {
       return newEquipment;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Create equipment error:', err);
       throw err;
     }
   };
@@ -82,14 +90,16 @@ export function useEquipment() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update equipment');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update equipment');
       }
 
       const updated = await response.json();
-      setEquipment(prev => prev.map(eq => eq.id === id ? updated : eq));
+      setEquipment(prev => prev.map(e => e.id === id ? updated : e));
       return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Update equipment error:', err);
       throw err;
     }
   };
@@ -108,20 +118,24 @@ export function useEquipment() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete equipment');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete equipment');
       }
 
-      setEquipment(prev => prev.filter(eq => eq.id !== id));
+      setEquipment(prev => prev.filter(e => e.id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Delete equipment error:', err);
       throw err;
     }
   };
 
-  // Load equipment on mount
+  // Load equipment on mount (if autoFetch enabled)
   useEffect(() => {
-    fetchEquipment();
-  }, []);
+    if (autoFetch) {
+      fetchEquipment();
+    }
+  }, [autoFetch]);
 
   return {
     equipment,
@@ -133,5 +147,3 @@ export function useEquipment() {
     deleteEquipment,
   };
 }
-
-

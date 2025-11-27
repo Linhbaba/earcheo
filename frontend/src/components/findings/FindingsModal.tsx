@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Package, X } from 'lucide-react';
 import { useFindings } from '../../hooks/useFindings';
 import { FindingCard } from './FindingCard';
@@ -10,14 +10,32 @@ import type { Finding } from '../../types/database';
 interface FindingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialShowForm?: boolean;
 }
 
-export const FindingsModal = ({ isOpen, onClose }: FindingsModalProps) => {
+export const FindingsModal = ({ isOpen, onClose, initialShowForm = false }: FindingsModalProps) => {
   const { findings, loading, fetchFindings } = useFindings();
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(initialShowForm);
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
   const [editingFinding, setEditingFinding] = useState<Finding | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  
+  // Refresh data when modal opens
+  useEffect(() => {
+    if (isOpen && !loading) {
+      fetchFindings();
+    }
+  }, [isOpen]);
+  
+  // Update showForm when initialShowForm changes
+  useEffect(() => {
+    if (isOpen && initialShowForm) {
+      setShowForm(true);
+    } else if (!isOpen) {
+      // Reset form when modal closes
+      setShowForm(false);
+    }
+  }, [isOpen, initialShowForm]);
   
   if (!isOpen) return null;
 

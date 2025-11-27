@@ -706,21 +706,29 @@ export const SwipeMap = ({
       <div 
         className={
           splitMode === 'horizontal'
-            ? "absolute left-0 right-0 h-[2px] bg-primary cursor-ns-resize z-40 flex items-center justify-center group shadow-[0_0_20px_rgba(0,243,255,0.5)] touch-none"
-            : "absolute top-0 bottom-0 w-[2px] bg-primary cursor-ew-resize z-40 flex items-center justify-center group shadow-[0_0_20px_rgba(0,243,255,0.5)] touch-none"
+            ? "absolute left-0 right-0 h-[3px] bg-primary cursor-ns-resize z-40 flex items-center justify-center group shadow-[0_0_25px_rgba(0,243,255,0.6)] touch-none"
+            : "absolute top-0 bottom-0 w-[3px] bg-primary cursor-ew-resize z-40 flex items-center justify-center group shadow-[0_0_25px_rgba(0,243,255,0.6)] touch-none"
         }
         style={sliderStyle}
         onMouseDown={() => setIsDragging(true)}
         onTouchStart={() => setIsDragging(true)}
       >
-        <div className="w-10 h-10 bg-black/80 backdrop-blur border-2 border-primary rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 active:scale-110 transition-transform">
-            <Move className="w-5 h-5 text-primary" />
-        </div>
+        {/* Průhledná linka na pozadí */}
         {splitMode === 'horizontal' ? (
-          <div className="absolute left-0 right-0 h-full bg-primary/40" />
+          <div className="absolute left-0 right-0 h-full bg-primary/40 z-0" />
         ) : (
-          <div className="absolute top-0 bottom-0 w-full bg-primary/40" />
+          <div className="absolute top-0 bottom-0 w-full bg-primary/40 z-0" />
         )}
+        
+        {/* Perfektně kulatý handle - vždy kruhový, neprůhledný */}
+        <div 
+          className="relative z-10 flex-shrink-0"
+          style={{ width: '48px', height: '48px' }}
+        >
+          <div className="absolute inset-0 bg-[#0a0e14] border-[3px] border-primary rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(0,243,255,0.8)] shadow-lg group-hover:scale-110 active:scale-110 transition-all duration-200 touch-manipulation">
+            <Move className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(0,243,255,0.9)]" />
+          </div>
+        </div>
       </div>
     </div>
   );
