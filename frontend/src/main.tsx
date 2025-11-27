@@ -6,7 +6,7 @@ import { Toaster } from 'sonner';
 import { Auth0ProviderWithNavigate } from './auth/Auth0ProviderWithNavigate';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { QueryProvider } from './providers/QueryProvider';
-import { LandingPage } from './pages/LandingPage';
+import { HomePage } from './pages/HomePage';
 import { MapPage } from './pages/MapPage';
 import { FeatureRequests } from './pages/FeatureRequests';
 import { FindingsPage } from './pages/FindingsPage';
@@ -37,8 +37,8 @@ createRoot(document.getElementById('root')!).render(
           }}
         />
         <Routes>
-          {/* Public route */}
-          <Route path="/" element={<LandingPage />} />
+          {/* Public route - smart router that redirects authenticated users to /map */}
+          <Route path="/" element={<HomePage />} />
           
           {/* Protected routes */}
           <Route 

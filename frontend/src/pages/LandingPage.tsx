@@ -1,20 +1,10 @@
 import { useAuth0 } from '@auth0/auth0-react';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { Map, Layers, Radar, ChevronRight, Package } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 
 export const LandingPage = () => {
-  const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
-  const navigate = useNavigate();
-
-  // Redirect to map if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate('/map');
-    }
-  }, [isAuthenticated, isLoading, navigate]);
+  const { loginWithRedirect } = useAuth0();
 
   const handleLogin = () => {
     loginWithRedirect({
