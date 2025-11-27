@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
 import { Auth0ProviderWithNavigate } from './auth/Auth0ProviderWithNavigate';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { QueryProvider } from './providers/QueryProvider';
@@ -36,6 +37,7 @@ createRoot(document.getElementById('root')!).render(
             },
           }}
         />
+        <Analytics />
         <Routes>
           {/* Public route - smart router that redirects authenticated users to /map */}
           <Route path="/" element={<HomePage />} />
