@@ -36,8 +36,6 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         await prisma.featureVote.delete({
           where: { id: existingVote.id },
         });
-
-        return res.status(200).json({ voted: false });
       } else {
         // Add vote
         await prisma.featureVote.create({
@@ -46,9 +44,39 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
             featureId: id,
           },
         });
-
-        return res.status(200).json({ voted: true });
       }
+
+      // Return updated feature with vote count and user vote status
+      const updatedFeature = await prisma.featureRequest.findUnique({
+        where: { id },
+        include: {
+          _count: {
+            select: { votes: true },
+          },
+          votes: {
+            where: { userId },
+            select: { id: true },
+          },
+        },
+      });
+
+      if (!updatedFeature) {
+        return res.status(404).json({ error: 'Feature not found' });
+      }
+
+      // Format response
+      const response = {
+        id: updatedFeature.id,
+        title: updatedFeature.title,
+        description: updatedFeature.description,
+        category: updatedFeature.category,
+        userId: updatedFeature.userId,
+        votes: updatedFeature._count.votes,
+        userVoted: updatedFeature.votes.length > 0,
+        createdAt: updatedFeature.createdAt.toISOString(),
+      };
+
+      return res.status(200).json(response);
     } catch (error) {
       console.error('Vote error:', error);
       return res.status(500).json({ error: 'Failed to vote' });

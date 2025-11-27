@@ -312,3 +312,4 @@ DEBUG="prisma:*" npm run vercel:dev  # Prisma debug
 
 Hodně štěstí! 🚀
 
+

@@ -538,3 +538,4 @@ console.log('Processing image:', {
 
 API je plně funkční a připravené na použití ve frontendu.
 
+

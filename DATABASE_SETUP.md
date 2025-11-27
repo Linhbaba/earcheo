@@ -267,3 +267,4 @@ Nyní máte plně funkční databázi s REST API pro uživatelské profily, vyba
 3. Přidat validaci formulářů
 4. Otestovat upload fotek
 
+

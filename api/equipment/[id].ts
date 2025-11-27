@@ -103,3 +103,4 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
 
 export default withAuth(handler);
 
+
