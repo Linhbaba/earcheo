@@ -67,15 +67,20 @@ export const MobileMapHeader = ({
   };
 
   const handleGetLocation = () => {
+    console.log('[GPS] Button clicked');
+    
     if (!navigator.geolocation) {
-      console.error('Geolocation is not supported');
+      console.error('[GPS] Geolocation is not supported');
+      alert('Geolokace není podporována v tomto prohlížeči');
       return;
     }
 
+    console.log('[GPS] Requesting position...');
     setIsLocating(true);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        console.log('[GPS] Position received:', position.coords);
         const { longitude, latitude } = position.coords;
         setViewState(prev => ({
           ...prev,
@@ -87,10 +92,29 @@ export const MobileMapHeader = ({
         setIsLocating(false);
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        console.error('[GPS] Error:', error);
+        let errorMsg = 'Nepodařilo se získat polohu';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMsg = 'Přístup k poloze byl zamítnut. Povolte přístup v nastavení prohlížeče.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMsg = 'Informace o poloze nejsou k dispozici.';
+            break;
+          case error.TIMEOUT:
+            errorMsg = 'Požadavek na polohu vypršel. Zkuste to znovu.';
+            break;
+        }
+        
+        alert(errorMsg);
         setIsLocating(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { 
+        enableHighAccuracy: true, 
+        timeout: 10000,
+        maximumAge: 0 
+      }
     );
   };
 
@@ -118,16 +142,23 @@ export const MobileMapHeader = ({
               onClick={handleGetLocation}
               disabled={isLocating}
               className={clsx(
-                'p-2.5 rounded-xl transition-all relative z-10',
+                'p-2.5 rounded-xl transition-all relative z-10 touch-manipulation',
                 isLocating
-                  ? 'bg-primary/20 text-primary animate-pulse'
-                  : 'bg-white/10 text-white/60 active:bg-white/20'
+                  ? 'bg-primary/20 text-primary animate-pulse cursor-wait'
+                  : 'bg-white/10 text-white/60 active:bg-primary/30 active:text-primary active:scale-95'
               )}
+              aria-label="Získat aktuální polohu"
             >
               {isLocating ? (
-                <Navigation className="w-5 h-5 animate-spin" />
+                <>
+                  <Navigation className="w-5 h-5 animate-spin" />
+                  <span className="sr-only">Načítání polohy...</span>
+                </>
               ) : (
-                <Crosshair className="w-5 h-5" />
+                <>
+                  <Crosshair className="w-5 h-5" />
+                  <span className="sr-only">GPS</span>
+                </>
               )}
             </button>
 
