@@ -191,6 +191,7 @@ export const PhotoGallery = ({ images, onDelete, canDelete = false }: PhotoGalle
             <img
               src={images[selectedIndex].mediumUrl}
               alt={`Fotka ${selectedIndex + 1}`}
+              loading="lazy"
               className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
               style={{ maxHeight: 'calc(100vh - 100px)' }}
             />

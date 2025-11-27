@@ -11,8 +11,6 @@ interface AuthHeaderProps {
   onOpenFeatureRequests?: () => void;
 }
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
-
 export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings, onOpenFeatureRequests }: AuthHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const location = useLocation();
@@ -26,7 +24,7 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
 
   const handleSearch = async (searchQuery: string) => {
     setQuery(searchQuery);
-    if (!searchQuery || searchQuery.length < 3 || !MAPBOX_TOKEN) {
+    if (!searchQuery || searchQuery.length < 3) {
       setResults([]);
       return;
     }
@@ -35,11 +33,22 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
     setShowResults(true);
     
     try {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?language=cs&limit=5&access_token=${MAPBOX_TOKEN}`;
-      const res = await fetch(url);
+      // Nominatim OSM Geocoding (free, no API key needed)
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=cz&limit=5&accept-language=cs`;
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'eArcheo.cz (Archaeological Research App)'
+        }
+      });
       if (!res.ok) throw new Error('Geocoding failed');
       const data = await res.json();
-      setResults(data.features || []);
+      
+      // Convert Nominatim format to our format
+      setResults(data.map((item: any) => ({
+        id: item.place_id.toString(),
+        place_name: item.display_name,
+        center: [parseFloat(item.lon), parseFloat(item.lat)]
+      })));
     } catch (err) {
       console.error('Geocoding error:', err);
     } finally {

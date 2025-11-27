@@ -5,18 +5,26 @@ import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
 import { Auth0ProviderWithNavigate } from './auth/Auth0ProviderWithNavigate';
 import { ProtectedRoute } from './auth/ProtectedRoute';
+import { QueryProvider } from './providers/QueryProvider';
 import { LandingPage } from './pages/LandingPage';
 import { MapPage } from './pages/MapPage';
 import { FeatureRequests } from './pages/FeatureRequests';
 import { FindingsPage } from './pages/FindingsPage';
 import { FeaturesLayout } from './layouts/FeaturesLayout';
+import { registerServiceWorker } from './utils/registerServiceWorker';
 import './index.css';
+
+// Register Service Worker for offline map caching
+if (import.meta.env.PROD) {
+  registerServiceWorker();
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
     <BrowserRouter>
       <Auth0ProviderWithNavigate>
+        <QueryProvider>
         <Toaster 
           theme="dark" 
           position="top-right"
@@ -60,6 +68,7 @@ createRoot(document.getElementById('root')!).render(
             } 
           />
         </Routes>
+        </QueryProvider>
       </Auth0ProviderWithNavigate>
     </BrowserRouter>
     </HelmetProvider>
