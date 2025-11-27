@@ -28,6 +28,8 @@ model User {
   favoriteLocations FavoriteLocation[]
   equipment         Equipment[]
   findings          Finding[]
+  featureRequests   FeatureRequest[]
+  featureVotes      FeatureVote[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,4 +167,46 @@ model FindingImage {
   
   @@index([findingId])
   @@index([findingId, order])
+}
+
+// Feature requests (návrhy funkcí)
+model FeatureRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String
+  status      FeatureStatus @default(NEW)
+  
+  votes       FeatureVote[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Feature request votes (M:N relationship User <-> FeatureRequest)
+model FeatureVote {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  featureId String
+  feature   FeatureRequest @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime       @default(now())
+  
+  @@unique([userId, featureId])
+  @@index([userId])
+  @@index([featureId])
+}
+
+enum FeatureStatus {
+  NEW
+  PLANNED
+  IN_PROGRESS
+  DONE
 }

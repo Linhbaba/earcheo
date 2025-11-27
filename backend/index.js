@@ -8,6 +8,7 @@ const agent = new https.Agent({
 const app = express();
 
 app.use(cors());
+app.use(express.json()); // Parse JSON bodies
 
 // ČÚZK WMS Proxy Endpoint
 // Frontend will call: http://localhost:3001/api/wms-proxy?bbox=...&width=...
@@ -105,9 +106,82 @@ app.get('/api/history-proxy', async (req, res) => {
     }
 });
 
+// DATABASE API PROXY - Forward to production Vercel API for development
+// This allows local frontend to use the deployed API endpoints
+const PROD_API = 'https://earcheo.cz';
+
+// Generic API proxy handler
+const proxyToVercel = async (req, res, endpoint) => {
+    try {
+        const method = req.method.toLowerCase();
+        const url = `${PROD_API}${endpoint}`;
+        
+        console.log(`[PROXY] ${method.toUpperCase()} ${endpoint}`);
+        
+        // Clean headers - remove host and connection headers that cause issues
+        const cleanHeaders = { ...req.headers };
+        delete cleanHeaders.host;
+        delete cleanHeaders.connection;
+        delete cleanHeaders['content-length']; // Let axios calculate
+        
+        const config = {
+            method,
+            url,
+            headers: cleanHeaders,
+            httpsAgent: agent,
+            validateStatus: () => true, // Don't throw on any status
+        };
+
+        // Add body for POST/PUT/PATCH
+        if (['post', 'put', 'patch'].includes(method)) {
+            config.data = req.body;
+            console.log('[PROXY] Body:', JSON.stringify(req.body).substring(0, 200));
+        }
+
+        // Add query params
+        if (Object.keys(req.query).length > 0) {
+            config.params = req.query;
+        }
+
+        const response = await axios(config);
+        
+        console.log(`[PROXY] Response: ${response.status}`);
+        
+        // Forward status and data
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        console.error(`[PROXY ERROR] ${endpoint}:`, error.message);
+        if (error.response) {
+            console.error('[PROXY ERROR] Status:', error.response.status);
+            console.error('[PROXY ERROR] Data:', error.response.data);
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ error: 'Proxy error', message: error.message });
+        }
+    }
+};
+
+// Profile API
+app.all('/api/profile', (req, res) => proxyToVercel(req, res, '/api/profile'));
+
+// Equipment API
+app.all('/api/equipment', (req, res) => proxyToVercel(req, res, '/api/equipment'));
+app.all('/api/equipment/:id', (req, res) => proxyToVercel(req, res, `/api/equipment/${req.params.id}`));
+
+// Findings API
+app.all('/api/findings', (req, res) => proxyToVercel(req, res, '/api/findings'));
+app.all('/api/findings/:id', (req, res) => proxyToVercel(req, res, `/api/findings/${req.params.id}`));
+app.all('/api/findings/:id/images', (req, res) => proxyToVercel(req, res, `/api/findings/${req.params.id}/images`));
+
+// Features API
+app.all('/api/features', (req, res) => proxyToVercel(req, res, '/api/features'));
+app.all('/api/features/:id', (req, res) => proxyToVercel(req, res, `/api/features/${req.params.id}`));
+app.all('/api/features/:id/vote', (req, res) => proxyToVercel(req, res, `/api/features/${req.params.id}/vote`));
+
 const PORT = 3010;
 app.listen(PORT, () => {
     console.log(`[SYSTEM] Backend Proxy Online on port ${PORT}`);
-    console.log(`[SYSTEM] Target: ČÚZK DMR 5G WMS`);
+    console.log(`[SYSTEM] WMS: ČÚZK DMR 5G`);
+    console.log(`[SYSTEM] API: Proxying to ${PROD_API}`);
 });
 

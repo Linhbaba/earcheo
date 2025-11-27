@@ -8,11 +8,12 @@ interface AuthHeaderProps {
   onLocationSelect?: (lng: number, lat: number, label?: string) => void;
   showSearch?: boolean;
   onOpenFindings?: () => void;
+  onOpenFeatureRequests?: () => void;
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings }: AuthHeaderProps) => {
+export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings, onOpenFeatureRequests }: AuthHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const location = useLocation();
   const [query, setQuery] = useState('');
@@ -82,7 +83,7 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
   const navItems = [
     { path: '/map', label: 'Mapa', icon: Map, type: 'route' as const },
     { path: '/findings', label: 'Nálezy', icon: Search, type: 'modal' as const },
-    { path: '/features', label: 'Navrhnout funkci', icon: Lightbulb, type: 'route' as const },
+    { path: '/features', label: 'Navrhnout funkci', icon: Lightbulb, type: 'modal' as const },
   ];
 
   return (
@@ -123,11 +124,12 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
               );
               
               // Modal type - použije onClick místo routingu
-              if (item.type === 'modal' && item.path === '/findings') {
+              if (item.type === 'modal') {
+                const handleClick = item.path === '/findings' ? onOpenFindings : item.path === '/features' ? onOpenFeatureRequests : undefined;
                 return (
                   <button
                     key={item.path}
-                    onClick={onOpenFindings}
+                    onClick={handleClick}
                     className={className}
                   >
                     <item.icon className="w-4 h-4" />
@@ -192,7 +194,7 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
         {/* Version badge */}
         <div className="text-right pointer-events-auto">
           <span className="bg-amber-500/20 px-3 py-1 rounded-lg text-amber-400 border border-amber-500/30 text-[10px] font-mono tracking-wider">
-            BETA v1.0
+            BETA v1.1
           </span>
         </div>
 
@@ -229,7 +231,31 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
                     <p className="text-white font-mono text-sm truncate">{user.name}</p>
                     <p className="text-white/40 font-mono text-xs truncate">{user.email}</p>
                   </div>
+                  
                   <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        onOpenFindings?.();
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 font-mono text-sm transition-colors"
+                    >
+                      <Search className="w-4 h-4" />
+                      Nálezy
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        onOpenFeatureRequests?.();
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 font-mono text-sm transition-colors"
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                      Navrhnout funkci
+                    </button>
+                  </div>
+                  
+                  <div className="border-t border-white/10 py-1">
                     <button
                       onClick={handleDeleteAccount}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
@@ -238,14 +264,15 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
                       Smazat účet
                     </button>
                   </div>
+                  
                   <div className="border-t border-white/10">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Odhlásit se
-                  </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 font-mono text-sm transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Odhlásit se
+                    </button>
                   </div>
                 </div>
               </>

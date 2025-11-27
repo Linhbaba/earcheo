@@ -2,6 +2,7 @@ import type { ViewState } from 'react-map-gl/maplibre';
 import { SwipeMap, type MapStyleKey } from './SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import type { UserLocation } from './LocationControl';
+import type { Finding } from '../types/database';
 
 interface MapBoardProps {
   mode: 'LIDAR' | 'OPTIC';
@@ -17,6 +18,8 @@ interface MapBoardProps {
   visualFilters: VisualFilters;
   filtersEnabled: boolean;
   userLocation?: UserLocation | null;
+  findings?: Finding[];
+  onFindingClick?: (finding: Finding) => void;
 }
 
 export const MapBoard = ({ 
@@ -32,7 +35,9 @@ export const MapBoard = ({
     mapStyleKey,
     visualFilters,
     filtersEnabled,
-    userLocation
+    userLocation,
+    findings,
+    onFindingClick
 }: MapBoardProps) => {
 
   return (
@@ -51,6 +56,8 @@ export const MapBoard = ({
         visualFilters={visualFilters}
         filtersEnabled={filtersEnabled}
         userLocation={userLocation}
+        findings={findings}
+        onFindingClick={onFindingClick}
       />
     </div>
   );

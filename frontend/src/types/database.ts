@@ -165,6 +165,26 @@ export interface UploadImageRequest {
   filename: string;
 }
 
+// Feature Requests
+export interface FeatureRequest {
+  id: string;
+  title: string;
+  description: string;
+  status: 'NEW' | 'PLANNED' | 'IN_PROGRESS' | 'DONE';
+  authorId: string;
+  authorName: string;
+  votes: number;
+  votedBy: string[];
+  hasVoted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFeatureRequest {
+  title: string;
+  description?: string;
+}
+
 export interface ApiError {
   error: string;
   details?: any;

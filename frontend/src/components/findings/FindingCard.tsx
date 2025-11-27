@@ -15,23 +15,23 @@ export const FindingCard = ({ finding, onClick }: FindingCardProps) => {
   const formattedDate = new Date(finding.date).toLocaleDateString('cs-CZ');
   
   return (
-    <BaseCard onClick={onClick} className="hover:scale-[1.02]">
+    <BaseCard onClick={onClick} className="hover:scale-[1.02] cursor-pointer">
       <div className="flex gap-4">
-        {/* Thumbnail */}
-        {thumbnail ? (
-          <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
+        {/* Thumbnail - always shown */}
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 border border-white/10 bg-black/20">
+          {thumbnail ? (
             <img 
               src={thumbnail} 
               alt={finding.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
               loading="lazy"
             />
-          </div>
-        ) : (
-          <div className="w-24 h-24 rounded-lg bg-surface flex items-center justify-center flex-shrink-0 border border-white/10">
-            <Package className="w-8 h-8 text-white/30" />
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-surface">
+              <Package className="w-8 h-8 text-white/20" />
+            </div>
+          )}
+        </div>
         
         {/* Info */}
         <div className="flex-1 min-w-0">
@@ -39,8 +39,15 @@ export const FindingCard = ({ finding, onClick }: FindingCardProps) => {
             {finding.title}
           </h3>
           
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <StatusBadge type={finding.category} label={finding.category} />
+          <div className="flex flex-wrap items-center gap-1.5 mb-3">
+            {finding.category && finding.category.split(',').map((cat, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-0.5 bg-primary/10 border border-primary/30 rounded text-primary text-xs font-mono"
+              >
+                {cat.trim()}
+              </span>
+            ))}
             {!finding.isPublic && (
               <span className="text-xs text-white/40 font-mono">🔒 Soukromé</span>
             )}

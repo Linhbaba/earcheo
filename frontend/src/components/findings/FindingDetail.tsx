@@ -1,0 +1,345 @@
+import { useState, useEffect } from 'react';
+import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package } from 'lucide-react';
+import { toast } from 'sonner';
+import { clsx } from 'clsx';
+import { PhotoGallery } from './PhotoGallery';
+import { ImageUploader } from './ImageUploader';
+import { ConfirmDialog } from '../shared';
+import { useFindings } from '../../hooks/useFindings';
+import type { Finding } from '../../types/database';
+
+interface FindingDetailProps {
+  finding: Finding;
+  onClose: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}
+
+export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDelete }: FindingDetailProps) => {
+  const { findings, uploadImage, deleteImage, deleteFinding } = useFindings();
+  const [showExtended, setShowExtended] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showUploader, setShowUploader] = useState(false);
+
+  // Use live finding data from findings array (updates after image upload)
+  const finding = findings.find(f => f.id === initialFinding.id) || initialFinding;
+
+  useEffect(() => {
+    // Show extended fields if any are filled
+    if (finding.condition || finding.depth || finding.material || finding.historicalContext || finding.locationName) {
+      setShowExtended(true);
+    }
+  }, [finding]);
+
+  const formattedDate = new Date(finding.date).toLocaleDateString('cs-CZ', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const handleUploadPhotos = async (files: File[]) => {
+    for (const file of files) {
+      await uploadImage(finding.id, file);
+    }
+    setShowUploader(false);
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    await deleteImage(finding.id, imageId);
+    toast.success('Fotka smazána');
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteFinding(finding.id);
+      toast.success('Nález byl smazán');
+      onDelete?.();
+      onClose();
+    } catch (error) {
+      console.error('Delete finding error:', error);
+      toast.error('Chyba při mazání nálezu');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        
+        {/* Modal */}
+        <div className="relative bg-surface/95 backdrop-blur-md border border-primary/30 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-5xl max-h-[90vh] overflow-hidden">
+          {/* Corner decorations */}
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary/30 rounded-tr-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary/30 rounded-bl-2xl pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary/30 rounded-br-2xl pointer-events-none" />
+          
+          {/* Header */}
+          <div className="border-b border-white/10 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-2xl text-primary tracking-wider">
+                {finding.title}
+              </h2>
+              
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-white/70" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="overflow-y-auto max-h-[calc(90vh-180px)] p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left column - Photos */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider">
+                    Fotografie
+                  </h3>
+                  {finding.images.length > 0 && (
+                    <span className="text-xs text-white/40 font-mono">
+                      {finding.images.length} {finding.images.length === 1 ? 'fotka' : finding.images.length < 5 ? 'fotky' : 'fotek'}
+                    </span>
+                  )}
+                </div>
+                
+                <PhotoGallery
+                  images={finding.images}
+                  onDelete={handleDeleteImage}
+                  canDelete={true}
+                />
+
+                {!showUploader && (
+                  <button
+                    onClick={() => setShowUploader(true)}
+                    className="w-full px-4 py-3 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg text-primary font-mono text-sm transition-all"
+                  >
+                    + Přidat fotky
+                  </button>
+                )}
+
+                {showUploader && (
+                  <div className="border border-primary/20 rounded-lg p-4 bg-primary/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs text-white/70 font-mono uppercase">Nahrát nové fotky</p>
+                      <button
+                        onClick={() => setShowUploader(false)}
+                        className="text-xs text-white/50 hover:text-white/70 font-mono"
+                      >
+                        Zrušit
+                      </button>
+                    </div>
+                    <ImageUploader onUpload={handleUploadPhotos} />
+                    <p className="mt-3 text-xs text-primary/70 font-mono flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                      Fotky se ukládají automaticky
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Right column - Info */}
+              <div className="space-y-6">
+                {/* Basic info */}
+                <div className="space-y-4">
+                  <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider">
+                    Základní informace
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-4 h-4 text-primary/70 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-white/50 font-mono uppercase">Datum nálezu</p>
+                        <p className="text-white font-mono">{formattedDate}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-4 h-4 text-primary/70 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-white/50 font-mono uppercase">GPS Souřadnice</p>
+                        <p className="text-white font-mono">
+                          {finding.latitude.toFixed(6)}, {finding.longitude.toFixed(6)}
+                        </p>
+                        {finding.locationName && (
+                          <p className="text-sm text-white/70 mt-1">{finding.locationName}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-white/50 font-mono uppercase mb-2">Kategorie</p>
+                      <div className="flex flex-wrap gap-2">
+                        {finding.category && finding.category.split(',').map((cat, idx) => (
+                          <span 
+                            key={idx}
+                            className="inline-flex px-3 py-1.5 rounded-lg border bg-primary/10 border-primary/30 text-primary text-sm font-mono"
+                          >
+                            {cat.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-white/50 font-mono uppercase mb-2">Popis</p>
+                      <p className="text-white/80 leading-relaxed whitespace-pre-wrap">
+                        {finding.description}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-white/50 font-mono uppercase mb-2">Viditelnost</p>
+                      <span className={clsx(
+                        'inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-mono',
+                        finding.isPublic 
+                          ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                          : 'bg-gray-500/10 border border-gray-500/30 text-gray-400'
+                      )}>
+                        {finding.isPublic ? '🌍 Veřejný' : '🔒 Soukromý'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Equipment */}
+                {finding.equipment && finding.equipment.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider">
+                      Použité vybavení
+                    </h3>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {finding.equipment.map((eq) => (
+                        <div
+                          key={eq.id}
+                          className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg"
+                        >
+                          <Package className="w-4 h-4 text-primary/70" />
+                          <span className="text-sm text-white/80 font-mono">{eq.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Extended info (collapsible) */}
+                {(finding.condition || finding.depth || finding.material || finding.historicalContext || finding.locationName) && (
+                  <div className="border-t border-white/10 pt-6">
+                    <button
+                      onClick={() => setShowExtended(!showExtended)}
+                      className="flex items-center justify-between w-full text-left group"
+                    >
+                      <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider group-hover:text-primary transition-colors">
+                        Rozšířené informace
+                      </h3>
+                      {showExtended ? (
+                        <ChevronUp className="w-4 h-4 text-primary" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-primary transition-colors" />
+                      )}
+                    </button>
+
+                    {showExtended && (
+                      <div className="mt-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                        {finding.condition && (
+                          <div>
+                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Stav</p>
+                            <p className="text-white/80">{finding.condition}</p>
+                          </div>
+                        )}
+                        
+                        {finding.depth && (
+                          <div>
+                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Hloubka nálezu</p>
+                            <p className="text-white/80">{finding.depth} cm</p>
+                          </div>
+                        )}
+
+                        {finding.material && (
+                          <div>
+                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Materiál</p>
+                            <p className="text-white/80">{finding.material}</p>
+                          </div>
+                        )}
+
+                        {finding.historicalContext && (
+                          <div>
+                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Historický kontext</p>
+                            <p className="text-white/80 whitespace-pre-wrap">{finding.historicalContext}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer actions */}
+          <div className="border-t border-white/10 px-6 py-4 bg-surface/50">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <p className="text-xs text-white/40 font-mono">
+                  Vytvořeno: {new Date(finding.createdAt).toLocaleDateString('cs-CZ')}
+                </p>
+                {finding.updatedAt !== finding.createdAt && (
+                  <p className="text-xs text-white/30 font-mono">
+                    Upraveno: {new Date(finding.updatedAt).toLocaleDateString('cs-CZ')}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                {onEdit && (
+                  <button
+                    onClick={onEdit}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg text-primary font-mono text-sm transition-all"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Upravit info
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 font-mono text-sm transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Smazat
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Smazat nález?"
+        message="Tato akce je nevratná. Všechny fotky budou také smazány."
+        confirmLabel="Ano, smazat"
+        cancelLabel="Zrušit"
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        loading={deleting}
+      />
+    </>
+  );
+};
+

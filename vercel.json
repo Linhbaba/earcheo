@@ -29,6 +29,9 @@
     { "source": "/api/findings", "destination": "/api/findings/index" },
     { "source": "/api/findings/:id", "destination": "/api/findings/[id]" },
     { "source": "/api/findings/:id/images", "destination": "/api/findings/[id]/images" },
+    { "source": "/api/features", "destination": "/api/features/index" },
+    { "source": "/api/features/:id", "destination": "/api/features/[id]" },
+    { "source": "/api/features/:id/vote", "destination": "/api/features/[id]/vote" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

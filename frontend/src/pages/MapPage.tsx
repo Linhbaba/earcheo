@@ -10,18 +10,25 @@ import { TerrainControls } from '../components/TerrainControls';
 import { MobileCommandDeck } from '../components/MobileCommandDeck';
 import { MobileMapHeader } from '../components/MobileMapHeader';
 import { FindingsModal } from '../components/findings/FindingsModal';
+import { FindingDetail } from '../components/findings/FindingDetail';
+import { FeatureRequestsModal } from '../components/FeatureRequestsModal';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useProfile } from '../hooks/useProfile';
+import { useFindings } from '../hooks/useFindings';
 import type { MapStyleKey } from '../components/SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import { defaultVisualFilters } from '../types/visualFilters';
 import { SEOHead } from '../components/SEOHead';
+import type { Finding } from '../types/database';
 
 export const MapPage = () => {
   const isMobile = useIsMobile();
   
   // Initialize user profile (creates profile on first login)
   useProfile();
+  
+  // Load findings for map markers
+  const { findings } = useFindings();
   
   const [mode, setMode] = useState<'LIDAR' | 'OPTIC'>('LIDAR');
   const [splitMode, setSplitMode] = useState<'vertical' | 'horizontal' | 'none'>('vertical');
@@ -38,6 +45,8 @@ export const MapPage = () => {
   const [mapStyleKey, setMapStyleKey] = useState<MapStyleKey>('SATELLITE');
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [isFindingsOpen, setIsFindingsOpen] = useState(false);
+  const [selectedFindingFromMap, setSelectedFindingFromMap] = useState<Finding | null>(null);
+  const [isFeatureRequestsOpen, setIsFeatureRequestsOpen] = useState(false);
 
   const [viewState, setViewState] = useState<ViewState>({
     longitude: 14.665,
@@ -105,21 +114,23 @@ export const MapPage = () => {
       />
       <div className="relative w-screen h-screen bg-background overflow-hidden text-white selection:bg-primary/30">
         
-        <MapBoard 
-          mode={mode} 
-          viewState={viewState}
-          setViewState={setViewState}
-          splitMode={splitMode}
-          exaggeration={exaggeration}
-          isHistoryActive={isHistoryActive}
-          historyOpacity={historyOpacity}
-          isOrtofotoActive={isOrtofotoActive}
-          ortofotoOpacity={ortofotoOpacity}
-          mapStyleKey={mapStyleKey}
-          visualFilters={visualFilters}
-          filtersEnabled={filtersEnabled}
-          userLocation={userLocation}
-        />
+            <MapBoard 
+              mode={mode}
+              viewState={viewState}
+              setViewState={setViewState}
+              splitMode={splitMode}
+              exaggeration={exaggeration}
+              isHistoryActive={isHistoryActive}
+              historyOpacity={historyOpacity}
+              isOrtofotoActive={isOrtofotoActive}
+              ortofotoOpacity={ortofotoOpacity}
+              mapStyleKey={mapStyleKey}
+              visualFilters={visualFilters}
+              filtersEnabled={filtersEnabled}
+              userLocation={userLocation}
+              findings={findings}
+              onFindingClick={setSelectedFindingFromMap}
+            />
 
         {/* MOBILE UI */}
         {isMobile ? (
@@ -161,6 +172,7 @@ export const MapPage = () => {
             <AuthHeader 
               onLocationSelect={handleLocationSelect}
               onOpenFindings={() => setIsFindingsOpen(true)}
+              onOpenFeatureRequests={() => setIsFeatureRequestsOpen(true)}
             />
             
             {/* Right Side Control Panel */}
@@ -222,6 +234,27 @@ export const MapPage = () => {
         <FindingsModal 
           isOpen={isFindingsOpen}
           onClose={() => setIsFindingsOpen(false)}
+        />
+
+        {/* Finding Detail from Map */}
+        {selectedFindingFromMap && (
+          <FindingDetail
+            finding={selectedFindingFromMap}
+            onClose={() => setSelectedFindingFromMap(null)}
+            onEdit={() => {
+              // TODO: Otevřít edit form
+              setSelectedFindingFromMap(null);
+            }}
+            onDelete={() => {
+              setSelectedFindingFromMap(null);
+            }}
+          />
+        )}
+
+        {/* Feature Requests Modal */}
+        <FeatureRequestsModal
+          isOpen={isFeatureRequestsOpen}
+          onClose={() => setIsFeatureRequestsOpen(false)}
         />
       </div>
     </>

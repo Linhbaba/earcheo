@@ -3,7 +3,9 @@ import { Plus, Package, X } from 'lucide-react';
 import { useFindings } from '../../hooks/useFindings';
 import { FindingCard } from './FindingCard';
 import { FindingForm } from './FindingForm';
+import { FindingDetail } from './FindingDetail';
 import { LoadingSkeleton, EmptyState } from '../shared';
+import type { Finding } from '../../types/database';
 
 interface FindingsModalProps {
   isOpen: boolean;
@@ -11,10 +13,37 @@ interface FindingsModalProps {
 }
 
 export const FindingsModal = ({ isOpen, onClose }: FindingsModalProps) => {
-  const { findings, loading } = useFindings();
+  const { findings, loading, fetchFindings } = useFindings();
   const [showForm, setShowForm] = useState(false);
+  const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
+  const [editingFinding, setEditingFinding] = useState<Finding | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   
   if (!isOpen) return null;
+
+  // Extract all unique categories from findings
+  const allCategories = Array.from(
+    new Set(
+      findings.flatMap(f => 
+        f.category ? f.category.split(',').map(c => c.trim()) : []
+      )
+    )
+  ).sort();
+
+  // Filter findings by category
+  const filteredFindings = activeCategory === 'all' 
+    ? findings 
+    : findings.filter(f => 
+        f.category && f.category.split(',').map(c => c.trim()).includes(activeCategory)
+      );
+
+  // Count findings per category
+  const getCategoryCount = (category: string) => {
+    if (category === 'all') return findings.length;
+    return findings.filter(f => 
+      f.category && f.category.split(',').map(c => c.trim()).includes(category)
+    ).length;
+  };
   
   return (
     <>
@@ -57,20 +86,32 @@ export const FindingsModal = ({ isOpen, onClose }: FindingsModalProps) => {
               </div>
             </div>
             
-            {/* Filters */}
+            {/* Filters - Dynamic categories */}
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <button className="px-3 py-1 bg-primary/20 border border-primary/30 rounded-md text-primary font-mono text-xs">
-                Vše ({findings.length})
+              <button 
+                onClick={() => setActiveCategory('all')}
+                className={`px-3 py-1 border rounded-md font-mono text-xs transition-colors ${
+                  activeCategory === 'all'
+                    ? 'bg-primary/20 border-primary/30 text-primary'
+                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Vše ({getCategoryCount('all')})
               </button>
-              <button className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-white/50 hover:text-white hover:bg-white/10 font-mono text-xs transition-colors">
-                Mince
-              </button>
-              <button className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-white/50 hover:text-white hover:bg-white/10 font-mono text-xs transition-colors">
-                Nástroje
-              </button>
-              <button className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-white/50 hover:text-white hover:bg-white/10 font-mono text-xs transition-colors">
-                Keramika
-              </button>
+              
+              {allCategories.map(category => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`px-3 py-1 border rounded-md font-mono text-xs transition-colors ${
+                    activeCategory === category
+                      ? 'bg-primary/20 border-primary/30 text-primary'
+                      : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {category} ({getCategoryCount(category)})
+                </button>
+              ))}
             </div>
           </div>
           
@@ -78,26 +119,26 @@ export const FindingsModal = ({ isOpen, onClose }: FindingsModalProps) => {
           <div className="h-[calc(80vh-120px)] overflow-y-auto px-5 py-4">
             {loading ? (
               <LoadingSkeleton />
-            ) : findings.length === 0 ? (
+            ) : filteredFindings.length === 0 ? (
               <EmptyState
                 icon={Package}
-                title="Zatím žádné nálezy"
-                description="Začněte přidáním svého prvního archeologického nálezu"
+                title={activeCategory === 'all' ? 'Zatím žádné nálezy' : 'Žádné nálezy v této kategorii'}
+                description={activeCategory === 'all' 
+                  ? 'Začněte přidáním svého prvního archeologického nálezu'
+                  : 'Zkuste vybrat jinou kategorii nebo přidejte nový nález'
+                }
                 action={{
-                  label: 'Přidat první nález',
+                  label: activeCategory === 'all' ? 'Přidat první nález' : 'Přidat nález',
                   onClick: () => setShowForm(true)
                 }}
               />
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {findings.map((finding) => (
+                {filteredFindings.map((finding) => (
                   <FindingCard
                     key={finding.id}
                     finding={finding}
-                    onClick={() => {
-                      // TODO: Otevřít detail nálezu (EXTENDED část)
-                      console.log('Detail nálezu:', finding.id);
-                    }}
+                    onClick={() => setSelectedFinding(finding)}
                   />
                 ))}
               </div>
@@ -113,9 +154,34 @@ export const FindingsModal = ({ isOpen, onClose }: FindingsModalProps) => {
       {/* Finding Form Modal */}
       {showForm && (
         <FindingForm
-          onClose={() => setShowForm(false)}
+          finding={editingFinding}
+          onClose={() => {
+            setShowForm(false);
+            setEditingFinding(null);
+          }}
           onSuccess={() => {
-            // Findings list se automaticky aktualizuje díky useFindings hook
+            setShowForm(false);
+            setEditingFinding(null);
+            // Refresh findings list
+            fetchFindings();
+          }}
+        />
+      )}
+
+      {/* Finding Detail Modal */}
+      {selectedFinding && (
+        <FindingDetail
+          finding={selectedFinding}
+          onClose={() => setSelectedFinding(null)}
+          onEdit={() => {
+            setEditingFinding(selectedFinding);
+            setSelectedFinding(null);
+            setShowForm(true);
+          }}
+          onDelete={() => {
+            setSelectedFinding(null);
+            // Refresh findings list after delete
+            fetchFindings();
           }}
         />
       )}

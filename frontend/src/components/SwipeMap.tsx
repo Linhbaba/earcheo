@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
 import type { ViewState, MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Move, Scan, Activity, Scroll, Globe, Moon, Map as MapIcon } from 'lucide-react';
+import { Move, Scan, Activity, Scroll, Globe, Moon, Map as MapIcon, MapPin } from 'lucide-react';
 import type { VisualFilters } from '../types/visualFilters';
 import type { UserLocation } from './LocationControl';
+import type { Finding } from '../types/database';
 
 // LOCAL PROXY URL - Connects to our Node.js backend which forwards to ČÚZK
 // Using relative path '/api' which is proxied by Vite to localhost:3010
@@ -79,7 +80,9 @@ export const SwipeMap = ({
     mapStyleKey,
     visualFilters,
     filtersEnabled,
-    userLocation
+    userLocation,
+    findings = [],
+    onFindingClick
 }: SwipeMapProps) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -182,6 +185,115 @@ export const SwipeMap = ({
              </Marker>
            )}
 
+           {/* Finding Markers */}
+           {findings.map((finding) => {
+             const firstCategory = finding.category ? finding.category.split(',')[0].trim().toLowerCase() : '';
+             const categoryColors: Record<string, string> = {
+               'mince': '#ffae00',
+               'coins': '#ffae00',
+               'nástroje': '#9ca3af',
+               'tools': '#9ca3af',
+               'keramika': '#f97316',
+               'pottery': '#f97316',
+               'šperky': '#a855f7',
+               'jewelry': '#a855f7',
+               'zbraně': '#ef4444',
+               'weapons': '#ef4444',
+               'střelivo': '#dc2626',
+               'militaria': '#ef4444',
+             };
+             const color = categoryColors[firstCategory] || '#00f3ff';
+             const thumbnail = finding.images?.[0]?.thumbnailUrl;
+
+             return (
+               <Marker
+                 key={finding.id}
+                 longitude={finding.longitude}
+                 latitude={finding.latitude}
+                 anchor="bottom"
+                 onClick={(e) => {
+                   e.originalEvent.stopPropagation();
+                   onFindingClick?.(finding);
+                 }}
+               >
+                 <div className="relative group cursor-pointer pointer-events-auto">
+                   {thumbnail ? (
+                     /* Photo marker */
+                     <div className="relative">
+                       {/* Glow effect */}
+                       <div 
+                         className="absolute rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity"
+                         style={{ 
+                           backgroundColor: color,
+                           width: '48px',
+                           height: '48px',
+                           left: '0',
+                           top: '0'
+                         }}
+                       />
+                       
+                       <div 
+                         className="relative w-12 h-12 rounded-full overflow-hidden border-3 shadow-lg group-hover:scale-110 transition-transform"
+                         style={{ 
+                           borderColor: color,
+                           borderWidth: '3px'
+                         }}
+                       >
+                         <img 
+                           src={thumbnail} 
+                           alt={finding.title}
+                           className="w-full h-full object-cover"
+                         />
+                       </div>
+                       {/* Small pin indicator at bottom */}
+                       <div 
+                         className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0"
+                         style={{
+                           borderLeft: '6px solid transparent',
+                           borderRight: '6px solid transparent',
+                           borderTop: `8px solid ${color}`
+                         }}
+                       />
+                     </div>
+                   ) : (
+                     /* Pin icon fallback */
+                     <div className="relative">
+                       {/* Glow effect */}
+                       <div 
+                         className="absolute rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity"
+                         style={{ 
+                           backgroundColor: color,
+                           width: '32px',
+                           height: '32px',
+                           left: '0',
+                           top: '0'
+                         }}
+                       />
+                       
+                       <div
+                         className="relative w-8 h-8 flex items-center justify-center"
+                         style={{ color }}
+                       >
+                         <MapPin 
+                           className="w-8 h-8 drop-shadow-lg group-hover:scale-125 transition-transform" 
+                           fill={color}
+                           strokeWidth={1.5}
+                         />
+                       </div>
+                     </div>
+                   )}
+                   
+                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                     <div className="bg-surface/95 backdrop-blur-sm border border-primary/30 rounded-lg px-3 py-2 shadow-lg">
+                       <p className="text-white font-mono text-xs font-semibold">{finding.title}</p>
+                       <p className="text-white/60 font-mono text-xs">{finding.category}</p>
+                     </div>
+                   </div>
+                 </div>
+               </Marker>
+             );
+           })}
+
            <div className="absolute bottom-1 left-1 text-[10px] text-white/50 p-1 bg-black/20 backdrop-blur-sm rounded">
              {mapStyleKey === 'SATELLITE' ? 'ESRI World Imagery' : 'CartoDB'} | AWS Terrain
            </div>
@@ -282,6 +394,117 @@ export const SwipeMap = ({
                   </Marker>
                 )}
 
+                {/* Finding Markers */}
+                {findings.map((finding) => {
+                  // Color based on first category (or default)
+                  const firstCategory = finding.category ? finding.category.split(',')[0].trim().toLowerCase() : '';
+                  const categoryColors: Record<string, string> = {
+                    'mince': '#ffae00', // amber
+                    'coins': '#ffae00',
+                    'nástroje': '#9ca3af', // gray
+                    'tools': '#9ca3af',
+                    'keramika': '#f97316', // orange
+                    'pottery': '#f97316',
+                    'šperky': '#a855f7', // purple
+                    'jewelry': '#a855f7',
+                    'zbraně': '#ef4444', // red
+                    'weapons': '#ef4444',
+                    'střelivo': '#dc2626', // red dark
+                    'militaria': '#ef4444',
+                  };
+                  const color = categoryColors[firstCategory] || '#00f3ff'; // default primary
+                  const thumbnail = finding.images?.[0]?.thumbnailUrl;
+
+                  return (
+                    <Marker
+                      key={finding.id}
+                      longitude={finding.longitude}
+                      latitude={finding.latitude}
+                      anchor="bottom"
+                      onClick={(e) => {
+                        e.originalEvent.stopPropagation();
+                        onFindingClick?.(finding);
+                      }}
+                    >
+                      <div className="relative group cursor-pointer pointer-events-auto">
+                        {thumbnail ? (
+                          /* Photo marker */
+                          <div className="relative">
+                            {/* Glow effect */}
+                            <div 
+                              className="absolute rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity"
+                              style={{ 
+                                backgroundColor: color,
+                                width: '48px',
+                                height: '48px',
+                                left: '0',
+                                top: '0'
+                              }}
+                            />
+                            
+                            <div 
+                              className="relative w-12 h-12 rounded-full overflow-hidden border-3 shadow-lg group-hover:scale-110 transition-transform"
+                              style={{ 
+                                borderColor: color,
+                                borderWidth: '3px'
+                              }}
+                            >
+                              <img 
+                                src={thumbnail} 
+                                alt={finding.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            {/* Small pin indicator at bottom */}
+                            <div 
+                              className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0"
+                              style={{
+                                borderLeft: '6px solid transparent',
+                                borderRight: '6px solid transparent',
+                                borderTop: `8px solid ${color}`
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          /* Pin icon fallback */
+                          <div className="relative">
+                            {/* Glow effect */}
+                            <div 
+                              className="absolute rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity"
+                              style={{ 
+                                backgroundColor: color,
+                                width: '32px',
+                                height: '32px',
+                                left: '0',
+                                top: '0'
+                              }}
+                            />
+                            
+                            <div
+                              className="relative w-8 h-8 flex items-center justify-center"
+                              style={{ color }}
+                            >
+                              <MapPin 
+                                className="w-8 h-8 drop-shadow-lg group-hover:scale-125 transition-transform" 
+                                fill={color}
+                                strokeWidth={1.5}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Tooltip on hover */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                          <div className="bg-surface/95 backdrop-blur-sm border border-primary/30 rounded-lg px-3 py-2 shadow-lg">
+                            <p className="text-white font-mono text-xs font-semibold">{finding.title}</p>
+                            <p className="text-white/60 font-mono text-xs">{finding.category}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </Marker>
+                  );
+                })}
+
                 <div className="absolute inset-0 bg-primary/10 mix-blend-overlay pointer-events-none" />
                 </Map>
                 
@@ -342,6 +565,97 @@ export const SwipeMap = ({
                       </div>
                     </Marker>
                   )}
+
+                  {/* Finding Markers */}
+                  {findings.map((finding) => {
+                    const firstCategory = finding.category ? finding.category.split(',')[0].trim().toLowerCase() : '';
+                    const categoryColors: Record<string, string> = {
+                      'mince': '#ffae00',
+                      'coins': '#ffae00',
+                      'nástroje': '#9ca3af',
+                      'tools': '#9ca3af',
+                      'keramika': '#f97316',
+                      'pottery': '#f97316',
+                      'šperky': '#a855f7',
+                      'jewelry': '#a855f7',
+                      'zbraně': '#ef4444',
+                      'weapons': '#ef4444',
+                      'střelivo': '#dc2626',
+                      'militaria': '#ef4444',
+                    };
+                    const color = categoryColors[firstCategory] || '#00f3ff';
+                    const thumbnail = finding.images?.[0]?.thumbnailUrl;
+
+                    return (
+                      <Marker
+                        key={finding.id}
+                        longitude={finding.longitude}
+                        latitude={finding.latitude}
+                        anchor="bottom"
+                        onClick={(e) => {
+                          e.originalEvent.stopPropagation();
+                          onFindingClick?.(finding);
+                        }}
+                      >
+                        <div className="relative group cursor-pointer pointer-events-auto">
+                          <div 
+                            className="absolute rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity"
+                            style={{ 
+                              backgroundColor: color,
+                              width: thumbnail ? '48px' : '32px',
+                              height: thumbnail ? '48px' : '32px',
+                              left: thumbnail ? '-24px' : '-16px',
+                              top: thumbnail ? '-48px' : '-32px'
+                            }}
+                          />
+                          
+                          {thumbnail ? (
+                            <div className="relative">
+                              <div 
+                                className="w-12 h-12 rounded-full overflow-hidden border-3 shadow-lg group-hover:scale-110 transition-transform"
+                                style={{ 
+                                  borderColor: color,
+                                  borderWidth: '3px'
+                                }}
+                              >
+                                <img 
+                                  src={thumbnail} 
+                                  alt={finding.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div 
+                                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0"
+                                style={{
+                                  borderLeft: '6px solid transparent',
+                                  borderRight: '6px solid transparent',
+                                  borderTop: `8px solid ${color}`
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className="relative w-8 h-8 flex items-center justify-center"
+                              style={{ color }}
+                            >
+                              <MapPin 
+                                className="w-8 h-8 drop-shadow-lg group-hover:scale-125 transition-transform" 
+                                fill={color}
+                                strokeWidth={1.5}
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                            <div className="bg-surface/95 backdrop-blur-sm border border-primary/30 rounded-lg px-3 py-2 shadow-lg">
+                              <p className="text-white font-mono text-xs font-semibold">{finding.title}</p>
+                              <p className="text-white/60 font-mono text-xs">{finding.category}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </Marker>
+                    );
+                  })}
 
                   <div className="absolute top-4 right-4 text-xs font-bold flex items-center gap-2 z-50 bg-black/50 px-2 py-1 rounded backdrop-blur text-white/80">
                       <span className="text-primary">OPTIC MODE</span>

@@ -1,7 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Map, Layers, Radar, ChevronRight } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Package } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 
@@ -174,7 +174,7 @@ export const LandingPage = () => {
         </div>
 
         {/* Feature cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-4xl w-full px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-6xl w-full px-4">
           <FeatureCard 
             icon={<Layers className="w-6 h-6" />}
             title="LiDAR Data"
@@ -190,6 +190,12 @@ export const LandingPage = () => {
             title="3D Terén"
             description="Interaktivní vizualizace reliéfu"
           />
+          <FeatureCard 
+            icon={<Package className="w-6 h-6" />}
+            title="Ukládání nálezů"
+            description="GPS, fotky, popis. Veřejně nebo soukromě"
+            isNew={true}
+          />
         </div>
       </main>
 
@@ -199,7 +205,7 @@ export const LandingPage = () => {
       {/* Footer */}
       <footer className="relative z-10 text-center py-8">
         <p className="text-white/30 font-mono text-xs">
-          © 2025 eArcheo • Data: ČÚZK, Mapbox
+          © 2025 eArcheo
         </p>
         <p className="text-white/20 font-mono text-xs mt-2">
           <a href="mailto:ahoj@earcheo.cz" className="hover:text-primary/70 transition-colors">
@@ -234,10 +240,16 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
+  isNew?: boolean;
 }
 
-const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <div className="group p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all hover:bg-surface/60">
+const FeatureCard = ({ icon, title, description, isNew = false }: FeatureCardProps) => (
+  <div className="group p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all hover:bg-surface/60 relative">
+    {isNew && (
+      <div className="absolute -top-2 -right-2 px-2 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[9px] font-mono tracking-wider">
+        NOVÉ
+      </div>
+    )}
     <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_20px_rgba(0,243,255,0.2)] transition-all">
       {icon}
     </div>

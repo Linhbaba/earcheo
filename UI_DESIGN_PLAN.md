@@ -49,22 +49,26 @@ font-mono:    'Share Tech Mono'    (labels, hodnoty)
 
 ## 📐 NOVÝ UI DESIGN - KOMPLETNÍ NÁVRH
 
-### 1. **NAVIGAČNÍ STRUKTURA**
+### 1. **NAVIGAČNÍ STRUKTURA** ✅ IMPLEMENTOVÁNO
 
-#### Top Bar Enhancement (rozšíření existujícího)
+#### Top Bar s Modal Triggers
 
 ```
-┌─────────────────────────────────────────────────┐
-│ [Logo] eArcheo  [Search]     [🗺️ MAPA] [📦 NÁLEZY] [🔧 VYBAVENÍ] [👤 PROFIL]  [BETA v1.0] │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ [Logo] eArcheo  [Search]  [📦 MOJE NÁLEZY]  [User Menu ▼]  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Implementace:**
-- Rozšířit `AuthHeader.tsx`
-- Přidat navigační menu mezi search a status
-- Aktivní sekce zvýrazněna neon cyan
-- Smooth transitions mezi sekcemi
-- Mobile: Hamburger menu
+**✅ Implementováno v `AuthHeader.tsx`:**
+- **Tlačítko "MOJE NÁLEZY"** - otevírá findings modal
+- **User Menu** - dropdown s:
+  - Profil
+  - Vybavení (budoucí)
+  - Nastavení (budoucí)
+  - Odhlásit se
+- **Design:** Neon cyan borders, glassmorphism
+- **Modal přístup** - zachovává mapu na pozadí
+- **Mobile:** Bottom sheet místo full-page
 
 ---
 
@@ -222,67 +226,118 @@ font-mono:    'Share Tech Mono'    (labels, hodnoty)
 
 ---
 
-### 4. **FINDINGS PAGE** (`/findings`)
+### 4. **FINDINGS MODAL** ✅ IMPLEMENTOVÁNO
 
-#### Layout Structure:
+#### Modal Overlay Design (zachovává mapu na pozadí):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ TOP BAR                                                      │
-├─────────────────────────────────────────────────────────────┤
+│ MAPA NA POZADÍ (blur + darkened)                           │
 │                                                              │
-│  ┌──────────────┬───────────────────────────────────────┐  │
-│  │              │                                       │  │
-│  │  SIDEBAR     │         MAP VIEW                      │  │
-│  │              │                                       │  │
-│  │  MY FINDS    │    🗺️ (MapLibre s nálezy pinned)    │  │
-│  │  [+ NEW]     │                                       │  │
-│  │              │    📍 = nález (kliknutelný)           │  │
-│  │  Filters:    │                                       │  │
-│  │  ☑ Coins     │    Hover: preview card                │  │
-│  │  ☑ Tools     │    Click: detail panel                │  │
-│  │  ☑ Pottery   │                                       │  │
-│  │  ☐ Public    │                                       │  │
-│  │              │                                       │  │
-│  │  ────────    │                                       │  │
-│  │              │                                       │  │
-│  │  📍 Římská   │                                       │  │
-│  │     mince    │                                       │  │
-│  │     26.11.24 │                                       │  │
-│  │     [VIEW]   │                                       │  │
-│  │              │                                       │  │
-│  │  📍 Bronz    │                                       │  │
-│  │     přezka   │                                       │  │
-│  │     15.10.24 │                                       │  │
-│  │     [VIEW]   │                                       │  │
-│  │              │                                       │  │
-│  └──────────────┴───────────────────────────────────────┘  │
+│    ┌────────────────────────────────────────────┐          │
+│    │ MOJE NÁLEZY                          [✕]  │          │
+│    ├────────────────────────────────────────────┤          │
+│    │                                             │          │
+│    │  [Všě (0)] [Mince] [Nástroje] [Keramika]  │          │
+│    │                              [+ Přidat]    │          │
+│    │  ─────────────────────────────────────────  │          │
+│    │                                             │          │
+│    │         📦                                  │          │
+│    │                                             │          │
+│    │    Zatím žádné nálezy                      │          │
+│    │                                             │          │
+│    │    Začněte přidáním svého prvního          │          │
+│    │    archeologického nálezu                   │          │
+│    │                                             │          │
+│    │    [Přidat první nález]                    │          │
+│    │                                             │          │
+│    └────────────────────────────────────────────┘          │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Na mobilu:** Bottom sheet s findings list
+**✅ Implementováno v `FindingsModal.tsx`:**
 
-#### Finding Card (v sidebaru):
+**Modal Features:**
+- **Glassmorphism** - `bg-surface/95 backdrop-blur-xl`
+- **Right-side panel** - fixed width ~500px, full height
+- **Close button** - top-right corner
+- **Záložky (tabs)** - Všě / Mince / Nástroje / Keramika
+- **+ Přidat button** - neon cyan, opens FindingForm
+- **Empty state** - ikona + popisný text + CTA button
+- **Scroll area** - pro seznam nálezů
+- **Animation** - slide-in from right
+
+#### Finding Card (v modalu):
 
 ```
-┌──────────────────────────┐
-│ 🖼️ [Thumbnail]           │
-│                          │
-│ ŘÍMSKÁ MINCE             │
-│ 📅 26.11.2024            │
-│ 📍 Pole u Prahy          │
-│ 🏷️ coins                 │
-│                          │
-│ ⚙️ Garrett ACE 400i     │
-│                          │
-│ [ZOBRAZIT DETAIL]       │
-└──────────────────────────┘
+┌──────────────────────────────────────┐
+│ ┌────────┐                           │
+│ │ 🖼️     │  ŘÍMSKÁ MINCE             │
+│ │        │  📅 26.11.2024            │
+│ │ 200x200│  📍 Praha, Karlštejn      │
+│ └────────┘  🏷️ coins                 │
+│                                       │
+│ Stříbrná římská mince nalezená...    │
+│                                       │
+│ ⚙️ Garrett ACE 400i                 │
+│                                       │
+│ [ZOBRAZIT DETAIL]          [🗑️] [✏️] │
+└──────────────────────────────────────┘
 ```
+
+**Na mobilu:** Full-screen modal s bottom sheet možnostmi
 
 ---
 
-### 5. **FINDING DETAIL PAGE** (`/findings/:id`)
+### 5. **FINDING FORM MODAL** ✅ IMPLEMENTOVÁNO
+
+#### Add/Edit Finding Modal:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ MAPA NA POZADÍ                                              │
+│                                                              │
+│    ┌────────────────────────────────────────────┐          │
+│    │ NOVÝ NÁLEZ                           [✕]   │          │
+│    ├────────────────────────────────────────────┤          │
+│    │                                             │          │
+│    │  Název nálezu *                            │          │
+│    │  [____________________________]            │          │
+│    │                                             │          │
+│    │  Datum *                                   │          │
+│    │  [__________]  📅                          │          │
+│    │                                             │          │
+│    │  Kategorie *                               │          │
+│    │  [Mince ▼]                                 │          │
+│    │                                             │          │
+│    │  Popis *                                   │          │
+│    │  [____________________________]            │          │
+│    │  [____________________________]            │          │
+│    │  [____________________________]            │          │
+│    │                                             │          │
+│    │  GPS Souřadnice *                          │          │
+│    │  Šířka: [50.0755]  📍                      │          │
+│    │  Délka: [14.4378]                          │          │
+│    │                                             │          │
+│    │  ☐ Veřejný nález                           │          │
+│    │                                             │          │
+│    │  [ZRUŠIT]              [PŘIDAT NÁLEZ]     │          │
+│    └────────────────────────────────────────────┘          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**✅ Implementováno v `FindingForm.tsx`:**
+- Validace formuláře (Zod schema)
+- Date picker
+- Category dropdown
+- GPS coordinates (auto-fill nebo manual)
+- Public/Private toggle
+- Loading state při ukládání
+- Error handling s toast notifications
+
+### 6. **FINDING DETAIL MODAL** (budoucí implementace)
 
 #### Layout:
 
@@ -563,74 +618,89 @@ Profile page
 
 ---
 
-## 📦 KOMPONENTY STRUKTURA
+## 📦 KOMPONENTY STRUKTURA ✅ AKTUÁLNÍ IMPLEMENTACE
 
 ```
 frontend/src/
   pages/
-    ProfilePage.tsx         - Profil uživatele
-    EquipmentPage.tsx       - Seznam vybavení
-    FindingsPage.tsx        - Mapa s nálezy
-    FindingDetailPage.tsx   - Detail nálezu
+    MapPage.tsx             ✅ Hlavní stránka s mapou
+    LandingPage.tsx         ✅ Landing page
+    FindingsPage.tsx        ✅ Dedikovaná stránka pro nálezy (volitelná)
+    FeatureRequests.tsx     ✅ Feature requests
   
   components/
-    profile/
-      ProfileCard.tsx
-      StatsPanel.tsx
-      SocialLinks.tsx
-      FavoriteLocations.tsx
-    
-    equipment/
-      EquipmentCard.tsx
-      EquipmentGrid.tsx
-      EquipmentForm.tsx
-      EquipmentModal.tsx
+    ✅ AuthHeader.tsx           - Top bar s user menu a findings button
     
     findings/
-      FindingCard.tsx
-      FindingsList.tsx
-      FindingMap.tsx
-      FindingForm.tsx
-      PhotoGallery.tsx
-      ImageUploader.tsx
+      ✅ FindingsModal.tsx      - Right-side modal overlay
+      ✅ FindingForm.tsx        - Add/Edit finding form
+      FindingCard.tsx          - Card pro jednotlivý nález
+      FindingDetail.tsx        - Detail view nálezu
+      PhotoGallery.tsx         - Fotogalerie
+      ImageUploader.tsx        - Upload fotek
+    
+    profile/
+      ProfileCard.tsx          - Profil card
+      StatsPanel.tsx           - Statistiky
+      SocialLinks.tsx          - Sociální linky
+      FavoriteLocations.tsx    - Oblíbené lokace
+    
+    equipment/
+      EquipmentCard.tsx        - Card pro vybavení
+      EquipmentGrid.tsx        - Grid layout
+      EquipmentForm.tsx        - Add/Edit form
+      EquipmentModal.tsx       - Modal overlay
     
     shared/
-      BaseCard.tsx
-      SectionHeader.tsx
-      StatusBadge.tsx
-      AnimatedCounter.tsx
-      LoadingSkeleton.tsx
-      EmptyState.tsx
-      ConfirmDialog.tsx
+      BaseCard.tsx             - Base card komponenta
+      SectionHeader.tsx        - Section header
+      StatusBadge.tsx          - Status badge
+      AnimatedCounter.tsx      - Animated counter
+      LoadingSkeleton.tsx      - Loading skeleton
+      EmptyState.tsx           - Empty state component
+      ConfirmDialog.tsx        - Confirm dialog
 ```
 
 ---
 
 ## 🚀 IMPLEMENTAČNÍ PLÁN
 
-### Fáze 1: Základy (2-3 hodiny)
-1. Navigace (rozšířit AuthHeader)
-2. BaseCard + společné komponenty
-3. ProfilePage (basic)
-4. EquipmentPage (basic)
+### ✅ Fáze 1: Základy (HOTOVO)
+1. ✅ Navigace (AuthHeader s findings button)
+2. ✅ FindingsModal - right-side overlay
+3. ✅ FindingForm - add/edit modal
+4. ✅ Empty state
+5. ✅ Záložkový systém (tabs)
+6. ✅ useFindings hook - API integrace
+7. ✅ Toast notifications (Sonner)
 
-### Fáze 2: Findings (3-4 hodiny)
-1. FindingsPage s mapou
-2. FindingDetailPage
-3. Photo gallery
-4. Image upload
+### 🔄 Fáze 2: Findings Features (Rozpracováno)
+1. ✅ Vytváření nálezů
+2. ⏳ FindingCard komponenta
+3. ⏳ FindingDetail modal
+4. ⏳ Photo gallery
+5. ⏳ Image upload (drag & drop)
+6. ⏳ Editace a mazání nálezů
+7. ⏳ Zobrazení nálezů na mapě (markers)
 
-### Fáze 3: Polish (1-2 hodiny)
-1. Animace
-2. Loading states
-3. Error handling
-4. Mobile optimalizace
-5. Accessibility
+### 📋 Fáze 3: Equipment & Profile
+1. ⏳ Equipment modal (podobný design jako findings)
+2. ⏳ Profile modal/page
+3. ⏳ Stats dashboard
+4. ⏳ Social links management
+5. ⏳ Favorite locations
 
-### Fáze 4: Testing
-1. E2E testy
-2. Performance audit
-3. A11y audit
+### 🎨 Fáze 4: Polish
+1. ⏳ Animace (smooth transitions)
+2. ⏳ Loading states (skeletons)
+3. ⏳ Error handling
+4. ⏳ Mobile optimalizace
+5. ⏳ Accessibility audit
+
+### 🧪 Fáze 5: Testing
+1. ⏳ E2E testy
+2. ⏳ Performance audit
+3. ⏳ A11y audit
 
 ---
 
@@ -675,23 +745,66 @@ Dark sci-fi tech aesthetic
 
 ## ✅ CHECKLIST PRO IMPLEMENTACI
 
+### ✅ HOTOVO (Prosinec 2024)
 ```
-☐ Navigace + routing
-☐ ProfilePage komponenty
-☐ EquipmentPage komponenty  
-☐ FindingsPage + mapa
-☐ FindingDetailPage
-☐ Photo upload + processing
-☐ Forms + validace
-☐ Loading states
-☐ Error handling
-☐ Mobile responsive
-☐ Animace
-☐ Accessibility
-☐ Testing
+✅ Navigace (AuthHeader s modal triggers)
+✅ FindingsModal (right-side overlay)
+✅ FindingForm (add/edit modal)
+✅ Forms + validace (Zod)
+✅ useFindings hook (API integrace)
+✅ Toast notifications (Sonner)
+✅ Empty states
+✅ Záložkový systém
+✅ Auth0 integrace
+✅ Database (Prisma + Neon)
+✅ Production deployment (earcheo.cz)
+```
+
+### ⏳ ROZPRACOVÁNO / TODO
+```
+⏳ FindingCard komponenta
+⏳ FindingDetail modal (rozšířený view)
+⏳ Photo upload + processing (Sharp.js připraven)
+⏳ Image gallery (carousel)
+⏳ Editace nálezů
+⏳ Mazání nálezů (s potvrzením)
+⏳ Zobrazení nálezů na mapě (markers)
+⏳ Equipment modal
+⏳ Profile modal/page
+⏳ Loading states (skeletons)
+⏳ Mobile optimalizace (bottom sheet)
+⏳ Animace (Framer Motion?)
+⏳ Accessibility (ARIA, keyboard nav)
+⏳ Testing (E2E, unit)
 ```
 
 ---
 
-**Chcete, abych to teď implementoval podle tohoto návrhu?** 🚀
+## 🎯 ARCHITEKTONICKÝ PŘÍSTUP
+
+### Modal-First Design ✅
+
+**Proč modaly místo full-page?**
+1. **Zachování kontextu** - mapa zůstává viditelná
+2. **Rychlejší UX** - žádné page transitions
+3. **Lepší pro exploraci** - "peek" do dat bez opuštění mapy
+4. **Mobilní friendly** - bottom sheets
+5. **Jednodušší routing** - méně routes
+
+**Modal Pattern:**
+```tsx
+<MapPage>              // Base layer - always visible
+  <Map />              // Main content
+  <AuthHeader />       // Top bar with triggers
+  
+  {/* Modals overlay */}
+  <FindingsModal />    // Right-side panel
+  <EquipmentModal />   // Future
+  <ProfileModal />     // Future
+</MapPage>
+```
+
+---
+
+**Status: 🟢 V PRODUKCI - kontinuální development** 🚀
 
