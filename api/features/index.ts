@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { prisma } from '../_lib/db';
-import { withAuth } from '../_lib/auth';
+import { withAuth, authMiddleware } from '../_lib/auth';
 
 // GET handler - public (no auth required)
 async function getFeatures(req: VercelRequest, res: VercelResponse, userId?: string) {
@@ -96,17 +96,36 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
+// Helper to extract userId from token without throwing
+async function tryGetUserId(req: VercelRequest): Promise<string | undefined> {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return undefined;
+    }
+    
+    // Run JWT verification
+    await new Promise<void>((resolve, reject) => {
+      authMiddleware(req as any, {} as any, (err: any) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    const auth = (req as any).auth;
+    return auth?.sub;
+  } catch (error) {
+    console.log('Token verification failed (continuing as anonymous):', error.message);
+    return undefined;
+  }
+}
+
 // Main export - handle both public and protected requests
 export default async function(req: VercelRequest, res: VercelResponse) {
-  // Allow GET without authentication
+  // Allow GET without authentication (but use token if available)
   if (req.method === 'GET') {
-    // Try to get userId from token if available
-    try {
-      return await withAuth(handler)(req, res);
-    } catch (err) {
-      // No token or invalid token - continue as anonymous
-      return getFeatures(req, res);
-    }
+    const userId = await tryGetUserId(req);
+    return getFeatures(req, res, userId);
   }
   
   // All other methods require authentication
