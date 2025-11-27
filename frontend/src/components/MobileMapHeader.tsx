@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, X, Navigation, Crosshair, User, LogOut } from 'lucide-react';
+import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { clsx } from 'clsx';
@@ -13,13 +13,17 @@ interface MobileMapHeaderProps {
   setViewState: React.Dispatch<React.SetStateAction<ViewState>>;
   onLocationChange: (location: UserLocation | null) => void;
   bearing?: number;
+  onOpenFindings?: () => void;
+  onOpenFeatureRequests?: () => void;
 }
 
 export const MobileMapHeader = ({ 
   onLocationSelect, 
   setViewState, 
   onLocationChange,
-  bearing = 0 
+  bearing = 0,
+  onOpenFindings,
+  onOpenFeatureRequests
 }: MobileMapHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -93,7 +97,7 @@ export const MobileMapHeader = ({
   return (
     <>
       {/* Compact Header Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 safe-area-inset-top">
+      <div className="fixed top-0 left-0 right-0 z-[60] pointer-events-auto safe-area-inset-top">
         <div className="flex items-center justify-between px-3 py-2 bg-surface/90 backdrop-blur-xl border-b border-white/10">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
@@ -108,13 +112,13 @@ export const MobileMapHeader = ({
           </Link>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pointer-events-auto">
             {/* GPS Button */}
             <button
               onClick={handleGetLocation}
               disabled={isLocating}
               className={clsx(
-                'p-2.5 rounded-xl transition-all',
+                'p-2.5 rounded-xl transition-all relative z-10',
                 isLocating
                   ? 'bg-primary/20 text-primary animate-pulse'
                   : 'bg-white/10 text-white/60 active:bg-white/20'
@@ -131,7 +135,7 @@ export const MobileMapHeader = ({
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className={clsx(
-                'p-2.5 rounded-xl transition-all',
+                'p-2.5 rounded-xl transition-all relative z-10',
                 isSearchOpen
                   ? 'bg-primary/20 text-primary'
                   : 'bg-white/10 text-white/60 active:bg-white/20'
@@ -145,7 +149,7 @@ export const MobileMapHeader = ({
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className={clsx(
-                  'p-1 rounded-xl transition-all',
+                  'p-1 rounded-xl transition-all relative z-10',
                   isUserMenuOpen
                     ? 'bg-primary/20'
                     : 'bg-white/10 active:bg-white/20'
@@ -237,14 +241,40 @@ export const MobileMapHeader = ({
               </div>
             </div>
             
+            {/* Menu Items */}
+            <div className="py-1">
+              <button
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  onOpenFindings?.();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-white/70 active:bg-white/10 font-mono text-sm transition-colors"
+              >
+                <Search className="w-5 h-5" />
+                Nálezy
+              </button>
+              <button
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  onOpenFeatureRequests?.();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-white/70 active:bg-white/10 font-mono text-sm transition-colors"
+              >
+                <Lightbulb className="w-5 h-5" />
+                Navrhnout funkci
+              </button>
+            </div>
+            
             {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-red-400 active:bg-red-500/20 font-mono text-sm transition-colors"
-            >
-              <LogOut className="w-5 h-5" />
-              Odhlásit se
-            </button>
+            <div className="border-t border-white/10">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 text-red-400 active:bg-red-500/20 font-mono text-sm transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+                Odhlásit se
+              </button>
+            </div>
           </div>
         </>
       )}

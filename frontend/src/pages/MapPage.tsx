@@ -140,6 +140,8 @@ export const MapPage = () => {
               setViewState={setViewState}
               onLocationChange={setUserLocation}
               bearing={viewState.bearing}
+              onOpenFindings={() => setIsFindingsOpen(true)}
+              onOpenFeatureRequests={() => setIsFeatureRequestsOpen(true)}
             />
 
             <MobileCommandDeck
