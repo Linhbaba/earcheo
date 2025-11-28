@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb, Plus } from 'lucide-react';
+import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb, Plus, Package, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { clsx } from 'clsx';
@@ -14,6 +14,8 @@ interface MobileMapHeaderProps {
   onOpenFindings?: () => void;
   onOpenFeatureRequests?: () => void;
   onAddFinding?: () => void;
+  onOpenProfile?: () => void;
+  onOpenEquipment?: () => void;
 }
 
 export const MobileMapHeader = ({ 
@@ -23,11 +25,14 @@ export const MobileMapHeader = ({
   bearing = 0,
   onOpenFindings,
   onOpenFeatureRequests,
-  onAddFinding
+  onAddFinding,
+  onOpenProfile,
+  onOpenEquipment
 }: MobileMapHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Array<{ id: string; place_name: string; center: [number, number]; }>>([]);
   const [loading, setLoading] = useState(false);
@@ -35,6 +40,20 @@ export const MobileMapHeader = ({
 
   const handleLogout = () => {
     logout({ logoutParams: { returnTo: window.location.origin } });
+  };
+
+  const handleDeleteAccount = () => {
+    setIsUserMenuOpen(false);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteAccount = () => {
+    localStorage.clear();
+    setShowDeleteConfirm(false);
+    alert('Pro dokončení smazání účtu nás prosím kontaktujte na ahoj@earcheo.cz');
+    setTimeout(() => {
+      logout({ logoutParams: { returnTo: window.location.origin } });
+    }, 1000);
   };
 
   const handleSearch = async (searchQuery: string) => {
@@ -288,12 +307,12 @@ export const MobileMapHeader = ({
               <button
                 onClick={() => {
                   setIsUserMenuOpen(false);
-                  onAddFinding?.();
+                  onOpenProfile?.();
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-primary/90 active:bg-primary/10 font-mono text-sm transition-colors font-semibold"
+                className="w-full flex items-center gap-3 px-4 py-3 text-white/70 active:bg-white/10 font-mono text-sm transition-colors"
               >
-                <Plus className="w-5 h-5" />
-                Přidat nález
+                <User className="w-5 h-5" />
+                Profil
               </button>
               <button
                 onClick={() => {
@@ -308,12 +327,33 @@ export const MobileMapHeader = ({
               <button
                 onClick={() => {
                   setIsUserMenuOpen(false);
+                  onOpenEquipment?.();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-white/70 active:bg-white/10 font-mono text-sm transition-colors"
+              >
+                <Package className="w-5 h-5" />
+                Vybavení
+              </button>
+              <button
+                onClick={() => {
+                  setIsUserMenuOpen(false);
                   onOpenFeatureRequests?.();
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-white/70 active:bg-white/10 font-mono text-sm transition-colors"
               >
                 <Lightbulb className="w-5 h-5" />
                 Navrhnout funkci
+              </button>
+            </div>
+            
+            {/* Delete Account */}
+            <div className="border-t border-white/10 py-1">
+              <button
+                onClick={handleDeleteAccount}
+                className="w-full flex items-center gap-3 px-4 py-3 text-red-400/70 active:bg-red-500/20 font-mono text-sm transition-colors"
+              >
+                <Trash2 className="w-5 h-5" />
+                Smazat účet
               </button>
             </div>
             
@@ -350,6 +390,43 @@ export const MobileMapHeader = ({
           className="fixed inset-0 z-30"
           onClick={() => { setIsSearchOpen(false); setResults([]); }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowDeleteConfirm(false)}
+          />
+          <div className="relative bg-surface border border-red-500/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="font-display text-xl text-white mb-2">Smazat účet?</h2>
+                <p className="text-white/70 font-mono text-sm leading-relaxed">
+                  Opravdu chcete trvale smazat svůj účet? Tato akce je <span className="text-red-400">nevratná</span>.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-3 bg-white/5 active:bg-white/10 border border-white/10 rounded-xl text-white/70 font-mono text-sm transition-colors"
+              >
+                Zrušit
+              </button>
+              <button
+                onClick={confirmDeleteAccount}
+                className="flex-1 px-4 py-3 bg-red-500/20 active:bg-red-500/30 border border-red-500/50 rounded-xl text-red-400 font-mono text-sm transition-all"
+              >
+                Smazat
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <style>{`
