@@ -87,6 +87,16 @@ export const LandingPage = () => {
         <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 243, 255, 0.1) 2px, rgba(0, 243, 255, 0.1) 4px)'
       }} />
+      
+      {/* Animated scanner effect */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(180deg, transparent 0%, rgba(0, 243, 255, 0.03) 50%, transparent 100%)',
+          height: '200px',
+          animation: 'scannerMove 8s ease-in-out infinite',
+        }}
+      />
       </div>
 
       {/* Header */}
@@ -281,6 +291,22 @@ export const LandingPage = () => {
           50% { 
             transform: translateY(-20px) translateX(10px); 
             opacity: 0.6;
+          }
+        }
+        @keyframes scannerMove {
+          0% { 
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% { 
+            transform: translateY(100vh);
+            opacity: 0;
           }
         }
       `}</style>
