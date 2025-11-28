@@ -236,7 +236,7 @@ export const LandingPage = () => {
               title="Vybavení"
               description="Správa vašeho archeologického vybavení"
               features={['Detektory kovů', 'GPS zařízení', 'Další nástroje', 'Statistiky použití']}
-            />
+          />
           </div>
         </div>
       </main>
