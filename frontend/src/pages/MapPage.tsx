@@ -148,10 +148,6 @@ export const MapPage = () => {
               bearing={viewState.bearing}
               onOpenFindings={() => setIsFindingsOpen(true)}
               onOpenFeatureRequests={() => setIsFeatureRequestsOpen(true)}
-              onAddFinding={() => {
-                setShowAddFindingForm(true);
-                setIsFindingsOpen(true);
-              }}
               onOpenEquipment={() => setIsEquipmentOpen(true)}
               onOpenProfile={() => setIsProfileOpen(true)}
             />

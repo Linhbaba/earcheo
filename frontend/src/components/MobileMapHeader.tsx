@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb, Plus, Package } from 'lucide-react';
+import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { clsx } from 'clsx';
@@ -13,7 +13,6 @@ interface MobileMapHeaderProps {
   bearing?: number;
   onOpenFindings?: () => void;
   onOpenFeatureRequests?: () => void;
-  onAddFinding?: () => void;
   onOpenEquipment?: () => void;
   onOpenProfile?: () => void;
 }
@@ -25,7 +24,6 @@ export const MobileMapHeader = ({
   bearing = 0,
   onOpenFindings,
   onOpenFeatureRequests,
-  onAddFinding,
   onOpenEquipment,
   onOpenProfile
 }: MobileMapHeaderProps) => {
