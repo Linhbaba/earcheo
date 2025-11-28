@@ -1,10 +1,14 @@
 import { useAuth0 } from '@auth0/auth0-react';
-import { Map, Layers, Radar, ChevronRight, Package } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText, Users, MapPin, Image } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
+import { useStats } from '../hooks/useStats';
+import { useEffect, useState } from 'react';
 
 export const LandingPage = () => {
   const { loginWithRedirect } = useAuth0();
+  const { data: stats } = useStats();
 
   const handleLogin = () => {
     loginWithRedirect({
@@ -30,9 +34,12 @@ export const LandingPage = () => {
         canonicalUrl="/"
         ogType="website"
       />
-    <div className="min-h-screen bg-background relative">
-      {/* Background container - fixed to prevent scroll issues */}
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Enhanced animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Animated particles */}
+        <ParticleField />
+        
         {/* Animated topographic map effect */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.15]" style={{ animation: 'topoFloat 30s ease-in-out infinite' }}>
           <defs>
@@ -74,8 +81,9 @@ export const LandingPage = () => {
         />
       </div>
 
-      {/* Radial glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px]" />
+      {/* Multiple radial glows for depth */}
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '10s' }} />
       
       {/* Scanlines overlay */}
         <div className="absolute inset-0 opacity-[0.02]" style={{
@@ -104,8 +112,14 @@ export const LandingPage = () => {
         </div>
         
         <div className="flex items-center gap-1.5 sm:gap-4">
+          <Link
+            to="/changelog"
+            className="px-2 py-1.5 sm:px-3 sm:py-2 text-white/50 hover:text-white font-mono text-xs transition-colors hidden sm:block"
+          >
+            Changelog
+          </Link>
           <span className="px-2 py-1 sm:px-3 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[9px] sm:text-[10px] font-mono tracking-wider">
-            BETA
+            BETA v1.2
           </span>
           <button
             onClick={handleLogin}
@@ -126,10 +140,12 @@ export const LandingPage = () => {
       {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-center px-4 sm:px-8 pt-8 sm:pt-12 pb-8">
         <div className="text-center max-w-3xl w-full">
-          {/* Badge */}
+          {/* Badge with stats */}
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">LIDAR DATA • ORTOFOTO</span>
+            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">
+              {stats ? `${stats.totalUsers} ARCHEOLOGŮ` : 'LIDAR DATA'} • ORTOFOTO
+            </span>
           </div>
 
           {/* Main heading */}
@@ -163,7 +179,33 @@ export const LandingPage = () => {
           </div>
         </div>
 
-        {/* Feature cards */}
+        {/* Stats Section - Pokud jsou dostupné */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 max-w-4xl w-full">
+            <StatCard
+              icon={<Users className="w-5 h-5" />}
+              value={stats.totalUsers}
+              label="Archeologů"
+            />
+            <StatCard
+              icon={<Search className="w-5 h-5" />}
+              value={stats.totalFindings}
+              label="Nálezů"
+            />
+            <StatCard
+              icon={<MapPin className="w-5 h-5" />}
+              value={stats.publicFindings}
+              label="Veřejných"
+            />
+            <StatCard
+              icon={<Package className="w-5 h-5" />}
+              value={stats.totalEquipment}
+              label="Vybavení"
+            />
+          </div>
+        )}
+
+        {/* Core features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-6xl w-full px-4">
           <FeatureCard 
             icon={<Layers className="w-6 h-6" />}
@@ -187,20 +229,67 @@ export const LandingPage = () => {
             isNew={true}
           />
         </div>
+
+        {/* Nové funkce v1.1 */}
+        <div className="mt-20 max-w-6xl w-full px-4">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
+              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.2</span>
+            </div>
+            <h3 className="font-display text-3xl sm:text-4xl text-white mb-4">
+              Nové funkce pro archeology
+            </h3>
+            <p className="text-white/50 font-mono text-sm sm:text-base max-w-2xl mx-auto">
+              Pokročilé nástroje pro dokumentaci a správu vašich nálezů
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <NewFeatureCard
+              icon={<User className="w-8 h-8" />}
+              title="Profil"
+              description="Správa profilu s statistikami, achievementy a nastavením"
+              features={['Editace profilu', 'Statistiky nálezů', 'Avatar a bio']}
+            />
+            <NewFeatureCard
+              icon={<Search className="w-8 h-8" />}
+              title="Nálezy"
+              description="Kompletní systém pro dokumentaci archeologických nálezů"
+              features={['Fotogalerie', 'GPS lokace', 'Kategorie a tagy', 'Veřejné/soukromé']}
+            />
+            <NewFeatureCard
+              icon={<Package className="w-8 h-8" />}
+              title="Vybavení"
+              description="Správa vašeho archeologického vybavení"
+              features={['Detektory kovů', 'GPS zařízení', 'Další nástroje', 'Statistiky použití']}
+            />
+          </div>
+        </div>
       </main>
 
       {/* Top Feature Requests */}
       <TopFeatureRequests />
 
       {/* Footer */}
-      <footer className="relative z-10 text-center py-8">
-        <p className="text-white/30 font-mono text-xs">
-          © 2025 eArcheo
-        </p>
-        <p className="text-white/20 font-mono text-xs mt-2">
-          <a href="mailto:ahoj@earcheo.cz" className="hover:text-primary/70 transition-colors">
+      <footer className="relative z-10 text-center py-8 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+          <Link
+            to="/changelog"
+            className="text-white/50 hover:text-primary font-mono text-xs transition-colors flex items-center gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            Changelog
+          </Link>
+          <span className="text-white/20">·</span>
+          <a
+            href="mailto:ahoj@earcheo.cz"
+            className="text-white/50 hover:text-primary font-mono text-xs transition-colors"
+          >
             ahoj@earcheo.cz
           </a>
+        </div>
+        <p className="text-white/30 font-mono text-xs">
+          © 2025 eArcheo
         </p>
       </footer>
 
@@ -218,6 +307,16 @@ export const LandingPage = () => {
           50% { 
             transform: translate(-20px, -20px) scale(1.05); 
             opacity: 0.08;
+          }
+        }
+        @keyframes particleFloat {
+          0%, 100% { 
+            transform: translateY(0) translateX(0); 
+            opacity: 0.3;
+          }
+          50% { 
+            transform: translateY(-20px) translateX(10px); 
+            opacity: 0.6;
           }
         }
       `}</style>
@@ -248,3 +347,87 @@ const FeatureCard = ({ icon, title, description, isNew = false }: FeatureCardPro
   </div>
 );
 
+interface NewFeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  features: string[];
+}
+
+const NewFeatureCard = ({ icon, title, description, features }: NewFeatureCardProps) => (
+  <div className="p-6 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all group">
+    <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_30px_rgba(0,243,255,0.3)] transition-all">
+      {icon}
+    </div>
+    <h3 className="font-display text-white text-xl mb-2">{title}</h3>
+    <p className="text-white/60 font-mono text-sm mb-4 leading-relaxed">
+      {description}
+    </p>
+    <ul className="space-y-2">
+      {features.map((feature, i) => (
+        <li key={i} className="flex items-center gap-2 text-white/50 font-mono text-xs">
+          <div className="w-1 h-1 rounded-full bg-primary" />
+          {feature}
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+}
+
+const StatCard = ({ icon, value, label }: StatCardProps) => (
+  <div className="p-4 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl text-center group hover:border-primary/30 transition-all">
+    <div className="flex justify-center mb-2 text-primary/60 group-hover:text-primary transition-colors">
+      {icon}
+    </div>
+    <div className="font-display text-2xl sm:text-3xl text-white mb-1">
+      {value}
+    </div>
+    <div className="text-white/40 font-mono text-xs uppercase tracking-wider">
+      {label}
+    </div>
+  </div>
+);
+
+// Animated particle field component
+const ParticleField = () => {
+  const [particles, setParticles] = useState<Array<{ x: number; y: number; delay: number; duration: number }>>([]);
+
+  useEffect(() => {
+    const generateParticles = () => {
+      const newParticles = [];
+      for (let i = 0; i < 20; i++) {
+        newParticles.push({
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          delay: Math.random() * 5,
+          duration: 5 + Math.random() * 5,
+        });
+      }
+      setParticles(newParticles);
+    };
+    generateParticles();
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {particles.map((particle, i) => (
+        <div
+          key={i}
+          className="absolute w-1 h-1 bg-primary/30 rounded-full"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            animation: `particleFloat ${particle.duration}s ease-in-out infinite`,
+            animationDelay: `${particle.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};

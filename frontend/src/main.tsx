@@ -11,6 +11,7 @@ import { HomePage } from './pages/HomePage';
 import { MapPage } from './pages/MapPage';
 import { FeatureRequests } from './pages/FeatureRequests';
 import { FindingsPage } from './pages/FindingsPage';
+import { ChangelogPage } from './pages/ChangelogPage';
 import { FeaturesLayout } from './layouts/FeaturesLayout';
 import { registerServiceWorker } from './utils/registerServiceWorker';
 import './index.css';
@@ -39,8 +40,9 @@ createRoot(document.getElementById('root')!).render(
         />
         <Analytics />
         <Routes>
-          {/* Public route - smart router that redirects authenticated users to /map */}
+          {/* Public routes */}
           <Route path="/" element={<HomePage />} />
+          <Route path="/changelog" element={<ChangelogPage />} />
           
           {/* Protected routes */}
           <Route 
