@@ -1,6 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText, Users, MapPin, Image } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText, Users, MapPin } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { useStats } from '../hooks/useStats';
