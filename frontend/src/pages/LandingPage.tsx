@@ -1,14 +1,12 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText, Users, MapPin } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
-import { useStats } from '../hooks/useStats';
 import { useEffect, useState } from 'react';
 
 export const LandingPage = () => {
   const { loginWithRedirect } = useAuth0();
-  const { data: stats } = useStats();
 
   const handleLogin = () => {
     loginWithRedirect({
@@ -140,12 +138,10 @@ export const LandingPage = () => {
       {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-center px-4 sm:px-8 pt-8 sm:pt-12 pb-8">
         <div className="text-center max-w-3xl w-full">
-          {/* Badge with stats */}
+          {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">
-              {stats ? `${stats.totalUsers} ARCHEOLOGŮ` : 'LIDAR DATA'} • ORTOFOTO
-            </span>
+            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">LIDAR DATA • ORTOFOTO</span>
           </div>
 
           {/* Main heading */}
@@ -178,32 +174,6 @@ export const LandingPage = () => {
             </button>
           </div>
         </div>
-
-        {/* Stats Section - Pokud jsou dostupné */}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 max-w-4xl w-full">
-            <StatCard
-              icon={<Users className="w-5 h-5" />}
-              value={stats.totalUsers}
-              label="Archeologů"
-            />
-            <StatCard
-              icon={<Search className="w-5 h-5" />}
-              value={stats.totalFindings}
-              label="Nálezů"
-            />
-            <StatCard
-              icon={<MapPin className="w-5 h-5" />}
-              value={stats.publicFindings}
-              label="Veřejných"
-            />
-            <StatCard
-              icon={<Package className="w-5 h-5" />}
-              value={stats.totalEquipment}
-              label="Vybavení"
-            />
-          </div>
-        )}
 
         {/* Core features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-6xl w-full px-4">
@@ -371,26 +341,6 @@ const NewFeatureCard = ({ icon, title, description, features }: NewFeatureCardPr
         </li>
       ))}
     </ul>
-  </div>
-);
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  value: number;
-  label: string;
-}
-
-const StatCard = ({ icon, value, label }: StatCardProps) => (
-  <div className="p-4 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl text-center group hover:border-primary/30 transition-all">
-    <div className="flex justify-center mb-2 text-primary/60 group-hover:text-primary transition-colors">
-      {icon}
-    </div>
-    <div className="font-display text-2xl sm:text-3xl text-white mb-1">
-      {value}
-    </div>
-    <div className="text-white/40 font-mono text-xs uppercase tracking-wider">
-      {label}
-    </div>
   </div>
 );
 
