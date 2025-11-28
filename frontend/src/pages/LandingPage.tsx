@@ -176,7 +176,7 @@ export const LandingPage = () => {
         </div>
 
         {/* Core features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-6xl w-full px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-5xl w-full px-4">
           <FeatureCard 
             icon={<Layers className="w-6 h-6" />}
             title="LiDAR Data"
@@ -191,12 +191,6 @@ export const LandingPage = () => {
             icon={<Radar className="w-6 h-6" />}
             title="3D Terén"
             description="Interaktivní vizualizace reliéfu"
-          />
-          <FeatureCard 
-            icon={<Package className="w-6 h-6" />}
-            title="Ukládání nálezů"
-            description="GPS, fotky, popis. Veřejně nebo soukromě"
-            isNew={true}
           />
         </div>
 
