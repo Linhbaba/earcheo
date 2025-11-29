@@ -156,7 +156,7 @@ export const SwipeMap = ({
           ref={leftMapRef}
           {...viewState}
           onMove={evt => setViewState(evt.viewState)}
-          mapStyle={MAP_STYLES[mapStyleKey].style as any}
+          mapStyle={MAP_STYLES[mapStyleKey].style as string}
           // Enable terrain globally using free AWS/Mapzen data
           terrain={{ source: 'terrain-dem', exaggeration }}
         >
@@ -324,7 +324,7 @@ export const SwipeMap = ({
                 ref={rightMapRef}
                 {...viewState}
                 onMove={evt => setViewState(evt.viewState)}
-                mapStyle={MAP_STYLES[mapStyleKey].style as any} 
+                mapStyle={MAP_STYLES[mapStyleKey].style as string} 
                 terrain={terrainProps}
                 >
                     <Source
@@ -538,7 +538,7 @@ export const SwipeMap = ({
                   ref={rightMapRef}
                   {...viewState}
                   onMove={evt => setViewState(evt.viewState)}
-                  mapStyle={MAP_STYLES[mapStyleKey].style as any}
+                  mapStyle={MAP_STYLES[mapStyleKey].style as string}
                   terrain={terrainProps}
                 >
                   <Source
