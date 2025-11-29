@@ -228,3 +228,4 @@ curl https://earcheo.cz/api/profile \
 **Duration:** ~2 hours (full implementation + testing)
 
 
+

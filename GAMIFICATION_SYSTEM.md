@@ -527,3 +527,4 @@ async function getLeaderboard(type: 'xp' | 'findings' | 'monthly' | 'images', li
 
 **Připraveno k implementaci! 🚀**
 
+

@@ -220,3 +220,4 @@ Po dokončení tohoto quick startu můžete:
 Hodně štěstí! 🎉
 
 
+

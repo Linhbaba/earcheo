@@ -85,3 +85,4 @@ echo ""
 echo "✨ Vše hotovo! Pokud všechny služby běží, otevřete:"
 echo -e "${GREEN}   👉 http://localhost:5173${NC}"
 
+

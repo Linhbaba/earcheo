@@ -101,3 +101,4 @@ Pro testování prostě otevřete **http://localhost:5173** a používejte aplik
 **Datum:** 27.11.2025
 **Status:** ✅ Lokální development je plně funkční a odpovídá produkci
 
+

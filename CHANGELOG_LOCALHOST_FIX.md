@@ -168,3 +168,4 @@ http://localhost:5173
 
 **Status:** ✅ Lokální development je plně funkční a odpovídá produkci
 
+
