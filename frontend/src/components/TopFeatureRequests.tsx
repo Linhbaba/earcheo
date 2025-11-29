@@ -34,7 +34,7 @@ export const TopFeatureRequests = () => {
           try {
             const token = await getAccessTokenSilently();
             headers = { 'Authorization': `Bearer ${token}` };
-          } catch (err) {
+          } catch (_err) {
             // User not authenticated, continue without token
           }
         }

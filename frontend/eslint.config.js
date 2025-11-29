@@ -6,6 +6,18 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   { ignores: ['dist'] },
+  
+  // Service Worker configuration
+  {
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker
+      }
+    }
+  },
+  
+  // TypeScript/React configuration
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -24,6 +36,12 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Allow _ prefix for intentionally unused variables
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
+      }]
     },
   },
 )
