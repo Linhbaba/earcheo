@@ -47,7 +47,7 @@ export const LocationPicker = ({
     }
   }, [initialLatitude, initialLongitude]);
 
-  const handleMapClick = (event: any) => {
+  const handleMapClick = (event: { lngLat: { lng: number; lat: number } }) => {
     const { lng, lat } = event.lngLat;
     setSelectedLocation({ latitude: lat, longitude: lng });
   };

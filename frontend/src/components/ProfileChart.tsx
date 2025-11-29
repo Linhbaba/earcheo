@@ -49,7 +49,7 @@ export function ProfileChart({ data, length, onHover, onClose, activeIndex }: Pr
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
-            onMouseMove={(e: any) => {
+            onMouseMove={(e: unknown) => {
               if (e?.activePayload && e.activePayload[0]) {
                 onHover(e.activePayload[0].payload as ProfileSample);
               }

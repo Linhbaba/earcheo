@@ -92,7 +92,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
       const categoryString = categories.join(', ');
       
       // Prepare data with extended fields
-      const dataToSend: any = {
+      const dataToSend: Record<string, unknown> = {
         title: formData.title,
         latitude: formData.latitude,
         longitude: formData.longitude,

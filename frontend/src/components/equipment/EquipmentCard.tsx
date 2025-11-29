@@ -21,7 +21,7 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
       await deleteEquipment(equipment.id);
       toast.success('Vybavení bylo smazáno');
       setShowDeleteConfirm(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Delete error:', error);
       if (error.message.includes('used in findings')) {
         toast.error('Nelze smazat vybavení použité v nálezech');

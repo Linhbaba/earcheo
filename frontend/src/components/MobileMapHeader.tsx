@@ -60,7 +60,7 @@ export const MobileMapHeader = ({
       const data = await res.json();
       
       // Convert Nominatim format to our format
-      setResults(data.map((item: any) => ({
+      setResults(data.map((item: { place_id: number; display_name: string; lon: string; lat: string }) => ({
         id: item.place_id.toString(),
         place_name: item.display_name,
         center: [parseFloat(item.lon), parseFloat(item.lat)]

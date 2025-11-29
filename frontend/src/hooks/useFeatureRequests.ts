@@ -139,7 +139,7 @@ export function useFeatureRequests() {
       const localFeatures = JSON.parse(stored);
       
       // Only migrate features created by current user (not system features)
-      const userFeatures = localFeatures.filter((f: any) => 
+      const userFeatures = localFeatures.filter((f: { authorId?: string }) => 
         f.authorId === user.sub && f.authorId !== 'system'
       );
 
