@@ -25,10 +25,14 @@ export function useProfile() {
 
       if (response.status === 404) {
         // Profile doesn't exist yet - create it
+        if (!auth0User?.email) {
+          throw new Error('User email is required for profile creation');
+        }
+        
         return await createProfile({
-          email: auth0User?.email!,
-          nickname: auth0User?.nickname,
-          avatarUrl: auth0User?.picture,
+          email: auth0User.email,
+          nickname: auth0User.nickname,
+          avatarUrl: auth0User.picture,
         });
       }
 

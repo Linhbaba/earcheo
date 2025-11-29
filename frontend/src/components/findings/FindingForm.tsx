@@ -92,15 +92,15 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
       const categoryString = categories.join(', ');
       
       // Prepare data with extended fields
-      const dataToSend: Record<string, unknown> = {
-        title: formData.title,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        date: new Date(formData.date).toISOString(),
-        description: formData.description,
-        category: categoryString,
-        isPublic: formData.isPublic,
-      };
+      const dataToSend: Record<string, unknown> = {};
+      
+      dataToSend.title = formData.title;
+      dataToSend.latitude = formData.latitude;
+      dataToSend.longitude = formData.longitude;
+      dataToSend.date = new Date(formData.date).toISOString();
+      dataToSend.description = formData.description;
+      dataToSend.category = categoryString;
+      dataToSend.isPublic = formData.isPublic;
 
       // Add extended fields if provided
       if (formData.condition) dataToSend.condition = formData.condition;
@@ -112,10 +112,10 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
       let savedFinding;
       
       if (isEditing && finding) {
-        savedFinding = await updateFinding(finding.id, dataToSend);
+        savedFinding = await updateFinding(finding.id, dataToSend as unknown as CreateFindingRequest);
         toast.success('Nález byl úspěšně aktualizován!');
       } else {
-        savedFinding = await createFinding(dataToSend);
+        savedFinding = await createFinding(dataToSend as unknown as CreateFindingRequest);
         toast.success('Nález byl úspěšně přidán!');
       }
       

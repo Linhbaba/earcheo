@@ -23,7 +23,7 @@ export const EquipmentCard = ({ equipment, onEdit }: EquipmentCardProps) => {
       setShowDeleteConfirm(false);
     } catch (error: unknown) {
       console.error('Delete error:', error);
-      if (error.message.includes('used in findings')) {
+      if (error instanceof Error && error.message.includes('used in findings')) {
         toast.error('Nelze smazat vybavení použité v nálezech');
       } else {
         toast.error('Chyba při mazání vybavení');
