@@ -139,7 +139,7 @@ export const MobileBottomBar = ({
       {/* Bottom Sheet Panel */}
       {activePanel !== 'none' && (
         <div 
-          className="fixed bottom-16 left-0 right-0 z-50 bg-surface/95 backdrop-blur-xl border-t border-white/10 rounded-t-3xl max-h-[70vh] overflow-hidden animate-slide-up safe-area-bottom"
+          className="fixed bottom-20 left-2 right-2 z-50 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl max-h-[65vh] overflow-hidden animate-slide-up shadow-2xl shadow-black/50"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Panel Header */}
