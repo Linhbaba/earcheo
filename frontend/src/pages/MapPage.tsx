@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ViewState } from 'react-map-gl';
-import { Package } from 'lucide-react';
+import { Plus, Package } from 'lucide-react';
 import { AuthHeader } from '../components/AuthHeader';
 import { CommandDeck } from '../components/CommandDeck';
 import { MapBoard } from '../components/MapBoard';
@@ -8,6 +8,7 @@ import { CompassControl } from '../components/CompassControl';
 import { LocationControl, type UserLocation } from '../components/LocationControl';
 import { TerrainControls } from '../components/TerrainControls';
 import { MobileMapHeader } from '../components/MobileMapHeader';
+import { MobileBottomBar } from '../components/MobileBottomBar';
 import { FindingsModal } from '../components/findings/FindingsModal';
 import { FindingDetail } from '../components/findings/FindingDetail';
 import { FeatureRequestsModal } from '../components/FeatureRequestsModal';
@@ -78,7 +79,7 @@ export const MapPage = () => {
   };
 
   const handleSplitModeChange = (mode: 'vertical' | 'horizontal' | 'none') => {
-    setSplitMode(mode);
+      setSplitMode(mode);
   };
 
   // Na mobilu defaultně vypnout split mode
@@ -149,30 +150,62 @@ export const MapPage = () => {
               onOpenProfile={() => setIsProfileOpen(true)}
             />
 
-            {/* Mobile - Add Finding Button (Floating) */}
-            <div className="fixed top-20 left-3 z-40 safe-area-inset-top">
-              <button
-                onClick={() => {
-                  setShowAddFindingForm(true);
-                  setIsFindingsOpen(true);
-                }}
-                className="w-14 h-14 bg-gradient-to-br from-primary/30 to-primary/20 active:from-primary/40 active:to-primary/30 border-2 border-primary rounded-2xl flex items-center justify-center transition-all shadow-[0_0_25px_rgba(0,243,255,0.4)] active:shadow-[0_0_35px_rgba(0,243,255,0.6)] active:scale-95 touch-manipulation relative overflow-hidden"
-                title="Přidat nový nález"
-              >
-                {/* Animated pulse ring */}
-                <div className="absolute inset-0 rounded-2xl border-2 border-primary animate-ping opacity-20" />
-                
-                {/* Icon - Truhla/Box pro archeologické nálezy */}
-                <div className="relative w-8 h-8 rounded-full bg-primary/40 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(0,243,255,0.9)]" />
-                </div>
-              </button>
-            </div>
+            {/* Mobile FAB - Add Finding */}
+            <button
+              onClick={() => {
+                setShowAddFindingForm(true);
+                setIsFindingsOpen(true);
+              }}
+              className="fixed bottom-24 right-4 z-40 w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+            >
+              <Plus className="w-7 h-7 text-background" />
+            </button>
 
-            {/* TODO: MobileCommandDeck needs update for new L/R system */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface/90 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2">
-              <span className="text-xs text-white/50 font-mono">Mobile UI v přípravě</span>
-            </div>
+            {/* Mobile Bottom Bar */}
+            <MobileBottomBar
+              leftMapConfig={leftMapConfig}
+              rightMapConfig={rightMapConfig}
+              onLeftMapConfigChange={setLeftMapConfig}
+              onRightMapConfigChange={setRightMapConfig}
+              splitMode={splitMode}
+              setSplitMode={handleSplitModeChange}
+              isKatastrActive={isKatastrActive}
+              toggleKatastr={() => setIsKatastrActive(!isKatastrActive)}
+              katastrOpacity={katastrOpacity}
+              setKatastrOpacity={setKatastrOpacity}
+              isVrstevniceActive={isVrstevniceActive}
+              toggleVrstevnice={() => setIsVrstevniceActive(!isVrstevniceActive)}
+              vrstevniceOpacity={vrstevniceOpacity}
+              setVrstevniceOpacity={setVrstevniceOpacity}
+              filters={visualFilters}
+              onFiltersChange={(key, value) => setVisualFilters(prev => ({ ...prev, [key]: value }))}
+              filtersEnabled={filtersEnabled}
+              toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
+              onResetFilters={() => setVisualFilters(defaultVisualFilters)}
+              isGpsActive={isGpsActive}
+              toggleGps={() => setIsGpsActive(!isGpsActive)}
+              onCenterGps={() => {
+                if (userLocation) {
+                  setViewState(prev => ({ ...prev, longitude: userLocation.lng, latitude: userLocation.lat, zoom: 16 }));
+                }
+              }}
+              exaggeration={exaggeration}
+              onLoadSetup={handleLoadSetup}
+              onOpenFindings={() => setIsFindingsOpen(true)}
+              onOpenEquipment={() => setIsEquipmentOpen(true)}
+              onOpenFeatureRequests={() => setIsFeatureRequestsOpen(true)}
+              onOpenProfile={() => setIsProfileOpen(true)}
+            />
+
+            {/* GPS tracking for mobile */}
+            {isGpsActive && (
+              <LocationControl 
+                setViewState={setViewState}
+                onLocationChange={setUserLocation}
+                autoStart
+                hideUI
+              />
+            )}
           </>
         ) : (
           /* DESKTOP UI */

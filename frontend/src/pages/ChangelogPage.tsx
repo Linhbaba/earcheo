@@ -59,7 +59,7 @@ export const ChangelogPage = () => {
 
           {/* Changelog Entries */}
           <div className="space-y-12">
-
+            
             {/* v1.3 */}
             <ChangelogEntry
               version="1.3"
