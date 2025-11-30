@@ -8,15 +8,15 @@ import type { UserLocation } from './LocationControl';
 import type { Finding } from '../types/database';
 import type { MapSideConfig, MapSourceType } from '../types/mapSource';
 
-// WMS Proxy URLs
-const LIDAR_HILLSHADE_URL = '/api/wms-proxy?service=WMS&version=1.1.1&request=GetMap&layers=dmr5g:GrayscaleHillshade&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
-const ORTOFOTO_URL = '/api/ortofoto-proxy?service=WMS&version=1.1.1&request=GetMap&layers=GR_ORTFOTORGB&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
-const KATASTR_URL = '/api/katastr-proxy?service=WMS&version=1.1.1&request=GetMap&layers=RST_KMD,RST_KN,obrazy_parcel_i,obrazy_parcel,hranice_parcel_i,hranice_parcel,DEF_BUDOVY&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
-const VRSTEVNICE_URL = '/api/zabaged-proxy?service=WMS&version=1.1.1&request=GetMap&layers=0,1,2,3&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
+// WMS Proxy URLs (unified proxy endpoint)
+const LIDAR_HILLSHADE_URL = '/api/proxy?type=wms&service=WMS&version=1.1.1&request=GetMap&layers=dmr5g:GrayscaleHillshade&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
+const ORTOFOTO_URL = '/api/proxy?type=ortofoto&service=WMS&version=1.1.1&request=GetMap&layers=GR_ORTFOTORGB&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
+const KATASTR_URL = '/api/proxy?type=katastr&service=WMS&version=1.1.1&request=GetMap&layers=RST_KMD,RST_KN,obrazy_parcel_i,obrazy_parcel,hranice_parcel_i,hranice_parcel,DEF_BUDOVY&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
+const VRSTEVNICE_URL = '/api/proxy?type=zabaged&service=WMS&version=1.1.1&request=GetMap&layers=0,1,2,3&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true';
 
 // Archiv URL s dynamickým rokem
 const getArchiveUrl = (year: number) => 
-  `/api/ortofoto-archive-proxy?service=WMS&version=1.1.1&request=GetMap&layers=${year}&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true`;
+  `/api/proxy?type=archive&year=${year}&service=WMS&version=1.1.1&request=GetMap&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true`;
 
 // Map Styles
 const STYLE_SATELLITE = {

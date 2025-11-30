@@ -73,7 +73,7 @@ export function useMapSetups() {
     try {
       setError(null);
       const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/map-setups/${id}`, {
+      const response = await fetch(`${API_URL}/api/map-setups?id=${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -97,7 +97,7 @@ export function useMapSetups() {
     try {
       setError(null);
       const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/map-setups/${id}`, {
+      const response = await fetch(`${API_URL}/api/map-setups?id=${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });

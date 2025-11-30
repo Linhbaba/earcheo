@@ -74,7 +74,7 @@ export function useFeatureRequests() {
       setError(null);
 
       const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/features/${featureId}/vote`, {
+      const response = await fetch(`${API_URL}/api/features?id=${featureId}&action=vote`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -103,7 +103,7 @@ export function useFeatureRequests() {
       setError(null);
 
       const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/features/${featureId}`, {
+      const response = await fetch(`${API_URL}/api/features?id=${featureId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

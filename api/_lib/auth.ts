@@ -74,7 +74,7 @@ async function ensureUserExists(req: VercelRequest, userId: string): Promise<voi
 
 // Wrapper for protected API routes
 export function withAuth(
-  handler: (req: VercelRequest, res: VercelResponse, userId: string) => Promise<void>
+  handler: (req: VercelRequest, res: VercelResponse, userId: string) => Promise<void | VercelResponse>
 ) {
   return async (req: VercelRequest, res: VercelResponse) => {
     try {

@@ -20,20 +20,16 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/wms-proxy", "destination": "/api/wms-proxy" },
-    { "source": "/api/ortofoto-proxy", "destination": "/api/ortofoto-proxy" },
-    { "source": "/api/history-proxy", "destination": "/api/history-proxy" },
+    { "source": "/api/proxy", "destination": "/api/proxy" },
     { "source": "/api/profile", "destination": "/api/profile" },
+    { "source": "/api/stats", "destination": "/api/stats" },
     { "source": "/api/equipment", "destination": "/api/equipment/index" },
     { "source": "/api/equipment/:id", "destination": "/api/equipment/[id]" },
     { "source": "/api/findings", "destination": "/api/findings/index" },
     { "source": "/api/findings/:id", "destination": "/api/findings/[id]" },
     { "source": "/api/findings/:id/images", "destination": "/api/findings/[id]/images" },
-    { "source": "/api/features", "destination": "/api/features/index" },
-    { "source": "/api/features/:id", "destination": "/api/features/[id]" },
-    { "source": "/api/features/:id/vote", "destination": "/api/features/[id]/vote" },
-    { "source": "/api/map-setups", "destination": "/api/map-setups/index" },
-    { "source": "/api/map-setups/:id", "destination": "/api/map-setups/[id]" },
+    { "source": "/api/features", "destination": "/api/features" },
+    { "source": "/api/map-setups", "destination": "/api/map-setups" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
