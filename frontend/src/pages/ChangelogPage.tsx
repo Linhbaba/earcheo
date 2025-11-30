@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin } from 'lucide-react';
+import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 
 export const ChangelogPage = () => {
@@ -59,13 +59,46 @@ export const ChangelogPage = () => {
 
           {/* Changelog Entries */}
           <div className="space-y-12">
+
+            {/* v1.3 */}
+            <ChangelogEntry
+              version="1.3"
+              date="30. listopadu 2025"
+              badge="AKTUÁLNÍ"
+              badgeColor="primary"
+            >
+              <ChangeItem icon={<Settings />} title="Nový L/R systém mapy">
+                Kompletně přepracované ovládání mapy - nezávislý výběr vrstev pro levou a pravou stranu s podporou swipe porovnání
+              </ChangeItem>
+              <ChangeItem icon={<Calendar />} title="Archiv ortofoto 2007-2022">
+                Přístup k historickým leteckým snímkům ČÚZK s možností výběru konkrétního roku
+              </ChangeItem>
+              <ChangeItem icon={<Mountain />} title="ZABAGED vrstevnice">
+                Nová vrstva s výškopisnými daty - vrstevnice z databáze ZABAGED
+              </ChangeItem>
+              <ChangeItem icon={<Layers />} title="Katastrální mapy">
+                Overlay vrstva s katastrálními hranicemi a parcelními čísly
+              </ChangeItem>
+              <ChangeItem icon={<Bookmark />} title="Uložené pohledy">
+                Možnost uložit si aktuální nastavení mapy (vrstvy, filtry, pozice) pro rychlé načtení později
+              </ChangeItem>
+              <ChangeItem icon={<Zap />} title="Vylepšené UI">
+                Přepracovaný CommandDeck s intuitivnějším ovládáním a lepší organizací funkcí
+              </ChangeItem>
+              <ChangeItem icon={<Shield />} title="Bezpečnost">
+                Vylepšené CSP hlavičky, lepší validace na API endpointech
+              </ChangeItem>
+              <ChangeItem icon={<Trash2 />} title="Čištění kódu">
+                Odstranění nepoužívaných komponent a optimalizace bundle size
+              </ChangeItem>
+            </ChangelogEntry>
             
             {/* v1.2 */}
             <ChangelogEntry
               version="1.2"
-              date="28. listopadu 2024"
-              badge="AKTUÁLNÍ"
-              badgeColor="primary"
+              date="28. listopadu 2025"
+              badge="STABLE"
+              badgeColor="green"
             >
               <ChangeItem icon={<Zap />} title="Smart Router">
                 Přihlášení uživatelé nyní jdou rovnou na mapu, ne na landing page
@@ -81,7 +114,7 @@ export const ChangelogPage = () => {
             {/* v1.1 */}
             <ChangelogEntry
               version="1.1"
-              date="26. listopadu 2024"
+              date="26. listopadu 2025"
               badge="STABLE"
               badgeColor="green"
             >
@@ -105,7 +138,7 @@ export const ChangelogPage = () => {
             {/* v1.0 */}
             <ChangelogEntry
               version="1.0"
-              date="15. listopadu 2024"
+              date="15. listopadu 2025"
               badge="LAUNCH"
               badgeColor="amber"
             >
