@@ -110,6 +110,7 @@ export const SwipeMap = ({
 
   const onTouchMove = useCallback((e: TouchEvent) => {
     if (!isDragging || !e.touches[0]) return;
+    e.preventDefault(); // Zabraň pull-to-refresh
     const axisSize = splitMode === 'horizontal' ? window.innerHeight : window.innerWidth;
     const coord = splitMode === 'horizontal' ? e.touches[0].clientY : e.touches[0].clientX;
     setSliderPosition(Math.min(Math.max((coord / axisSize) * 100, 0), 100));
@@ -121,7 +122,7 @@ export const SwipeMap = ({
     if (isDragging) {
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
-      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchmove', onTouchMove, { passive: false }); // passive: false umožní preventDefault()
       window.addEventListener('touchend', onTouchEnd);
     }
     return () => {
@@ -308,11 +309,11 @@ export const SwipeMap = ({
       <div
         className="absolute z-30 cursor-col-resize group"
         style={isHorizontal
-          ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '12px', transform: 'translateY(-50%)', cursor: 'row-resize' }
-          : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '12px', transform: 'translateX(-50%)' }
+          ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '12px', transform: 'translateY(-50%)', cursor: 'row-resize', touchAction: 'none' }
+          : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '12px', transform: 'translateX(-50%)', touchAction: 'none' }
         }
         onMouseDown={() => setIsDragging(true)}
-        onTouchStart={() => setIsDragging(true)}
+        onTouchStart={(e) => { e.preventDefault(); setIsDragging(true); }}
       >
         {/* Slider line */}
         <div className={`absolute bg-primary/80 group-hover:bg-primary transition-all ${isHorizontal ? 'left-0 right-0 h-0.5 top-1/2 -translate-y-1/2' : 'top-0 bottom-0 w-0.5 left-1/2 -translate-x-1/2'}`} />
