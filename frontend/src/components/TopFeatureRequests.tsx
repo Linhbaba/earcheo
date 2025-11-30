@@ -156,7 +156,7 @@ export const TopFeatureRequests = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                     <h4 className="font-display text-white text-sm sm:text-base truncate">{feature.title}</h4>
-                    {feature.category && (
+                    {feature.category && feature.category.toLowerCase() !== 'ostatní' && (
                       <span className={clsx(
                         "px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
                         getCategoryColor(feature.category)
