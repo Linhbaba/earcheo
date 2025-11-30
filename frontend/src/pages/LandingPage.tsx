@@ -1,6 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText, Mountain, Calendar, Bookmark, Split } from 'lucide-react';
+import { Map, Layers, ChevronRight, Search, FileText, Calendar, Bookmark, Split } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { useEffect, useState } from 'react';
@@ -185,94 +185,73 @@ export const LandingPage = () => {
           </div>
         </div>
 
-        {/* Core features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-12 sm:mt-20 max-w-5xl w-full px-4">
-          <FeatureCard 
-            icon={<Layers className="w-6 h-6" />}
-            title="LiDAR Data"
-            description="Vysoké rozlišení z ČÚZK"
-          />
-          <FeatureCard 
-            icon={<Map className="w-6 h-6" />}
-            title="Více vrstev"
-            description="Satelitní snímky, ortofoto ČÚZK"
-          />
-          <FeatureCard 
-            icon={<Radar className="w-6 h-6" />}
-            title="3D Terén"
-            description="Interaktivní vizualizace reliéfu"
-          />
-        </div>
-
-        {/* Nové funkce v1.3 */}
+        {/* Main Features */}
         <div className="mt-20 max-w-6xl w-full px-4">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
-              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.3</span>
-            </div>
             <h3 className="font-display text-3xl sm:text-4xl text-white mb-4">
-              Pokročilé mapové nástroje
+              Vše pro dálkový průzkum
             </h3>
             <p className="text-white/50 font-mono text-sm sm:text-base max-w-2xl mx-auto">
-              Nový systém porovnání map a unikátní historické vrstvy
+              Profesionální nástroje pro archeology a badatele
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <NewFeatureCard
-              icon={<Split className="w-8 h-8" />}
-              title="L/R Systém"
-              description="Porovnání dvou map vedle sebe s nezávislým výběrem vrstev"
-              features={['Swipe porovnání', 'Split režim', 'Individuální filtry']}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Row 1 */}
+            <FeatureCard 
+              icon={<Layers className="w-6 h-6" />}
+              title="LiDAR DMR 5G"
+              description="Digitální model reliéfu ve vysokém rozlišení 5x5m z ČÚZK"
             />
-            <NewFeatureCard
-              icon={<Calendar className="w-8 h-8" />}
+            <FeatureCard 
+              icon={<Calendar className="w-6 h-6" />}
               title="Archiv 2007-2022"
-              description="Historické letecké snímky ČÚZK s výběrem konkrétního roku"
-              features={['16 let historie', 'HD kvalita', 'Celá ČR']}
+              description="Historické ortofoto snímky - sledujte změny krajiny"
             />
-            <NewFeatureCard
-              icon={<Layers className="w-8 h-8" />}
-              title="Katastr & Výškopis"
-              description="Nové překryvné vrstvy s katastrem a vrstevnicemi"
-              features={['Parcely', 'ZABAGED data', 'Nastavitelná průhlednost']}
+            <FeatureCard 
+              icon={<Split className="w-6 h-6" />}
+              title="Porovnání map"
+              description="Swipe režim pro srovnání různých vrstev vedle sebe"
             />
-            <NewFeatureCard
-              icon={<Bookmark className="w-8 h-8" />}
+            
+            {/* Row 2 */}
+            <FeatureCard 
+              icon={<Map className="w-6 h-6" />}
+              title="Katastr & vrstevnice"
+              description="Parcely a ZABAGED výškopis jako překryvné vrstvy"
+            />
+            <FeatureCard 
+              icon={<Search className="w-6 h-6" />}
+              title="Správa nálezů"
+              description="Dokumentujte nálezy s GPS, fotkami a kategoriemi"
+            />
+            <FeatureCard 
+              icon={<Bookmark className="w-6 h-6" />}
               title="Uložené pohledy"
-              description="Uložte si oblíbené nastavení mapy pro rychlý přístup"
-              features={['Až 10 presetů', 'Kompletní setup', 'Sdílení v budoucnu']}
+              description="Rychlý přístup k oblíbeným místům a nastavení"
             />
           </div>
         </div>
 
-        {/* Funkce pro archeology */}
-        <div className="mt-16 max-w-6xl w-full px-4">
-          <div className="text-center mb-8">
-            <h3 className="font-display text-2xl sm:text-3xl text-white/80 mb-2">
-              Správa nálezů
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <NewFeatureCard
-              icon={<User className="w-8 h-8" />}
-              title="Profil"
-              description="Správa profilu s statistikami a achievementy"
-              features={['Editace profilu', 'Statistiky nálezů', 'Avatar a bio']}
-            />
-            <NewFeatureCard
-              icon={<Search className="w-8 h-8" />}
-              title="Nálezy"
-              description="Kompletní systém pro dokumentaci archeologických nálezů"
-              features={['Fotogalerie', 'GPS lokace', 'Kategorie', 'Veřejné/soukromé']}
-            />
-            <NewFeatureCard
-              icon={<Package className="w-8 h-8" />}
-              title="Vybavení"
-              description="Správa archeologického vybavení"
-              features={['Detektory kovů', 'GPS zařízení', 'Statistiky použití']}
-          />
+        {/* Stats bar */}
+        <div className="mt-16 max-w-4xl w-full px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="text-center">
+              <div className="font-display text-3xl text-primary mb-1">5m</div>
+              <div className="text-white/50 font-mono text-xs">Rozlišení terénu</div>
+            </div>
+            <div className="text-center">
+              <div className="font-display text-3xl text-primary mb-1">16</div>
+              <div className="text-white/50 font-mono text-xs">Let historie</div>
+            </div>
+            <div className="text-center">
+              <div className="font-display text-3xl text-primary mb-1">100%</div>
+              <div className="text-white/50 font-mono text-xs">Pokrytí ČR</div>
+            </div>
+            <div className="text-center">
+              <div className="font-display text-3xl text-primary mb-1">24/7</div>
+              <div className="text-white/50 font-mono text-xs">Přístup online</div>
+            </div>
           </div>
         </div>
       </main>
@@ -355,48 +334,15 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  isNew?: boolean;
 }
 
-const FeatureCard = ({ icon, title, description, isNew = false }: FeatureCardProps) => (
-  <div className="group p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all hover:bg-surface/60 relative">
-    {isNew && (
-      <div className="absolute -top-2 -right-2 px-2 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[9px] font-mono tracking-wider">
-        NOVÉ
-      </div>
-    )}
+const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
+  <div className="group p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all hover:bg-surface/60">
     <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_20px_rgba(0,243,255,0.2)] transition-all">
       {icon}
     </div>
     <h3 className="font-display text-white text-lg mb-2">{title}</h3>
-    <p className="text-white/50 font-mono text-sm">{description}</p>
-  </div>
-);
-
-interface NewFeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  features: string[];
-}
-
-const NewFeatureCard = ({ icon, title, description, features }: NewFeatureCardProps) => (
-  <div className="p-6 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all group">
-    <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_30px_rgba(0,243,255,0.3)] transition-all">
-      {icon}
-    </div>
-    <h3 className="font-display text-white text-xl mb-2">{title}</h3>
-    <p className="text-white/60 font-mono text-sm mb-4 leading-relaxed">
-      {description}
-    </p>
-    <ul className="space-y-2">
-      {features.map((feature, i) => (
-        <li key={i} className="flex items-center gap-2 text-white/50 font-mono text-xs">
-          <div className="w-1 h-1 rounded-full bg-primary" />
-          {feature}
-        </li>
-      ))}
-    </ul>
+    <p className="text-white/50 font-mono text-sm leading-relaxed">{description}</p>
   </div>
 );
 
