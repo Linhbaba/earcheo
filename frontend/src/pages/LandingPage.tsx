@@ -1,6 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, ChevronRight, Search, FileText, Calendar, Bookmark, Split, Sparkles, Shield, Mountain } from 'lucide-react';
+import { Map, Layers, ChevronRight, Search, FileText, Calendar, Bookmark, Split } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { useEffect, useState } from 'react';
@@ -198,11 +198,11 @@ export const LandingPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Row 1 */}
-            <FeatureCard 
-              icon={<Layers className="w-6 h-6" />}
+          <FeatureCard 
+            icon={<Layers className="w-6 h-6" />}
               title="LiDAR DMR 5G"
               description="Digitální model reliéfu ve vysokém rozlišení 5x5m z ČÚZK"
-            />
+          />
             <FeatureCard 
               icon={<Calendar className="w-6 h-6" />}
               title="Archiv 2007-2022"
@@ -215,8 +215,8 @@ export const LandingPage = () => {
             />
             
             {/* Row 2 */}
-            <FeatureCard 
-              icon={<Map className="w-6 h-6" />}
+          <FeatureCard 
+            icon={<Map className="w-6 h-6" />}
               title="Katastr & vrstevnice"
               description="Parcely a ZABAGED výškopis jako překryvné vrstvy"
             />
@@ -224,8 +224,8 @@ export const LandingPage = () => {
               icon={<Search className="w-6 h-6" />}
               title="Správa nálezů"
               description="Dokumentujte nálezy s GPS, fotkami a kategoriemi"
-            />
-            <FeatureCard 
+          />
+          <FeatureCard 
               icon={<Bookmark className="w-6 h-6" />}
               title="Uložené pohledy"
               description="Rychlý přístup k oblíbeným místům a nastavení"
@@ -233,87 +233,6 @@ export const LandingPage = () => {
           </div>
         </div>
 
-        {/* Stats bar */}
-        <div className="mt-16 max-w-4xl w-full px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl">
-            <div className="text-center">
-              <div className="font-display text-3xl text-primary mb-1">5m</div>
-              <div className="text-white/50 font-mono text-xs">Rozlišení terénu</div>
-            </div>
-            <div className="text-center">
-              <div className="font-display text-3xl text-primary mb-1">16</div>
-              <div className="text-white/50 font-mono text-xs">Let historie</div>
-            </div>
-            <div className="text-center">
-              <div className="font-display text-3xl text-primary mb-1">100%</div>
-              <div className="text-white/50 font-mono text-xs">Pokrytí ČR</div>
-            </div>
-            <div className="text-center">
-              <div className="font-display text-3xl text-primary mb-1">24/7</div>
-              <div className="text-white/50 font-mono text-xs">Přístup online</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Nové funkce v BETA 1.3 */}
-        <div className="mt-20 max-w-6xl w-full px-4">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
-              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY BETA v1.3</span>
-            </div>
-            <h3 className="font-display text-3xl sm:text-4xl text-white mb-4">
-              Co je nového?
-            </h3>
-            <p className="text-white/50 font-mono text-sm sm:text-base max-w-2xl mx-auto">
-              Nejžádanější novinky poslední verze
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <NewFeatureCard
-              icon={<Sparkles className="w-8 h-8" />}
-              title="Vylepšené UI"
-              description="Rychlejší ovládání na desktopu i mobilu"
-              features={['Floating action button', 'Bottom bar pro mobil', 'Okamžitý přístup k akcím']}
-            />
-            <NewFeatureCard
-              icon={<Split className="w-8 h-8" />}
-              title="Custom L/R setup"
-              description="Porovnání dvou map s nezávislými vrstvami"
-              features={['Swipe & split režim', 'Horizontální porovnání', 'Individuální filtry']}
-            />
-            <NewFeatureCard
-              icon={<Calendar className="w-8 h-8" />}
-              title="Ortofoto archiv"
-              description="Historické snímky ČÚZK 2007-2022"
-              features={['16 let historie', 'HD kvalita', 'Celé území ČR']}
-            />
-            <NewFeatureCard
-              icon={<Mountain className="w-8 h-8" />}
-              title="ZABAGED vrstevnice"
-              description="Přesné vrstevnice a výškopisné linie"
-              features={['1m krok', 'Plynulé překrytí', 'Nastavitelná průhlednost']}
-            />
-            <NewFeatureCard
-              icon={<Map className="w-8 h-8" />}
-              title="Katastrální mapy"
-              description="Aktuální parcely z ČÚZK jako overlay"
-              features={['Čísla parcel', 'Možnost kombinace s LiDAR', 'Řízení opacity']}
-            />
-            <NewFeatureCard
-              icon={<Bookmark className="w-8 h-8" />}
-              title="Uložené pohledy"
-              description="Vytvářejte presety s kompletním nastavením"
-              features={['Až 10 presetů na uživatele', 'Uloží vrstvy i zoom', 'Připravujeme sdílení']}
-            />
-            <NewFeatureCard
-              icon={<Shield className="w-8 h-8" />}
-              title="Zabezpečení & údržba"
-              description="Bezpečnější backend a čistší kód"
-              features={['Auth0 enforcement', 'Rate limit proxy', 'Code cleanup & audit logy']}
-            />
-          </div>
-        </div>
       </main>
 
       {/* Top Feature Requests */}
@@ -403,33 +322,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
     </div>
     <h3 className="font-display text-white text-lg mb-2">{title}</h3>
     <p className="text-white/50 font-mono text-sm leading-relaxed">{description}</p>
-  </div>
-);
-
-interface NewFeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  features: string[];
-}
-
-const NewFeatureCard = ({ icon, title, description, features }: NewFeatureCardProps) => (
-  <div className="p-6 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all group">
-    <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_30px_rgba(0,243,255,0.3)] transition-all">
-      {icon}
-    </div>
-    <h3 className="font-display text-white text-xl mb-2">{title}</h3>
-    <p className="text-white/60 font-mono text-sm mb-4 leading-relaxed">
-      {description}
-    </p>
-    <ul className="space-y-2">
-      {features.map((feature, i) => (
-        <li key={i} className="flex items-center gap-2 text-white/50 font-mono text-xs">
-          <div className="w-1 h-1 rounded-full bg-primary" />
-          {feature}
-        </li>
-      ))}
-    </ul>
   </div>
 );
 
