@@ -1,6 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Package, User, Search, FileText, Mountain, Calendar, Bookmark, Split } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { useEffect, useState } from 'react';
@@ -204,38 +204,74 @@ export const LandingPage = () => {
           />
         </div>
 
-        {/* Nové funkce v1.1 */}
+        {/* Nové funkce v1.3 */}
         <div className="mt-20 max-w-6xl w-full px-4">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
-              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.2</span>
+              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.3</span>
             </div>
             <h3 className="font-display text-3xl sm:text-4xl text-white mb-4">
-              Nové funkce pro archeology
+              Pokročilé mapové nástroje
             </h3>
             <p className="text-white/50 font-mono text-sm sm:text-base max-w-2xl mx-auto">
-              Pokročilé nástroje pro dokumentaci a správu vašich nálezů
+              Nový systém porovnání map a unikátní historické vrstvy
             </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <NewFeatureCard
+              icon={<Split className="w-8 h-8" />}
+              title="L/R Systém"
+              description="Porovnání dvou map vedle sebe s nezávislým výběrem vrstev"
+              features={['Swipe porovnání', 'Split režim', 'Individuální filtry']}
+            />
+            <NewFeatureCard
+              icon={<Calendar className="w-8 h-8" />}
+              title="Archiv 2007-2022"
+              description="Historické letecké snímky ČÚZK s výběrem konkrétního roku"
+              features={['16 let historie', 'HD kvalita', 'Celá ČR']}
+            />
+            <NewFeatureCard
+              icon={<Layers className="w-8 h-8" />}
+              title="Katastr & Výškopis"
+              description="Nové překryvné vrstvy s katastrem a vrstevnicemi"
+              features={['Parcely', 'ZABAGED data', 'Nastavitelná průhlednost']}
+            />
+            <NewFeatureCard
+              icon={<Bookmark className="w-8 h-8" />}
+              title="Uložené pohledy"
+              description="Uložte si oblíbené nastavení mapy pro rychlý přístup"
+              features={['Až 10 presetů', 'Kompletní setup', 'Sdílení v budoucnu']}
+            />
+          </div>
+        </div>
+
+        {/* Funkce pro archeology */}
+        <div className="mt-16 max-w-6xl w-full px-4">
+          <div className="text-center mb-8">
+            <h3 className="font-display text-2xl sm:text-3xl text-white/80 mb-2">
+              Správa nálezů
+            </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <NewFeatureCard
               icon={<User className="w-8 h-8" />}
               title="Profil"
-              description="Správa profilu s statistikami, achievementy a nastavením"
+              description="Správa profilu s statistikami a achievementy"
               features={['Editace profilu', 'Statistiky nálezů', 'Avatar a bio']}
             />
             <NewFeatureCard
               icon={<Search className="w-8 h-8" />}
               title="Nálezy"
               description="Kompletní systém pro dokumentaci archeologických nálezů"
-              features={['Fotogalerie', 'GPS lokace', 'Kategorie a tagy', 'Veřejné/soukromé']}
+              features={['Fotogalerie', 'GPS lokace', 'Kategorie', 'Veřejné/soukromé']}
             />
             <NewFeatureCard
               icon={<Package className="w-8 h-8" />}
               title="Vybavení"
-              description="Správa vašeho archeologického vybavení"
-              features={['Detektory kovů', 'GPS zařízení', 'Další nástroje', 'Statistiky použití']}
+              description="Správa archeologického vybavení"
+              features={['Detektory kovů', 'GPS zařízení', 'Statistiky použití']}
           />
           </div>
         </div>

@@ -151,11 +151,11 @@ export const MapPage = () => {
             />
 
             {/* Mobile FAB - Add Finding */}
-            <button
-              onClick={() => {
-                setShowAddFindingForm(true);
-                setIsFindingsOpen(true);
-              }}
+              <button
+                onClick={() => {
+                  setShowAddFindingForm(true);
+                  setIsFindingsOpen(true);
+                }}
               className="fixed bottom-24 right-4 z-40 w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform"
             >
               <Plus className="w-7 h-7 text-background" />

@@ -1,5 +1,5 @@
 // Service Worker for caching map tiles and static assets
-const CACHE_NAME = 'earcheo-v1.2';
+const CACHE_NAME = 'earcheo-v1.3';
 const MAP_TILE_CACHE = 'earcheo-map-tiles-v1';
 
 // Assets to cache immediately
@@ -45,9 +45,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Map tiles - Cache first, then network
-  if (url.pathname.includes('/api/wms-proxy') || 
-      url.pathname.includes('/api/ortofoto-proxy') ||
-      url.pathname.includes('/api/history-proxy') ||
+  if (url.pathname.includes('/api/proxy') || 
       url.hostname.includes('tile.openstreetmap.org')) {
     
     event.respondWith(
