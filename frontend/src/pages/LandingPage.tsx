@@ -1,12 +1,17 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Search, FileText, User, Package } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Search, FileText, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { useEffect, useState } from 'react';
 
 export const LandingPage = () => {
   const { loginWithRedirect } = useAuth0();
+  const [openCategory, setOpenCategory] = useState<string | null>('findings'); // 'findings' | 'maps' | 'tools' | null
+
+  const toggleCategory = (category: string) => {
+    setOpenCategory(openCategory === category ? null : category);
+  };
 
   const handleLogin = () => {
     loginWithRedirect({
@@ -204,7 +209,7 @@ export const LandingPage = () => {
           />
         </div>
 
-        {/* New feature tiles */}
+        {/* New feature tiles - Categorized */}
         <div className="mt-20 max-w-6xl w-full px-4">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
@@ -214,29 +219,88 @@ export const LandingPage = () => {
               Nové funkce pro archeology
             </h3>
             <p className="text-white/50 font-mono text-sm sm:text-base">
-              Pokročilé nástroje pro dokumentaci a správu vašich nálezů
+              Kompletní přehled nástrojů rozdělený do kategorií
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <NewFeatureCard
-              icon={<User className="w-7 h-7" />}
-              title="Profil"
-              description="Správa profilu s statistikami, achievementy a nastavením"
-              features={['Editace profilu', 'Statistiky nálezů', 'Avatar a bio']}
-            />
-            <NewFeatureCard
-              icon={<Search className="w-7 h-7" />}
-              title="Nálezy"
-              description="Kompletní systém pro dokumentaci archeologických nálezů"
-              features={['Fotogalerie', 'GPS lokace', 'Kategorie a tagy', 'Veřejné/soukromé']}
-            />
-            <NewFeatureCard
-              icon={<Package className="w-7 h-7" />}
-              title="Vybavení"
-              description="Správa vašeho archeologického vybavení"
-              features={['Detektory kovů', 'GPS zařízení', 'Další nástroje', 'Statistiky použití']}
-            />
+          <div className="space-y-4">
+            {/* Category 1: Findings & Profile */}
+            <FeatureCategory 
+              title="Správa nálezů a profil" 
+              isOpen={openCategory === 'findings'} 
+              onToggle={() => toggleCategory('findings')}
+            >
+              <NewFeatureCard
+                icon={<User className="w-7 h-7" />}
+                title="Profil"
+                description="Správa profilu s statistikami, achievementy a nastavením"
+                features={['Editace profilu', 'Statistiky nálezů', 'Avatar a bio']}
+              />
+              <NewFeatureCard
+                icon={<Search className="w-7 h-7" />}
+                title="Nálezy"
+                description="Kompletní systém pro dokumentaci archeologických nálezů"
+                features={['Fotogalerie', 'GPS lokace', 'Kategorie a tagy', 'Veřejné/soukromé']}
+              />
+              <NewFeatureCard
+                icon={<Package className="w-7 h-7" />}
+                title="Vybavení"
+                description="Správa vašeho archeologického vybavení"
+                features={['Detektory kovů', 'GPS zařízení', 'Další nástroje', 'Statistiky použití']}
+              />
+            </FeatureCategory>
+
+            {/* Category 2: Map Data */}
+            <FeatureCategory 
+              title="Mapová data a historie" 
+              isOpen={openCategory === 'maps'} 
+              onToggle={() => toggleCategory('maps')}
+            >
+              <NewFeatureCard
+                icon={<Calendar className="w-7 h-7" />}
+                title="Ortofoto archiv"
+                description="Historické snímky ČÚZK od 2007 do 2022"
+                features={['16 let historie', 'HD kvalita', 'Celé území ČR', 'Rychlá volba roku']}
+              />
+              <NewFeatureCard
+                icon={<Mountain className="w-7 h-7" />}
+                title="ZABAGED vrstevnice"
+                description="Přesné výškopisné linie pro čtení terénu"
+                features={['1m krok', 'Plynulé překrytí', 'Nastavitelná průhlednost', 'Ideální pro analýzu reliéfu']}
+              />
+              <NewFeatureCard
+                icon={<Map className="w-7 h-7" />}
+                title="Katastrální mapy"
+                description="Aktuální parcely z ČÚZK jako overlay"
+                features={['Čísla parcel', 'Kombinace s LiDAR', 'Řízení opacity', 'Rychlé přepínání']}
+              />
+            </FeatureCategory>
+
+            {/* Category 3: Tools & UI */}
+            <FeatureCategory 
+              title="Pokročilé nástroje a UI" 
+              isOpen={openCategory === 'tools'} 
+              onToggle={() => toggleCategory('tools')}
+            >
+              <NewFeatureCard
+                icon={<Split className="w-7 h-7" />}
+                title="Custom L/R setup"
+                description="Porovnání dvou map s nezávislými vrstvami"
+                features={['Swipe & split režim', 'Horizontální porovnání', 'Individuální filtry', 'Plynulé přepínání']}
+              />
+              <NewFeatureCard
+                icon={<Bookmark className="w-7 h-7" />}
+                title="Uložené pohledy"
+                description="Vytvářejte presety s kompletním nastavením mapy"
+                features={['Až 10 presetů', 'Uloží vrstvy i zoom', 'Sdílení připravujeme', 'Přehledné spravování']}
+              />
+              <NewFeatureCard
+                icon={<Sparkles className="w-7 h-7" />}
+                title="Vylepšené UI"
+                description="Moderní rozhraní navržené pro rychlou práci v terénu"
+                features={['Floating action button', 'Bottom bar pro mobil', 'Jednotné ovládání', 'Rychlé akce']}
+              />
+            </FeatureCategory>
           </div>
         </div>
 
@@ -329,6 +393,35 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
     </div>
     <h3 className="font-display text-white text-lg mb-2">{title}</h3>
     <p className="text-white/50 font-mono text-sm leading-relaxed">{description}</p>
+  </div>
+);
+
+interface FeatureCategoryProps {
+  title: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+const FeatureCategory = ({ title, isOpen, onToggle, children }: FeatureCategoryProps) => (
+  <div 
+    className={`
+      rounded-2xl overflow-hidden bg-surface/20 transition-all duration-300 border
+      ${isOpen ? 'border-primary/50 shadow-[0_0_20px_rgba(0,243,255,0.15)]' : 'border-white/10 hover:border-white/20'}
+    `}
+  >
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between p-6 text-left hover:bg-gradient-to-b hover:from-white/10 hover:to-transparent transition-all duration-300"
+    >
+      <h3 className="font-display text-xl text-white">{title}</h3>
+      <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+    </button>
+    {isOpen && (
+      <div className="p-6 pt-0 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+        {children}
+      </div>
+    )}
   </div>
 );
 
