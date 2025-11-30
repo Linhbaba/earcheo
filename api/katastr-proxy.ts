@@ -5,12 +5,14 @@ export const config = {
   runtime: 'edge',
 };
 
-// Císařské otisky stabilního katastru (1824–1843)
-const HISTORY_TARGET_URL = 'https://ags.cuzk.cz/arcgis/services/Cisarske_otisky/MapServer/WMSServer';
+// Katastrální mapy ČÚZK
+const KATASTR_URL = 'https://services.cuzk.gov.cz/wms/wms.asp';
 
 export default async function handler(request: Request): Promise<Response> {
   return handleWmsProxy(request, {
-    targetUrl: HISTORY_TARGET_URL,
-    serviceName: 'History ČÚZK'
+    targetUrl: KATASTR_URL,
+    serviceName: 'Katastrální mapy'
   });
 }
+
+

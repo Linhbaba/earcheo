@@ -32,6 +32,8 @@
     { "source": "/api/features", "destination": "/api/features/index" },
     { "source": "/api/features/:id", "destination": "/api/features/[id]" },
     { "source": "/api/features/:id/vote", "destination": "/api/features/[id]/vote" },
+    { "source": "/api/map-setups", "destination": "/api/map-setups/index" },
+    { "source": "/api/map-setups/:id", "destination": "/api/map-setups/[id]" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

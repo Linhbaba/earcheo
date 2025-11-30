@@ -2,7 +2,6 @@
   "name": "earcheo",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "npm@9.2.0",
   "workspaces": [
     "frontend",
     "backend"

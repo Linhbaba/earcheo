@@ -1,38 +1,46 @@
 import type { ViewState } from 'react-map-gl/maplibre';
-import { SwipeMap, type MapStyleKey } from './SwipeMap';
+import { SwipeMap } from './SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import type { UserLocation } from './LocationControl';
 import type { Finding } from '../types/database';
+import type { MapSideConfig } from '../types/mapSource';
 
 interface MapBoardProps {
-  mode: 'LIDAR' | 'OPTIC';
+  // Nový L/R systém
+  leftMapConfig: MapSideConfig;
+  rightMapConfig: MapSideConfig;
+  activeFilterSide: 'left' | 'right';
+  // Pohled
   viewState: ViewState;
   setViewState: React.Dispatch<React.SetStateAction<ViewState>>;
   splitMode: 'vertical' | 'horizontal' | 'none';
   exaggeration?: number;
-  isHistoryActive: boolean;
-  historyOpacity: number;
-  isOrtofotoActive: boolean;
-  ortofotoOpacity: number;
-  mapStyleKey: MapStyleKey;
+  // Overlay vrstvy
+  isKatastrActive: boolean;
+  katastrOpacity: number;
+  isVrstevniceActive: boolean;
+  vrstevniceOpacity: number;
+  // Filtry
   visualFilters: VisualFilters;
   filtersEnabled: boolean;
+  // Ostatní
   userLocation?: UserLocation | null;
   findings?: Finding[];
   onFindingClick?: (finding: Finding) => void;
 }
 
 export const MapBoard = ({ 
-    mode, 
+    leftMapConfig,
+    rightMapConfig,
+    activeFilterSide,
     viewState, 
     setViewState, 
     splitMode, 
     exaggeration = 1.5,
-    isHistoryActive,
-    historyOpacity,
-    isOrtofotoActive,
-    ortofotoOpacity,
-    mapStyleKey,
+    isKatastrActive,
+    katastrOpacity,
+    isVrstevniceActive,
+    vrstevniceOpacity,
     visualFilters,
     filtersEnabled,
     userLocation,
@@ -43,16 +51,17 @@ export const MapBoard = ({
   return (
     <div className="absolute inset-0 w-full h-full z-0">
       <SwipeMap 
-        mode={mode} 
+        leftMapConfig={leftMapConfig}
+        rightMapConfig={rightMapConfig}
+        activeFilterSide={activeFilterSide}
         viewState={viewState} 
         setViewState={setViewState} 
         splitMode={splitMode}
         exaggeration={exaggeration}
-        isHistoryActive={isHistoryActive}
-        historyOpacity={historyOpacity}
-        isOrtofotoActive={isOrtofotoActive}
-        ortofotoOpacity={ortofotoOpacity}
-        mapStyleKey={mapStyleKey}
+        isKatastrActive={isKatastrActive}
+        katastrOpacity={katastrOpacity}
+        isVrstevniceActive={isVrstevniceActive}
+        vrstevniceOpacity={vrstevniceOpacity}
         visualFilters={visualFilters}
         filtersEnabled={filtersEnabled}
         userLocation={userLocation}

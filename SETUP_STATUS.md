@@ -237,3 +237,5 @@ Backend infrastruktura je kompletní. Zbývá dokončit Auth0 API + Blob storage
 
 
 
+
+

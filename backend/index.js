@@ -73,19 +73,46 @@ app.get('/api/ortofoto-proxy', async (req, res) => {
     }
 });
 
-// HISTORICAL MAP PROXY (Císařské otisky)
-app.get('/api/history-proxy', async (req, res) => {
+// ARCHIVNÍ ORTOFOTO PROXY (1998-2022) - ČÚZK WMS
+app.get('/api/ortofoto-archive-proxy', async (req, res) => {
     try {
-        // Císařské otisky stabilního katastru (1824–1843)
-        const targetUrl = 'https://ags.cuzk.cz/arcgis/services/Cisarske_otisky/MapServer/WMSServer';
+        // Správná URL s prohlížečovými hlavičkami
+        const targetUrl = 'https://geoportal.cuzk.gov.cz/WMS_ORTOFOTO_ARCHIV/service.svc/get';
         
-        // Forward all query params
         const response = await axios.get(targetUrl, {
             params: req.query,
             responseType: 'arraybuffer',
             httpsAgent: agent,
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://geoportal.cuzk.cz/',
+                'Accept': 'image/png,image/*,*/*;q=0.8'
+            }
+        });
+
+        res.set('Content-Type', response.headers['content-type'] || 'image/png');
+        res.send(response.data);
+
+    } catch (error) {
+        console.error("Proxy Error (Archive Ortofoto):", error.message);
+        if (error.response) {
+            console.error("Status:", error.response.status);
+        }
+        res.status(500).send("Error fetching archive ortofoto");
+    }
+});
+
+// KATASTRÁLNÍ MAPY PROXY
+app.get('/api/katastr-proxy', async (req, res) => {
+    try {
+        const targetUrl = 'https://services.cuzk.cz/wms/wms.asp';
+        
+        const response = await axios.get(targetUrl, {
+            params: req.query,
+            responseType: 'arraybuffer',
+            httpsAgent: agent,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'Referer': 'https://geoportal.cuzk.cz/'
             }
         });
@@ -94,15 +121,36 @@ app.get('/api/history-proxy', async (req, res) => {
         res.send(response.data);
 
     } catch (error) {
-        console.error("Proxy Error (History):", error.message);
-        let errorData = "Error fetching historical map";
+        console.error("Proxy Error (Katastr):", error.message);
+        res.status(500).send("Error fetching katastr");
+    }
+});
+
+// ZABAGED VRSTEVNICE PROXY
+app.get('/api/zabaged-proxy', async (req, res) => {
+    try {
+        const targetUrl = 'https://ags.cuzk.cz/arcgis/services/ZABAGED_VRSTEVNICE/MapServer/WMSServer';
+        
+        const response = await axios.get(targetUrl, {
+            params: req.query,
+            responseType: 'arraybuffer',
+            httpsAgent: agent,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://geoportal.cuzk.cz/',
+                'Accept': 'image/png,image/*,*/*;q=0.8'
+            }
+        });
+
+        res.set('Content-Type', response.headers['content-type'] || 'image/png');
+        res.send(response.data);
+
+    } catch (error) {
+        console.error("Proxy Error (Vrstevnice):", error.message);
         if (error.response) {
             console.error("Status:", error.response.status);
-            const dataStr = error.response.data.toString();
-            console.error("Data Preview:", dataStr.substring(0, 500));
-            errorData = `Proxy Error: ${error.response.status} - ${dataStr.substring(0, 200)}`;
         }
-        res.status(500).send(errorData);
+        res.status(500).send("Error fetching vrstevnice");
     }
 });
 
@@ -179,9 +227,9 @@ app.all('/api/features/:id', (req, res) => proxyToVercel(req, res, `/api/feature
 app.all('/api/features/:id/vote', (req, res) => proxyToVercel(req, res, `/api/features/${req.params.id}/vote`));
 
 const PORT = 3010;
-app.listen(PORT, () => {
-    console.log(`[SYSTEM] Backend Proxy Online on port ${PORT}`);
-    console.log(`[SYSTEM] WMS: ČÚZK DMR 5G`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[SYSTEM] Backend Proxy Online on port ${PORT} (IPv4 + IPv6)`);
+    console.log(`[SYSTEM] WMS: ČÚZK DMR 5G, Ortofoto, Archiv, Katastr, Vrstevnice`);
     console.log(`[SYSTEM] API: Proxying to ${PROD_API}`);
 });
 

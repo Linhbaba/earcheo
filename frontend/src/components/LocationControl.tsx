@@ -11,9 +11,11 @@ export interface UserLocation {
 interface LocationControlProps {
   setViewState: (vs: ViewState | ((prev: ViewState) => ViewState)) => void;
   onLocationChange?: (location: UserLocation | null) => void;
+  autoStart?: boolean;
+  hideUI?: boolean;
 }
 
-export const LocationControl = ({ setViewState, onLocationChange }: LocationControlProps) => {
+export const LocationControl = ({ setViewState, onLocationChange, autoStart = false, hideUI = false }: LocationControlProps) => {
   const [isTracking, setIsTracking] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -100,6 +102,19 @@ export const LocationControl = ({ setViewState, onLocationChange }: LocationCont
     }
   };
 
+  // Auto-start tracking when component mounts with autoStart=true
+  useEffect(() => {
+    if (autoStart) {
+      startTracking();
+    }
+    return () => {
+      // Cleanup when autoStart changes to false or unmount
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Cleanup při unmount
   useEffect(() => {
     return () => {
@@ -108,6 +123,11 @@ export const LocationControl = ({ setViewState, onLocationChange }: LocationCont
       }
     };
   }, [watchId]);
+
+  // Hidden mode - no UI, just tracking
+  if (hideUI) {
+    return null;
+  }
 
   return (
     <div className="pointer-events-auto w-48 bg-surface/80 backdrop-blur-md border border-white/10 rounded-2xl p-3 shadow-2xl shadow-black/50 flex flex-col gap-2">

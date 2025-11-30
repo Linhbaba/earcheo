@@ -192,3 +192,38 @@ export interface ApiError {
   details?: unknown;
 }
 
+// Map Setup
+export interface MapSetupConfig {
+  leftMapConfig: { source: string; archiveYear?: number | null };
+  rightMapConfig: { source: string; archiveYear?: number | null };
+  splitMode: 'vertical' | 'horizontal' | 'none';
+  exaggeration: number;
+  isKatastrActive: boolean;
+  katastrOpacity: number;
+  isVrstevniceActive: boolean;
+  vrstevniceOpacity: number;
+  visualFilters: {
+    invert: number;
+    contrast: number;
+    saturation: number;
+    brightness: number;
+    hue: number;
+    shadows: number;
+  };
+  filtersEnabled: boolean;
+  viewState?: {
+    longitude: number;
+    latitude: number;
+    zoom: number;
+    bearing: number;
+    pitch: number;
+  };
+}
+
+export interface MapSetup {
+  id: string;
+  name: string;
+  config: MapSetupConfig;
+  createdAt: string;
+}
+

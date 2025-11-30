@@ -4,11 +4,10 @@ import { Package } from 'lucide-react';
 import { AuthHeader } from '../components/AuthHeader';
 import { CommandDeck } from '../components/CommandDeck';
 import { MapBoard } from '../components/MapBoard';
-import { MapStyleSelector } from '../components/MapStyleSelector';
 import { CompassControl } from '../components/CompassControl';
 import { LocationControl, type UserLocation } from '../components/LocationControl';
 import { TerrainControls } from '../components/TerrainControls';
-import { MobileCommandDeck } from '../components/MobileCommandDeck';
+// import { MobileCommandDeck } from '../components/MobileCommandDeck'; // TODO: Update for L/R system
 import { MobileMapHeader } from '../components/MobileMapHeader';
 import { FindingsModal } from '../components/findings/FindingsModal';
 import { FindingDetail } from '../components/findings/FindingDetail';
@@ -18,11 +17,12 @@ import { ProfileModal } from '../components/profile';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useProfile } from '../hooks/useProfile';
 import { useFindings } from '../hooks/useFindings';
-import type { MapStyleKey } from '../components/SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import { defaultVisualFilters } from '../types/visualFilters';
 import { SEOHead } from '../components/SEOHead';
-import type { Finding } from '../types/database';
+import type { Finding, MapSetupConfig } from '../types/database';
+import type { MapSideConfig } from '../types/mapSource';
+import { DEFAULT_LEFT_CONFIG, DEFAULT_RIGHT_CONFIG } from '../types/mapSource';
 
 export const MapPage = () => {
   const isMobile = useIsMobile();
@@ -33,20 +33,26 @@ export const MapPage = () => {
   // Load findings for map markers
   const { findings } = useFindings();
   
-  const [mode, setMode] = useState<'LIDAR' | 'OPTIC'>('LIDAR');
+  // Nový L/R systém výběru map
+  const [leftMapConfig, setLeftMapConfig] = useState<MapSideConfig>(DEFAULT_LEFT_CONFIG);
+  const [rightMapConfig, setRightMapConfig] = useState<MapSideConfig>(DEFAULT_RIGHT_CONFIG);
+  const [activeFilterSide, setActiveFilterSide] = useState<'left' | 'right'>('left');
+  
   const [splitMode, setSplitMode] = useState<'vertical' | 'horizontal' | 'none'>('vertical');
-  const [preferredSplitMode, setPreferredSplitMode] = useState<'vertical' | 'horizontal'>('vertical');
-  const [wasSplitForced, setWasSplitForced] = useState(false);
   const [exaggeration, setExaggeration] = useState(1.5);
-  const [isHistoryActive, setIsHistoryActive] = useState(false);
-  const [historyOpacity, setHistoryOpacity] = useState(0.7);
-  const [isOrtofotoActive, setIsOrtofotoActive] = useState(false);
-  const [ortofotoOpacity, setOrtofotoOpacity] = useState(0.8);
+  
+  // Overlay vrstvy (aplikují se na obě strany)
+  const [isKatastrActive, setIsKatastrActive] = useState(false);
+  const [katastrOpacity, setKatastrOpacity] = useState(0.6);
+  const [isVrstevniceActive, setIsVrstevniceActive] = useState(false);
+  const [vrstevniceOpacity, setVrstevniceOpacity] = useState(0.7);
+  
+  // Filtry (aplikují se na activeFilterSide)
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visualFilters, setVisualFilters] = useState<VisualFilters>(defaultVisualFilters);
   const [filtersEnabled, setFiltersEnabled] = useState(true);
-  const [mapStyleKey, setMapStyleKey] = useState<MapStyleKey>('SATELLITE');
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [isGpsActive, setIsGpsActive] = useState(true); // GPS zapnuto defaultně
   const [isFindingsOpen, setIsFindingsOpen] = useState(false);
   const [selectedFindingFromMap, setSelectedFindingFromMap] = useState<Finding | null>(null);
   const [isFeatureRequestsOpen, setIsFeatureRequestsOpen] = useState(false);
@@ -73,40 +79,31 @@ export const MapPage = () => {
   };
 
   const handleSplitModeChange = (mode: 'vertical' | 'horizontal' | 'none') => {
-    if (mode === 'none') {
-      setSplitMode('none');
-    } else {
-      setPreferredSplitMode(mode);
-      setSplitMode(mode);
-    }
+    setSplitMode(mode);
   };
 
-  // Na mobilu defaultně vypnout split mode, ale nechat uživatele ho zapnout
+  // Na mobilu defaultně vypnout split mode
   useEffect(() => {
-    // Pouze při první detekci mobilu, ne při každé změně
     if (isMobile && splitMode === 'vertical') {
-      // Výchozí hodnota na mobilu - bez rozdělení, uživatel může změnit
       setSplitMode('none');
     }
   }, [isMobile]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (mode === 'OPTIC') {
-      if (splitMode !== 'none') {
-        setSplitMode('none');
-      }
-      setWasSplitForced(true);
-    } else if (wasSplitForced && !isMobile) {
-      setSplitMode(preferredSplitMode);
-      setWasSplitForced(false);
+  // Načtení uloženého setupu
+  const handleLoadSetup = (config: MapSetupConfig) => {
+    setLeftMapConfig(config.leftMapConfig as MapSideConfig);
+    setRightMapConfig(config.rightMapConfig as MapSideConfig);
+    setSplitMode(config.splitMode);
+    setExaggeration(config.exaggeration);
+    setIsKatastrActive(config.isKatastrActive);
+    setKatastrOpacity(config.katastrOpacity);
+    setIsVrstevniceActive(config.isVrstevniceActive);
+    setVrstevniceOpacity(config.vrstevniceOpacity);
+    setVisualFilters(config.visualFilters);
+    setFiltersEnabled(config.filtersEnabled);
+    if (config.viewState) {
+      setViewState(prev => ({ ...prev, ...config.viewState }));
     }
-  }, [mode, splitMode, preferredSplitMode, wasSplitForced, isMobile]);
-
-  const splitModeLocked = mode === 'OPTIC';
-
-  // Mobile-specific handlers
-  const handleResetNorth = () => {
-    setViewState(prev => ({ ...prev, bearing: 0 }));
   };
 
   return (
@@ -121,16 +118,17 @@ export const MapPage = () => {
       <div className="relative w-screen h-screen bg-background overflow-hidden text-white selection:bg-primary/30">
         
             <MapBoard 
-              mode={mode}
+              leftMapConfig={leftMapConfig}
+              rightMapConfig={rightMapConfig}
+              activeFilterSide={activeFilterSide}
               viewState={viewState}
               setViewState={setViewState}
               splitMode={splitMode}
               exaggeration={exaggeration}
-              isHistoryActive={isHistoryActive}
-              historyOpacity={historyOpacity}
-              isOrtofotoActive={isOrtofotoActive}
-              ortofotoOpacity={ortofotoOpacity}
-              mapStyleKey={mapStyleKey}
+              isKatastrActive={isKatastrActive}
+              katastrOpacity={katastrOpacity}
+              isVrstevniceActive={isVrstevniceActive}
+              vrstevniceOpacity={vrstevniceOpacity}
               visualFilters={visualFilters}
               filtersEnabled={filtersEnabled}
               userLocation={userLocation}
@@ -172,29 +170,10 @@ export const MapPage = () => {
               </button>
             </div>
 
-            <MobileCommandDeck
-              activeMode={mode}
-              setMode={setMode}
-              splitMode={splitMode}
-              setSplitMode={handleSplitModeChange}
-              isOrtofotoActive={isOrtofotoActive}
-              toggleOrtofoto={() => setIsOrtofotoActive(!isOrtofotoActive)}
-              ortofotoOpacity={ortofotoOpacity}
-              setOrtofotoOpacity={setOrtofotoOpacity}
-              filtersEnabled={filtersEnabled}
-              toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
-              filters={visualFilters}
-              onFiltersChange={(key, value) => setVisualFilters(prev => ({ ...prev, [key]: value }))}
-              onResetFilters={() => setVisualFilters(defaultVisualFilters)}
-              mapStyleKey={mapStyleKey}
-              setMapStyleKey={setMapStyleKey}
-              exaggeration={exaggeration}
-              onExaggerationChange={setExaggeration}
-              pitch={viewState.pitch || 0}
-              onPitchChange={(pitch) => setViewState(prev => ({ ...prev, pitch }))}
-              bearing={viewState.bearing || 0}
-              onResetNorth={handleResetNorth}
-            />
+            {/* TODO: MobileCommandDeck needs update for new L/R system */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface/90 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2">
+              <span className="text-xs text-white/50 font-mono">Mobile UI v přípravě</span>
+            </div>
           </>
         ) : (
           /* DESKTOP UI */
@@ -229,42 +208,47 @@ export const MapPage = () => {
             
             {/* Right Side Control Panel */}
             <div className="absolute top-24 right-6 z-40 flex flex-col items-end gap-4 pointer-events-none">
-              <MapStyleSelector activeKey={mapStyleKey} onSelect={setMapStyleKey} />
-              
               <CompassControl 
                 viewState={viewState} 
                 setViewState={setViewState} 
               />
 
+              <TerrainControls
+                exaggeration={exaggeration}
+                onExaggerationChange={setExaggeration}
+                pitch={viewState.pitch || 0}
+                onPitchChange={(pitch) => setViewState(prev => ({ ...prev, pitch }))}
+              />
+            </div>
+
+            {/* GPS Location tracking - hidden, controlled from CommandDeck */}
+            {isGpsActive && (
               <LocationControl 
                 setViewState={setViewState}
                 onLocationChange={setUserLocation}
+                autoStart
+                hideUI
               />
-
-              {mode === 'LIDAR' && (
-                <TerrainControls
-                  exaggeration={exaggeration}
-                  onExaggerationChange={setExaggeration}
-                  pitch={viewState.pitch || 0}
-                  onPitchChange={(pitch) => setViewState(prev => ({ ...prev, pitch }))}
-                />
-              )}
-            </div>
+            )}
 
             <CommandDeck 
-              activeMode={mode}
-              setMode={setMode}
+              leftMapConfig={leftMapConfig}
+              rightMapConfig={rightMapConfig}
+              onLeftMapConfigChange={setLeftMapConfig}
+              onRightMapConfigChange={setRightMapConfig}
+              activeFilterSide={activeFilterSide}
+              onActiveFilterSideChange={setActiveFilterSide}
               splitMode={splitMode}
               setSplitMode={handleSplitModeChange}
-              splitModeLocked={splitModeLocked}
-              isHistoryActive={isHistoryActive}
-              toggleHistory={() => setIsHistoryActive(!isHistoryActive)}
-              historyOpacity={historyOpacity}
-              setHistoryOpacity={setHistoryOpacity}
-              isOrtofotoActive={isOrtofotoActive}
-              toggleOrtofoto={() => setIsOrtofotoActive(!isOrtofotoActive)}
-              ortofotoOpacity={ortofotoOpacity}
-              setOrtofotoOpacity={setOrtofotoOpacity}
+              exaggeration={exaggeration}
+              isKatastrActive={isKatastrActive}
+              toggleKatastr={() => setIsKatastrActive(!isKatastrActive)}
+              katastrOpacity={katastrOpacity}
+              setKatastrOpacity={setKatastrOpacity}
+              isVrstevniceActive={isVrstevniceActive}
+              toggleVrstevnice={() => setIsVrstevniceActive(!isVrstevniceActive)}
+              vrstevniceOpacity={vrstevniceOpacity}
+              setVrstevniceOpacity={setVrstevniceOpacity}
               filtersOpen={filtersOpen}
               toggleFilters={() => setFiltersOpen(!filtersOpen)}
               filters={visualFilters}
@@ -272,6 +256,9 @@ export const MapPage = () => {
               filtersEnabled={filtersEnabled}
               toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
               onResetFilters={() => setVisualFilters(defaultVisualFilters)}
+              isGpsActive={isGpsActive}
+              toggleGps={() => setIsGpsActive(!isGpsActive)}
+              onLoadSetup={handleLoadSetup}
             />
           </>
         )}

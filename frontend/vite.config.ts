@@ -6,11 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Development proxy - routes API calls to local Node.js proxy server
+      // Development proxy - routes API calls to Vercel in dev mode
       '/api': {
-        target: 'http://localhost:3010',
+        target: process.env.VITE_API_URL || 'https://earcheo.cz',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       }
     }
   },
