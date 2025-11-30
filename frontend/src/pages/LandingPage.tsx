@@ -127,7 +127,7 @@ export const LandingPage = () => {
             Changelog
           </Link>
           <span className="px-2 py-1 sm:px-3 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[9px] sm:text-[10px] font-mono tracking-wider">
-            BETA v1.2
+            BETA v1.3
           </span>
           <button
             onClick={handleLogin}
