@@ -7,7 +7,6 @@ import { MapBoard } from '../components/MapBoard';
 import { CompassControl } from '../components/CompassControl';
 import { LocationControl, type UserLocation } from '../components/LocationControl';
 import { TerrainControls } from '../components/TerrainControls';
-// import { MobileCommandDeck } from '../components/MobileCommandDeck'; // TODO: Update for L/R system
 import { MobileMapHeader } from '../components/MobileMapHeader';
 import { FindingsModal } from '../components/findings/FindingsModal';
 import { FindingDetail } from '../components/findings/FindingDetail';
