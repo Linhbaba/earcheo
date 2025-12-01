@@ -11,7 +11,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         where: { userId },
         include: {
           _count: {
-            select: { findings: true }, // Count how many findings use this equipment
+            select: { FindingEquipment: true }, // Count how many findings use this equipment
           },
         },
         orderBy: {
@@ -27,7 +27,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         manufacturer: e.manufacturer,
         model: e.model,
         notes: e.notes,
-        usageCount: e._count.findings,
+        usageCount: e._count.FindingEquipment,
         createdAt: e.createdAt.toISOString(),
         updatedAt: e.updatedAt.toISOString(),
       }));
