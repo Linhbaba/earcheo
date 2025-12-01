@@ -141,18 +141,17 @@ export const SwipeMap = ({
     };
   }, [isDragging, onMouseMove, onMouseUp, onTouchMove, onTouchEnd]);
 
-  // Přidej non-passive touch handlery přímo na slider element (React events jsou vždy passive)
+  // Přidej non-passive touch handlery přímo na slider element
   useEffect(() => {
     const slider = sliderRef.current;
     if (!slider) return;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const handleTouchStart = () => {
       setIsDragging(true);
     };
 
-    slider.addEventListener('touchstart', handleTouchStart, { passive: false });
+    // touchAction: none v CSS už blokuje pull-to-refresh, tady jen aktivujeme drag
+    slider.addEventListener('touchstart', handleTouchStart, { passive: true });
     
     return () => {
       slider.removeEventListener('touchstart', handleTouchStart);
