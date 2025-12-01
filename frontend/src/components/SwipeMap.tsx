@@ -141,20 +141,29 @@ export const SwipeMap = ({
     };
   }, [isDragging, onMouseMove, onMouseUp, onTouchMove, onTouchEnd]);
 
-  // Přidej non-passive touch handlery přímo na slider element
+  // Přidej touch handlery přímo na slider element - musí být non-passive a stopovat propagaci
   useEffect(() => {
     const slider = sliderRef.current;
     if (!slider) return;
 
-    const handleTouchStart = () => {
+    const handleTouchStart = (e: TouchEvent) => {
+      // Zastav propagaci aby mapa nedostala event
+      e.stopPropagation();
       setIsDragging(true);
     };
 
-    // touchAction: none v CSS už blokuje pull-to-refresh, tady jen aktivujeme drag
-    slider.addEventListener('touchstart', handleTouchStart, { passive: true });
+    const handleTouchMoveOnSlider = (e: TouchEvent) => {
+      // Zastav propagaci a default behavior na slideru
+      e.stopPropagation();
+      e.preventDefault();
+    };
+
+    slider.addEventListener('touchstart', handleTouchStart, { passive: false });
+    slider.addEventListener('touchmove', handleTouchMoveOnSlider, { passive: false });
     
     return () => {
       slider.removeEventListener('touchstart', handleTouchStart);
+      slider.removeEventListener('touchmove', handleTouchMoveOnSlider);
     };
   }, []);
 
@@ -333,10 +342,10 @@ export const SwipeMap = ({
       {/* Slider */}
       <div
         ref={sliderRef}
-        className="absolute z-30 cursor-col-resize group select-none"
+        className="absolute z-50 cursor-col-resize group select-none pointer-events-auto"
         style={isHorizontal
-          ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '24px', transform: 'translateY(-50%)', cursor: 'row-resize', touchAction: 'none' }
-          : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '24px', transform: 'translateX(-50%)', touchAction: 'none' }
+          ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '48px', transform: 'translateY(-50%)', cursor: 'row-resize', touchAction: 'none' }
+          : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '48px', transform: 'translateX(-50%)', touchAction: 'none' }
         }
         onMouseDown={() => setIsDragging(true)}
       >
