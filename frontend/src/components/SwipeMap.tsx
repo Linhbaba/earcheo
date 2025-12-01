@@ -97,75 +97,82 @@ export const SwipeMap = ({
   const [isDragging, setIsDragging] = useState(false);
   const leftMapRef = useRef<MapRef>(null);
   const rightMapRef = useRef<MapRef>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
 
-  // --- DRAG HANDLERS ---
-  const onMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
+  // --- UNIFIED DRAG HANDLER ---
+  const handleDrag = useCallback((clientX: number, clientY: number) => {
     const axisSize = splitMode === 'horizontal' ? window.innerHeight : window.innerWidth;
-    const coord = splitMode === 'horizontal' ? e.clientY : e.clientX;
+    const coord = splitMode === 'horizontal' ? clientY : clientX;
     setSliderPosition(Math.min(Math.max((coord / axisSize) * 100, 0), 100));
-  }, [isDragging, splitMode]);
+  }, [splitMode]);
 
-  const onMouseUp = useCallback(() => setIsDragging(false), []);
+  // --- MOUSE HANDLERS ---
+  const handleMouseDown = useCallback(() => {
+    setIsDragging(true);
+  }, []);
 
-  const onTouchMove = useCallback((e: TouchEvent) => {
-    if (!isDragging || !e.touches[0]) return;
-    e.preventDefault(); // Zabraň pull-to-refresh
-    const axisSize = splitMode === 'horizontal' ? window.innerHeight : window.innerWidth;
-    const coord = splitMode === 'horizontal' ? e.touches[0].clientY : e.touches[0].clientX;
-    setSliderPosition(Math.min(Math.max((coord / axisSize) * 100, 0), 100));
-  }, [isDragging, splitMode]);
+  // --- TOUCH HANDLERS pro slider element (callback ref) ---
+  const sliderCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
 
-  const onTouchEnd = useCallback(() => setIsDragging(false), []);
-
-  useEffect(() => {
-    if (isDragging) {
-      // Přidej třídu na html a body pro zablokování pull-to-refresh
-      document.documentElement.classList.add('dragging-slider');
-      document.body.classList.add('dragging-slider');
-      
-      // Event listenery na document úrovni pro spolehlivější zachycení
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-      document.addEventListener('touchmove', onTouchMove, { passive: false });
-      document.addEventListener('touchend', onTouchEnd);
-    }
-    return () => {
-      document.documentElement.classList.remove('dragging-slider');
-      document.body.classList.remove('dragging-slider');
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      document.removeEventListener('touchmove', onTouchMove);
-      document.removeEventListener('touchend', onTouchEnd);
-    };
-  }, [isDragging, onMouseMove, onMouseUp, onTouchMove, onTouchEnd]);
-
-  // Přidej touch handlery přímo na slider element - musí být non-passive a stopovat propagaci
-  useEffect(() => {
-    const slider = sliderRef.current;
-    if (!slider) return;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      // Zastav propagaci aby mapa nedostala event
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
       e.stopPropagation();
       setIsDragging(true);
     };
 
-    const handleTouchMoveOnSlider = (e: TouchEvent) => {
-      // Zastav propagaci a default behavior na slideru
-      e.stopPropagation();
+    const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
+      e.stopPropagation();
     };
 
-    slider.addEventListener('touchstart', handleTouchStart, { passive: false });
-    slider.addEventListener('touchmove', handleTouchMoveOnSlider, { passive: false });
-    
-    return () => {
-      slider.removeEventListener('touchstart', handleTouchStart);
-      slider.removeEventListener('touchmove', handleTouchMoveOnSlider);
+    node.addEventListener('touchstart', onTouchStart, { passive: false });
+    node.addEventListener('touchmove', onTouchMove, { passive: false });
+
+    // Cleanup při unmount - uložíme do node
+    (node as any)._cleanup = () => {
+      node.removeEventListener('touchstart', onTouchStart);
+      node.removeEventListener('touchmove', onTouchMove);
     };
   }, []);
+
+  // --- GLOBAL LISTENERS když isDragging ---
+  useEffect(() => {
+    if (!isDragging) return;
+
+    document.documentElement.classList.add('dragging-slider');
+    document.body.classList.add('dragging-slider');
+
+    const onMouseMove = (e: MouseEvent) => {
+      handleDrag(e.clientX, e.clientY);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        e.preventDefault();
+        handleDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
+    const onEnd = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
+
+    return () => {
+      document.documentElement.classList.remove('dragging-slider');
+      document.body.classList.remove('dragging-slider');
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    };
+  }, [isDragging, handleDrag]);
 
   // --- FILTER STYLE ---
   const getFilterStyle = (side: 'left' | 'right') => {
@@ -339,22 +346,39 @@ export const SwipeMap = ({
         {renderMap(rightMapConfig, 'right', rightMapRef)}
       </div>
 
-      {/* Slider */}
+      {/* Slider - touch area */}
       <div
-        ref={sliderRef}
-        className="absolute z-50 cursor-col-resize group select-none pointer-events-auto"
-        style={isHorizontal
-          ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '48px', transform: 'translateY(-50%)', cursor: 'row-resize', touchAction: 'none' }
-          : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '48px', transform: 'translateX(-50%)', touchAction: 'none' }
-        }
-        onMouseDown={() => setIsDragging(true)}
+        ref={sliderCallbackRef}
+        className="absolute z-[9999] select-none"
+        style={{
+          ...(isHorizontal
+            ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '48px', transform: 'translateY(-50%)', cursor: 'row-resize' }
+            : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '48px', transform: 'translateX(-50%)', cursor: 'col-resize' }
+          ),
+          touchAction: 'none',
+          // Debug: viditelné pozadí touch oblasti
+          backgroundColor: isDragging ? 'rgba(0, 243, 255, 0.1)' : 'transparent',
+        }}
+        onMouseDown={handleMouseDown}
       >
         {/* Slider line */}
-        <div className={`absolute bg-primary/80 group-hover:bg-primary transition-all ${isHorizontal ? 'left-0 right-0 h-0.5 top-1/2 -translate-y-1/2' : 'top-0 bottom-0 w-0.5 left-1/2 -translate-x-1/2'}`} />
+        <div 
+          className={`absolute bg-primary/80 transition-all pointer-events-none ${
+            isHorizontal 
+              ? 'left-0 right-0 h-1 top-1/2 -translate-y-1/2' 
+              : 'top-0 bottom-0 w-1 left-1/2 -translate-x-1/2'
+          }`} 
+        />
         
-        {/* Handle */}
-        <div className={`absolute bg-surface/90 border-2 border-primary rounded-full shadow-lg flex items-center justify-center ${isHorizontal ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-6' : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-10'}`}>
-          <Move className={`text-primary ${isHorizontal ? 'w-5 h-3 rotate-90' : 'w-3 h-5'}`} />
+        {/* Handle - větší pro lepší touch */}
+        <div 
+          className={`absolute bg-surface border-2 border-primary rounded-full shadow-lg flex items-center justify-center pointer-events-none ${
+            isHorizontal 
+              ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-8' 
+              : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-14'
+          }`}
+        >
+          <Move className={`text-primary ${isHorizontal ? 'w-6 h-4 rotate-90' : 'w-4 h-6'}`} />
         </div>
 
         {/* Labels */}
