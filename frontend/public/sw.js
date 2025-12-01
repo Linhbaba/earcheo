@@ -73,6 +73,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip non-GET requests - Cache API only supports GET
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Skip API requests (except proxy for map tiles)
+  if (url.pathname.startsWith('/api/') && !url.pathname.includes('/api/proxy')) {
+    return;
+  }
+
   // Static assets - Network first, fallback to cache
   event.respondWith(
     fetch(request)
