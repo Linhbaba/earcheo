@@ -93,3 +93,4 @@ DEBUG-*.md
 .vercel
 
 /generated/prisma
+.cursorrules
