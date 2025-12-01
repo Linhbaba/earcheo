@@ -97,6 +97,7 @@ export const SwipeMap = ({
   const [isDragging, setIsDragging] = useState(false);
   const leftMapRef = useRef<MapRef>(null);
   const rightMapRef = useRef<MapRef>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   // --- DRAG HANDLERS ---
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -120,18 +121,43 @@ export const SwipeMap = ({
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
-      window.addEventListener('touchmove', onTouchMove, { passive: false }); // passive: false umožní preventDefault()
-      window.addEventListener('touchend', onTouchEnd);
+      // Přidej třídu na html a body pro zablokování pull-to-refresh
+      document.documentElement.classList.add('dragging-slider');
+      document.body.classList.add('dragging-slider');
+      
+      // Event listenery na document úrovni pro spolehlivější zachycení
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      document.addEventListener('touchmove', onTouchMove, { passive: false });
+      document.addEventListener('touchend', onTouchEnd);
     }
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
+      document.documentElement.classList.remove('dragging-slider');
+      document.body.classList.remove('dragging-slider');
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
     };
   }, [isDragging, onMouseMove, onMouseUp, onTouchMove, onTouchEnd]);
+
+  // Přidej non-passive touch handlery přímo na slider element (React events jsou vždy passive)
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(true);
+    };
+
+    slider.addEventListener('touchstart', handleTouchStart, { passive: false });
+    
+    return () => {
+      slider.removeEventListener('touchstart', handleTouchStart);
+    };
+  }, []);
 
   // --- FILTER STYLE ---
   const getFilterStyle = (side: 'left' | 'right') => {
@@ -307,13 +333,13 @@ export const SwipeMap = ({
 
       {/* Slider */}
       <div
-        className="absolute z-30 cursor-col-resize group"
+        ref={sliderRef}
+        className="absolute z-30 cursor-col-resize group select-none"
         style={isHorizontal
-          ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '12px', transform: 'translateY(-50%)', cursor: 'row-resize', touchAction: 'none' }
-          : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '12px', transform: 'translateX(-50%)', touchAction: 'none' }
+          ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '24px', transform: 'translateY(-50%)', cursor: 'row-resize', touchAction: 'none' }
+          : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '24px', transform: 'translateX(-50%)', touchAction: 'none' }
         }
         onMouseDown={() => setIsDragging(true)}
-        onTouchStart={(e) => { e.preventDefault(); setIsDragging(true); }}
       >
         {/* Slider line */}
         <div className={`absolute bg-primary/80 group-hover:bg-primary transition-all ${isHorizontal ? 'left-0 right-0 h-0.5 top-1/2 -translate-y-1/2' : 'top-0 bottom-0 w-0.5 left-1/2 -translate-x-1/2'}`} />
