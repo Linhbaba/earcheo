@@ -7,8 +7,8 @@ async function getFeatures(req: VercelRequest, res: VercelResponse, userId?: str
   try {
     const features = await prisma.featureRequest.findMany({
       include: {
-        _count: { select: { FeatureVote: true } },
-        FeatureVote: userId ? { where: { userId }, select: { id: true } } : false,
+        _count: { select: { votes: true } },
+        votes: userId ? { where: { userId }, select: { id: true } } : false,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -19,8 +19,8 @@ async function getFeatures(req: VercelRequest, res: VercelResponse, userId?: str
       description: f.description,
       category: f.category,
       userId: f.userId,
-      votes: f._count.FeatureVote,
-      userVoted: userId ? (f.FeatureVote && f.FeatureVote.length > 0) : false,
+      votes: f._count.votes,
+      userVoted: userId ? (f.votes && f.votes.length > 0) : false,
       createdAt: f.createdAt.toISOString(),
     }));
 
@@ -54,8 +54,8 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
       const updated = await prisma.featureRequest.findUnique({
         where: { id },
         include: {
-          _count: { select: { FeatureVote: true } },
-          FeatureVote: { where: { userId }, select: { id: true } },
+          _count: { select: { votes: true } },
+          votes: { where: { userId }, select: { id: true } },
         },
       });
 
@@ -67,8 +67,8 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         description: updated.description,
         category: updated.category,
         userId: updated.userId,
-        votes: updated._count.FeatureVote,
-        userVoted: updated.FeatureVote.length > 0,
+        votes: updated._count.votes,
+        userVoted: updated.votes.length > 0,
         createdAt: updated.createdAt.toISOString(),
       });
     } catch (error) {

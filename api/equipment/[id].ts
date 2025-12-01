@@ -29,7 +29,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         where: { id },
         include: {
           _count: {
-            select: { FindingEquipment: true },
+            select: { findings: true },
           },
         },
       });
@@ -45,7 +45,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         manufacturer: equipmentWithCount.manufacturer,
         model: equipmentWithCount.model,
         notes: equipmentWithCount.notes,
-        usageCount: equipmentWithCount._count.FindingEquipment,
+        usageCount: equipmentWithCount._count.findings,
         createdAt: equipmentWithCount.createdAt.toISOString(),
         updatedAt: equipmentWithCount.updatedAt.toISOString(),
       });
@@ -79,7 +79,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         },
         include: {
           _count: {
-            select: { FindingEquipment: true },
+            select: { findings: true },
           },
         },
       });
@@ -91,7 +91,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         manufacturer: updated.manufacturer,
         model: updated.model,
         notes: updated.notes,
-        usageCount: updated._count.FindingEquipment,
+        usageCount: updated._count.findings,
         createdAt: updated.createdAt.toISOString(),
         updatedAt: updated.updatedAt.toISOString(),
       });

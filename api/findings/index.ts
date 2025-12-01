@@ -45,9 +45,9 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
           images: {
             orderBy: { order: 'asc' },
           },
-          FindingEquipment: {
+          equipment: {
             include: {
-              Equipment: true,
+              equipment: true,
             },
           },
         },
@@ -59,7 +59,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
       // Transform equipment relation for easier frontend use
       const transformedFindings = findings.map(finding => ({
         ...finding,
-        equipment: finding.FindingEquipment.map(fe => fe.Equipment),
+        equipment: finding.equipment.map(fe => fe.equipment),
       }));
 
       return res.status(200).json(transformedFindings);
@@ -88,7 +88,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
           ...findingData,
           date: new Date(findingData.date),
           userId,
-          FindingEquipment: equipmentIds && equipmentIds.length > 0 ? {
+          equipment: equipmentIds && equipmentIds.length > 0 ? {
             create: equipmentIds.map(equipmentId => ({
               equipmentId,
             })),
@@ -96,9 +96,9 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         },
         include: {
           images: true,
-          FindingEquipment: {
+          equipment: {
             include: {
-              Equipment: true,
+              equipment: true,
             },
           },
         },

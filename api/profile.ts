@@ -30,8 +30,8 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
       const user = await prisma.user.findUnique({
         where: { id: userId },
         include: {
-          SocialLink: true,
-          FavoriteLocation: true,
+          socialLinks: true,
+          favoriteLocations: true,
         },
       });
 
@@ -132,8 +132,8 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
       const updatedUser = await prisma.user.findUnique({
         where: { id: userId },
         include: {
-          SocialLink: true,
-          FavoriteLocation: true,
+          socialLinks: true,
+          favoriteLocations: true,
         },
       });
 
