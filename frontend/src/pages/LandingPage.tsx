@@ -132,7 +132,7 @@ export const LandingPage = () => {
             Changelog
           </Link>
           <span className="px-2 py-1 sm:px-3 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[9px] sm:text-[10px] font-mono tracking-wider">
-            BETA v1.3
+            BETA v1.4
           </span>
           <button
             onClick={handleLogin}
@@ -213,7 +213,7 @@ export const LandingPage = () => {
         <div className="mt-20 max-w-6xl w-full px-4">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
-              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.3</span>
+              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.4</span>
             </div>
             <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
               Nové funkce pro archeology

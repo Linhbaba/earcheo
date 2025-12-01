@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar } from 'lucide-react';
+import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 
 export const ChangelogPage = () => {
@@ -60,12 +60,30 @@ export const ChangelogPage = () => {
           {/* Changelog Entries */}
           <div className="space-y-12">
             
+            {/* v1.4 */}
+            <ChangelogEntry
+              version="1.4"
+              date="1. prosince 2025"
+              badge="AKTUÁLNÍ"
+              badgeColor="primary"
+            >
+              <ChangeItem icon={<Smartphone />} title="Vylepšené mobilní ovládání">
+                Nové tlačítka +/- pro přesné ovládání rozdělovače mapy na dotykových zařízeních. Prevence nechtěného refreshe stránky při tažení.
+              </ChangeItem>
+              <ChangeItem icon={<Wrench />} title="Stabilizace API">
+                Opraveny kritické chyby v databázových dotazech, které způsobovaly pády při načítání nálezů a profilu.
+              </ChangeItem>
+              <ChangeItem icon={<Zap />} title="Optimalizace Service Workeru">
+                Vylepšené cachování - API požadavky již neblokují offline funkce, mapy se načítají rychleji.
+              </ChangeItem>
+            </ChangelogEntry>
+            
             {/* v1.3 */}
             <ChangelogEntry
               version="1.3"
               date="30. listopadu 2025"
-              badge="AKTUÁLNÍ"
-              badgeColor="primary"
+              badge="STABLE"
+              badgeColor="green"
             >
               <ChangeItem icon={<Settings />} title="Nový L/R systém mapy">
                 Kompletně přepracované ovládání mapy - nezávislý výběr vrstev pro levou a pravou stranu s podporou swipe porovnání
