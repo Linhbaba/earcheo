@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
 import type { ViewState, MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Move, MapPin } from 'lucide-react';
+import { Move, MapPin, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import type { VisualFilters } from '../types/visualFilters';
 import type { UserLocation } from './LocationControl';
 import type { Finding } from '../types/database';
@@ -94,85 +94,54 @@ export const SwipeMap = ({
   onFindingClick
 }: SwipeMapProps) => {
   const [sliderPosition, setSliderPosition] = useState(50);
-  const [isDragging, setIsDragging] = useState(false);
   const leftMapRef = useRef<MapRef>(null);
   const rightMapRef = useRef<MapRef>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
-  // --- UNIFIED DRAG HANDLER ---
-  const handleDrag = useCallback((clientX: number, clientY: number) => {
-    const axisSize = splitMode === 'horizontal' ? window.innerHeight : window.innerWidth;
-    const coord = splitMode === 'horizontal' ? clientY : clientX;
-    setSliderPosition(Math.min(Math.max((coord / axisSize) * 100, 0), 100));
-  }, [splitMode]);
-
-  // --- MOUSE HANDLERS ---
-  const handleMouseDown = useCallback(() => {
-    setIsDragging(true);
-  }, []);
-
-  // --- TOUCH HANDLERS pro slider element (callback ref) ---
-  const sliderCallbackRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
-
-    const onTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(true);
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    node.addEventListener('touchstart', onTouchStart, { passive: false });
-    node.addEventListener('touchmove', onTouchMove, { passive: false });
-
-    // Cleanup při unmount - uložíme do node
-    (node as any)._cleanup = () => {
-      node.removeEventListener('touchstart', onTouchStart);
-      node.removeEventListener('touchmove', onTouchMove);
-    };
-  }, []);
-
-  // --- GLOBAL LISTENERS když isDragging ---
-  useEffect(() => {
-    if (!isDragging) return;
-
+  // --- POINTER EVENTS HANDLER (funguje pro mouse i touch) ---
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const slider = sliderRef.current;
+    if (!slider) return;
+    
+    // Capture all pointer events to this element
+    slider.setPointerCapture(e.pointerId);
+    
     document.documentElement.classList.add('dragging-slider');
     document.body.classList.add('dragging-slider');
+  };
 
-    const onMouseMove = (e: MouseEvent) => {
-      handleDrag(e.clientX, e.clientY);
-    };
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Pouze pokud máme pointer capture
+    const slider = sliderRef.current;
+    if (!slider || !slider.hasPointerCapture(e.pointerId)) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const axisSize = splitMode === 'horizontal' ? window.innerHeight : window.innerWidth;
+    const coord = splitMode === 'horizontal' ? e.clientY : e.clientX;
+    setSliderPosition(Math.min(Math.max((coord / axisSize) * 100, 0), 100));
+  };
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) {
-        e.preventDefault();
-        handleDrag(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    };
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+    
+    if (slider.hasPointerCapture(e.pointerId)) {
+      slider.releasePointerCapture(e.pointerId);
+    }
+    
+    document.documentElement.classList.remove('dragging-slider');
+    document.body.classList.remove('dragging-slider');
+  };
 
-    const onEnd = () => {
-      setIsDragging(false);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchmove', onTouchMove, { passive: false });
-    document.addEventListener('touchend', onEnd);
-    document.addEventListener('touchcancel', onEnd);
-
-    return () => {
-      document.documentElement.classList.remove('dragging-slider');
-      document.body.classList.remove('dragging-slider');
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onEnd);
-      document.removeEventListener('touchmove', onTouchMove);
-      document.removeEventListener('touchend', onEnd);
-      document.removeEventListener('touchcancel', onEnd);
-    };
-  }, [isDragging, handleDrag]);
+  // --- FALLBACK TLAČÍTKA pro mobilní zařízení ---
+  const moveSlider = (delta: number) => {
+    setSliderPosition(prev => Math.min(Math.max(prev + delta, 5), 95));
+  };
 
   // --- FILTER STYLE ---
   const getFilterStyle = (side: 'left' | 'right') => {
@@ -346,39 +315,59 @@ export const SwipeMap = ({
         {renderMap(rightMapConfig, 'right', rightMapRef)}
       </div>
 
-      {/* Slider - touch area */}
+      {/* Slider - Pointer Events pro jednotné ovládání mouse + touch */}
       <div
-        ref={sliderCallbackRef}
+        ref={sliderRef}
         className="absolute z-[9999] select-none"
         style={{
           ...(isHorizontal
-            ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '48px', transform: 'translateY(-50%)', cursor: 'row-resize' }
-            : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '48px', transform: 'translateX(-50%)', cursor: 'col-resize' }
+            ? { top: `${sliderPosition}%`, left: 0, right: 0, height: '60px', transform: 'translateY(-50%)', cursor: 'row-resize' }
+            : { left: `${sliderPosition}%`, top: 0, bottom: 0, width: '60px', transform: 'translateX(-50%)', cursor: 'col-resize' }
           ),
           touchAction: 'none',
-          // Debug: viditelné pozadí touch oblasti
-          backgroundColor: isDragging ? 'rgba(0, 243, 255, 0.1)' : 'transparent',
         }}
-        onMouseDown={handleMouseDown}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
       >
         {/* Slider line */}
         <div 
-          className={`absolute bg-primary/80 transition-all pointer-events-none ${
+          className={`absolute bg-primary transition-all pointer-events-none ${
             isHorizontal 
               ? 'left-0 right-0 h-1 top-1/2 -translate-y-1/2' 
               : 'top-0 bottom-0 w-1 left-1/2 -translate-x-1/2'
           }`} 
         />
         
-        {/* Handle - větší pro lepší touch */}
+        {/* Handle s tlačítky +/- */}
         <div 
-          className={`absolute bg-surface border-2 border-primary rounded-full shadow-lg flex items-center justify-center pointer-events-none ${
+          className={`absolute bg-surface border-2 border-primary rounded-full shadow-lg flex items-center justify-center gap-1 pointer-events-none ${
             isHorizontal 
-              ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-8' 
-              : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-14'
+              ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-1' 
+              : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-1 py-2 flex-col'
           }`}
         >
-          <Move className={`text-primary ${isHorizontal ? 'w-6 h-4 rotate-90' : 'w-4 h-6'}`} />
+          {/* Tlačítko - (doleva/nahoru) */}
+          <button
+            className="w-8 h-8 flex items-center justify-center bg-primary/20 hover:bg-primary/40 active:bg-primary/60 rounded-full pointer-events-auto touch-manipulation"
+            onClick={(e) => { e.stopPropagation(); moveSlider(-10); }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            {isHorizontal ? <ChevronUp className="w-5 h-5 text-primary" /> : <ChevronLeft className="w-5 h-5 text-primary" />}
+          </button>
+          
+          {/* Ikona tažení */}
+          <Move className={`text-primary/60 ${isHorizontal ? 'w-4 h-4 rotate-90' : 'w-4 h-4'}`} />
+          
+          {/* Tlačítko + (doprava/dolů) */}
+          <button
+            className="w-8 h-8 flex items-center justify-center bg-primary/20 hover:bg-primary/40 active:bg-primary/60 rounded-full pointer-events-auto touch-manipulation"
+            onClick={(e) => { e.stopPropagation(); moveSlider(10); }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            {isHorizontal ? <ChevronDown className="w-5 h-5 text-primary" /> : <ChevronRight className="w-5 h-5 text-primary" />}
+          </button>
         </div>
 
         {/* Labels */}
