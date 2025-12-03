@@ -1,11 +1,12 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { X, Loader, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { X, Loader, ChevronDown, ChevronUp, MapPin, Lock, Eye, Globe } from 'lucide-react';
 import { toast } from 'sonner';
+import clsx from 'clsx';
 import { useFindings } from '../../hooks/useFindings';
 import { ImageUploader } from './ImageUploader';
 import { LocationPicker } from './LocationPicker';
 import { TagInput } from '../shared';
-import type { CreateFindingRequest, Finding } from '../../types/database';
+import type { CreateFindingRequest, Finding, FindingVisibility } from '../../types/database';
 
 interface FindingFormProps {
   finding?: Finding | null;
@@ -26,6 +27,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
     material?: string;
     historicalContext?: string;
     locationName?: string;
+    visibility: FindingVisibility;
   }>({
     title: '',
     latitude: 50.0755, // Default Praha
@@ -33,6 +35,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
     date: new Date().toISOString().split('T')[0], // Today
     description: '',
     category: '',
+    visibility: 'PRIVATE',
     isPublic: false,
     // Extended fields
     condition: '',
@@ -59,7 +62,8 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
         date: new Date(finding.date).toISOString().split('T')[0],
         description: finding.description,
         category: finding.category,
-        isPublic: finding.isPublic,
+        visibility: finding.visibility || (finding.isPublic ? 'PUBLIC' : 'PRIVATE'),
+        isPublic: finding.isPublic, // Legacy sync
         condition: finding.condition || '',
         depth: finding.depth || undefined,
         material: finding.material || '',
@@ -100,7 +104,8 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
       dataToSend.date = new Date(formData.date).toISOString();
       dataToSend.description = formData.description;
       dataToSend.category = categoryString;
-      dataToSend.isPublic = formData.isPublic;
+      dataToSend.visibility = formData.visibility;
+      dataToSend.isPublic = formData.visibility === 'PUBLIC'; // Sync legacy
 
       // Add extended fields if provided
       if (formData.condition) dataToSend.condition = formData.condition;
@@ -288,18 +293,66 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
             />
           </div>
           
-          {/* Public checkbox */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isPublic"
-              checked={formData.isPublic}
-              onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
-              className="w-4 h-4 rounded border-white/10 bg-black/40 text-primary focus:ring-primary focus:ring-offset-0"
-            />
-            <label htmlFor="isPublic" className="text-sm text-white/70 font-mono">
-              Sdílet veřejně (ostatní uživatelé mohou vidět)
+          {/* Visibility */}
+          <div>
+            <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
+              Viditelnost *
             </label>
+            <div className="grid grid-cols-3 gap-2">
+              {/* Private */}
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, visibility: 'PRIVATE' })}
+                className={clsx(
+                  "flex flex-col items-center gap-2 p-3 rounded-xl border transition-all",
+                  formData.visibility === 'PRIVATE'
+                    ? "bg-red-500/10 border-red-500/50 text-red-400"
+                    : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60"
+                )}
+              >
+                <Lock className="w-5 h-5" />
+                <div className="text-center">
+                  <div className="text-xs font-bold font-mono mb-0.5">Privátní</div>
+                  <div className="text-[10px] opacity-60 leading-tight">Pouze pro mě</div>
+                </div>
+              </button>
+
+              {/* Anonymous */}
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, visibility: 'ANONYMOUS' })}
+                className={clsx(
+                  "flex flex-col items-center gap-2 p-3 rounded-xl border transition-all",
+                  formData.visibility === 'ANONYMOUS'
+                    ? "bg-yellow-500/10 border-yellow-500/50 text-yellow-400"
+                    : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60"
+                )}
+              >
+                <Eye className="w-5 h-5" />
+                <div className="text-center">
+                  <div className="text-xs font-bold font-mono mb-0.5">Anonymní</div>
+                  <div className="text-[10px] opacity-60 leading-tight">Veřejné bez jména</div>
+                </div>
+              </button>
+
+              {/* Public */}
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, visibility: 'PUBLIC' })}
+                className={clsx(
+                  "flex flex-col items-center gap-2 p-3 rounded-xl border transition-all",
+                  formData.visibility === 'PUBLIC'
+                    ? "bg-green-500/10 border-green-500/50 text-green-400"
+                    : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60"
+                )}
+              >
+                <Globe className="w-5 h-5" />
+                <div className="text-center">
+                  <div className="text-xs font-bold font-mono mb-0.5">Veřejné</div>
+                  <div className="text-[10px] opacity-60 leading-tight">Veřejné se jménem</div>
+                </div>
+              </button>
+            </div>
           </div>
 
           {/* Extended fields (collapsible) */}

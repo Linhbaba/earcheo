@@ -2,7 +2,7 @@ import type { ViewState } from 'react-map-gl/maplibre';
 import { SwipeMap } from './SwipeMap';
 import type { VisualFilters } from '../types/visualFilters';
 import type { UserLocation } from './LocationControl';
-import type { Finding } from '../types/database';
+import type { Finding, Sector } from '../types/database';
 import type { MapSideConfig } from '../types/mapSource';
 
 interface MapBoardProps {
@@ -27,6 +27,18 @@ interface MapBoardProps {
   userLocation?: UserLocation | null;
   findings?: Finding[];
   onFindingClick?: (finding: Finding) => void;
+  // Sectors
+  sectors?: Sector[];
+  isSectorsActive?: boolean;
+  selectedSectorId?: string | null;
+  drawingPolygon?: [number, number][];
+  drawnPolygon?: import('../types/database').GeoJSONPolygon | null;
+  stripPreview?: import('../types/database').GeoJSONLineString[];
+  isDrawingMode?: boolean;
+  onMapClick?: (lngLat: [number, number]) => void;
+  onMapDoubleClick?: () => void;
+  onRemovePoint?: (index: number) => void;
+  onUndoLastPoint?: () => void;
 }
 
 export const MapBoard = ({ 
@@ -45,7 +57,18 @@ export const MapBoard = ({
     filtersEnabled,
     userLocation,
     findings,
-    onFindingClick
+    onFindingClick,
+    sectors,
+    isSectorsActive,
+    selectedSectorId,
+    drawingPolygon,
+    drawnPolygon,
+    stripPreview,
+    isDrawingMode,
+    onMapClick,
+    onMapDoubleClick,
+    onRemovePoint,
+    onUndoLastPoint,
 }: MapBoardProps) => {
 
   return (
@@ -67,6 +90,17 @@ export const MapBoard = ({
         userLocation={userLocation}
         findings={findings}
         onFindingClick={onFindingClick}
+        sectors={sectors}
+        isSectorsActive={isSectorsActive}
+        selectedSectorId={selectedSectorId}
+        drawingPolygon={drawingPolygon}
+        drawnPolygon={drawnPolygon}
+        stripPreview={stripPreview}
+        isDrawingMode={isDrawingMode}
+        onMapClick={onMapClick}
+        onMapDoubleClick={onMapDoubleClick}
+        onRemovePoint={onRemovePoint}
+        onUndoLastPoint={onUndoLastPoint}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package } from 'lucide-react';
+import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package, Lock, Eye, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { clsx } from 'clsx';
 import { PhotoGallery } from './PhotoGallery';
@@ -24,6 +24,9 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
 
   // Use live finding data from findings array (updates after image upload)
   const finding = findings.find(f => f.id === initialFinding.id) || initialFinding;
+  
+  // Determine visibility with legacy fallback
+  const visibility = finding.visibility || (finding.isPublic ? 'PUBLIC' : 'PRIVATE');
 
   useEffect(() => {
     // Show extended fields if any are filled
@@ -202,14 +205,26 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
 
                     <div>
                       <p className="text-xs text-white/50 font-mono uppercase mb-2">Viditelnost</p>
-                      <span className={clsx(
-                        'inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-mono',
-                        finding.isPublic 
-                          ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                          : 'bg-gray-500/10 border border-gray-500/30 text-gray-400'
-                      )}>
-                        {finding.isPublic ? '🌍 Veřejný' : '🔒 Soukromý'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {visibility === 'PRIVATE' && (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-mono bg-red-500/10 border border-red-500/30 text-red-400">
+                            <Lock className="w-3.5 h-3.5" />
+                            Soukromý
+                          </span>
+                        )}
+                        {visibility === 'ANONYMOUS' && (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-mono bg-yellow-500/10 border border-yellow-500/30 text-yellow-400">
+                            <Eye className="w-3.5 h-3.5" />
+                            Anonymní
+                          </span>
+                        )}
+                        {visibility === 'PUBLIC' && (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-mono bg-green-500/10 border border-green-500/30 text-green-400">
+                            <Globe className="w-3.5 h-3.5" />
+                            Veřejný
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

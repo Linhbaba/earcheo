@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   Map, SlidersHorizontal, Navigation, Menu,
   X, Layers, Mountain, ChevronUp, ChevronDown,
-  Rows3, Maximize2, User, Package, Lightbulb, LogOut, Search
+  Rows3, Maximize2, User, Package, Lightbulb, LogOut, Search, Grid3X3
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -11,6 +11,7 @@ import type { MapSideConfig, MapSourceType } from '../types/mapSource';
 import { MAP_SOURCE_META, ARCHIVE_YEARS } from '../types/mapSource';
 import { MapSetupsControl } from './MapSetupsControl';
 import type { MapSetupConfig } from '../types/database';
+import type { MapMode } from './AuthHeader';
 
 interface MobileBottomBarProps {
   // Map configs
@@ -44,6 +45,11 @@ interface MobileBottomBarProps {
   exaggeration: number;
   // Saved setups
   onLoadSetup: (config: MapSetupConfig) => void;
+  // Sektory
+  isSectorsActive?: boolean;
+  toggleSectors?: () => void;
+  // Mode
+  mode?: MapMode;
   // Menu callbacks
   onOpenFindings: () => void;
   onOpenEquipment: () => void;
@@ -80,6 +86,9 @@ export const MobileBottomBar = ({
   onCenterGps,
   exaggeration,
   onLoadSetup,
+  isSectorsActive = false,
+  toggleSectors,
+  mode = 'map',
   onOpenFindings,
   onOpenEquipment,
   onOpenFeatureRequests,
@@ -359,6 +368,30 @@ export const MobileBottomBar = ({
                         />
                       )}
                     </div>
+
+                    {/* Sektory - pouze v map modu */}
+                    {mode === 'map' && toggleSectors && (
+                      <div className="bg-white/5 rounded-xl p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Grid3X3 className="w-4 h-4 text-emerald-400" />
+                            <span className="text-white/80 text-sm font-mono">Sektory</span>
+                          </div>
+                          <button
+                            onClick={toggleSectors}
+                            className={clsx(
+                              'w-12 h-7 rounded-full transition-all relative',
+                              isSectorsActive ? 'bg-emerald-500' : 'bg-white/20'
+                            )}
+                          >
+                            <div className={clsx(
+                              'absolute top-1 w-5 h-5 bg-white rounded-full transition-transform shadow-md',
+                              isSectorsActive ? 'translate-x-6' : 'translate-x-1'
+                            )} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

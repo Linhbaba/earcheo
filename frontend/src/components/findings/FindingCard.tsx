@@ -13,6 +13,7 @@ interface FindingCardProps {
 export const FindingCard = ({ finding, onClick }: FindingCardProps) => {
   const thumbnail = finding.images?.[0]?.thumbnailUrl;
   const formattedDate = new Date(finding.date).toLocaleDateString('cs-CZ');
+  const visibility = finding.visibility || (finding.isPublic ? 'PUBLIC' : 'PRIVATE');
   
   return (
     <BaseCard onClick={onClick} className="hover:scale-[1.02] cursor-pointer">
@@ -48,8 +49,15 @@ export const FindingCard = ({ finding, onClick }: FindingCardProps) => {
                 {cat.trim()}
               </span>
             ))}
-            {!finding.isPublic && (
-              <span className="text-xs text-white/40 font-mono">🔒 Soukromé</span>
+            {visibility === 'PRIVATE' && (
+              <span className="text-xs text-white/40 font-mono flex items-center gap-1">
+                🔒 Soukromé
+              </span>
+            )}
+            {visibility === 'ANONYMOUS' && (
+              <span className="text-xs text-yellow-500/60 font-mono flex items-center gap-1">
+                👁️ Anonymní
+              </span>
             )}
           </div>
           

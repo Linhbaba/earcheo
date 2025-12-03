@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb, Package } from 'lucide-react';
+import { Search, X, Navigation, Crosshair, User, LogOut, Lightbulb, Package, Map, Grid3X3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { clsx } from 'clsx';
 import type { ViewState } from 'react-map-gl/maplibre';
 import type { UserLocation } from './LocationControl';
+import type { MapMode } from './AuthHeader';
 
 interface MobileMapHeaderProps {
   onLocationSelect: (lng: number, lat: number) => void;
@@ -15,6 +16,8 @@ interface MobileMapHeaderProps {
   onOpenFeatureRequests?: () => void;
   onOpenEquipment?: () => void;
   onOpenProfile?: () => void;
+  mode?: MapMode;
+  onModeChange?: (mode: MapMode) => void;
 }
 
 export const MobileMapHeader = ({ 
@@ -25,7 +28,9 @@ export const MobileMapHeader = ({
   onOpenFindings,
   onOpenFeatureRequests,
   onOpenEquipment,
-  onOpenProfile
+  onOpenProfile,
+  mode = 'map',
+  onModeChange
 }: MobileMapHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -136,17 +141,48 @@ export const MobileMapHeader = ({
       {/* Compact Header Bar */}
       <div className="fixed top-0 left-0 right-0 z-[60] pointer-events-auto safe-area-inset-top">
         <div className="flex items-center justify-between px-3 py-2 bg-surface/90 backdrop-blur-xl border-b border-white/10">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border border-primary/30 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-5 h-5">
-                <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" className="text-primary/60" strokeWidth="1.5"/>
-                <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" className="text-primary/80" strokeWidth="1.5"/>
-                <circle cx="12" cy="12" r="1.5" fill="currentColor" className="text-primary"/>
-              </svg>
-            </div>
-            <span className="font-bold text-white text-xs font-mono tracking-wider">eArcheo</span>
-          </Link>
+          {/* Logo + Mode Switcher */}
+          <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border border-primary/30 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-5 h-5">
+                  <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" className="text-primary/60" strokeWidth="1.5"/>
+                  <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" className="text-primary/80" strokeWidth="1.5"/>
+                  <circle cx="12" cy="12" r="1.5" fill="currentColor" className="text-primary"/>
+                </svg>
+              </div>
+            </Link>
+            
+            {/* Mode Switcher */}
+            {onModeChange && (
+              <div className="flex items-center bg-black/40 border border-white/10 rounded-lg p-0.5">
+                <button
+                  onClick={() => onModeChange('map')}
+                  className={clsx(
+                    "flex items-center gap-1 px-2 py-1 rounded-md font-mono text-[10px] transition-all",
+                    mode === 'map'
+                      ? "bg-primary/20 text-primary"
+                      : "text-white/50"
+                  )}
+                >
+                  <Map className="w-3 h-3" />
+                  Mapa
+                </button>
+                <button
+                  onClick={() => onModeChange('planner')}
+                  className={clsx(
+                    "flex items-center gap-1 px-2 py-1 rounded-md font-mono text-[10px] transition-all",
+                    mode === 'planner'
+                      ? "bg-primary/20 text-primary"
+                      : "text-white/50"
+                  )}
+                >
+                  <Grid3X3 className="w-3 h-3" />
+                  Plánovač
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Right Actions */}
           <div className="flex items-center gap-2 pointer-events-auto">

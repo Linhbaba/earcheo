@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Map, Lightbulb, LogOut, User, ChevronDown, Trash2, CheckCircle, XCircle, Package } from 'lucide-react';
+import { Search, Map, Lightbulb, LogOut, User, ChevronDown, Trash2, CheckCircle, XCircle, Package, Grid3X3 } from 'lucide-react';
 import { clsx } from 'clsx';
+
+export type MapMode = 'map' | 'planner';
 
 interface AuthHeaderProps {
   onLocationSelect?: (lng: number, lat: number, label?: string) => void;
@@ -11,9 +13,20 @@ interface AuthHeaderProps {
   onOpenFeatureRequests?: () => void;
   onOpenEquipment?: () => void;
   onOpenProfile?: () => void;
+  mode?: MapMode;
+  onModeChange?: (mode: MapMode) => void;
 }
 
-export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings, onOpenFeatureRequests, onOpenEquipment, onOpenProfile }: AuthHeaderProps) => {
+export const AuthHeader = ({ 
+  onLocationSelect, 
+  showSearch = true, 
+  onOpenFindings, 
+  onOpenFeatureRequests, 
+  onOpenEquipment, 
+  onOpenProfile,
+  mode = 'map',
+  onModeChange
+}: AuthHeaderProps) => {
   const { user, logout, isAuthenticated } = useAuth0();
   const location = useLocation();
   const [query, setQuery] = useState('');
@@ -23,6 +36,8 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  
+  const isOnMapPage = location.pathname === '/map';
 
   const handleSearch = async (searchQuery: string) => {
     setQuery(searchQuery);
@@ -91,10 +106,6 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
     }, 3000);
   };
 
-  const navItems = [
-    { path: '/map', label: 'Mapa', icon: Map, type: 'route' as const },
-  ];
-
   return (
     <>
     <div className="absolute top-0 left-0 w-full z-50 pointer-events-none">
@@ -120,29 +131,48 @@ export const AuthHeader = ({ onLocationSelect, showSearch = true, onOpenFindings
           </div>
         </Link>
 
-        {/* Navigation */}
-        {isAuthenticated && (
+        {/* Mode Switcher - only on /map page */}
+        {isAuthenticated && isOnMapPage && onModeChange && (
+          <nav className="flex items-center ml-6 pointer-events-auto">
+            <div className="flex items-center bg-black/40 border border-white/10 rounded-lg p-0.5">
+              <button
+                onClick={() => onModeChange('map')}
+                className={clsx(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-md font-mono text-sm transition-all",
+                  mode === 'map'
+                    ? "bg-primary/20 text-primary shadow-[0_0_10px_rgba(0,243,255,0.3)]"
+                    : "text-white/50 hover:text-white"
+                )}
+              >
+                <Map className="w-4 h-4" />
+                Mapa
+              </button>
+              <button
+                onClick={() => onModeChange('planner')}
+                className={clsx(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-md font-mono text-sm transition-all",
+                  mode === 'planner'
+                    ? "bg-primary/20 text-primary shadow-[0_0_10px_rgba(0,243,255,0.3)]"
+                    : "text-white/50 hover:text-white"
+                )}
+              >
+                <Grid3X3 className="w-4 h-4" />
+                Plánovač
+              </button>
+            </div>
+          </nav>
+        )}
+        
+        {/* Simple Map link when not on map page */}
+        {isAuthenticated && !isOnMapPage && (
           <nav className="flex items-center gap-1 ml-6 pointer-events-auto">
-            {navItems.map(item => {
-              const isActive = location.pathname === item.path;
-              const className = clsx(
-                "flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm transition-all",
-                isActive
-                  ? "bg-primary/20 text-primary border border-primary/30"
-                  : "text-white/50 hover:text-white hover:bg-white/5"
-              );
-              
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={className}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+            <Link
+              to="/map"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm transition-all text-white/50 hover:text-white hover:bg-white/5"
+            >
+              <Map className="w-4 h-4" />
+              Mapa
+            </Link>
           </nav>
         )}
 

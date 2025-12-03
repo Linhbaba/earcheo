@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Columns3, Rows3, Maximize2, SlidersHorizontal, RotateCcw, Layers, Mountain, Navigation } from 'lucide-react';
+import { Columns3, Rows3, Maximize2, SlidersHorizontal, RotateCcw, Layers, Mountain, Navigation, Grid3X3 } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { VisualFilters } from '../types/visualFilters';
 import type { MapSideConfig } from '../types/mapSource';
 import type { MapSetupConfig } from '../types/database';
 import { MapSideSelector } from './MapSideSelector';
 import { MapSetupsControl } from './MapSetupsControl';
+import type { MapMode } from './AuthHeader';
 
 // Přednastavené presety filtrů
 const FILTER_PRESETS: Record<'A' | 'B' | 'C', VisualFilters> = {
@@ -46,6 +47,11 @@ interface CommandDeckProps {
   // GPS
   isGpsActive: boolean;
   toggleGps: () => void;
+  // Sektory
+  isSectorsActive?: boolean;
+  toggleSectors?: () => void;
+  // Mode
+  mode?: MapMode;
   // Map Setups
   onLoadSetup: (config: MapSetupConfig) => void;
 }
@@ -77,6 +83,9 @@ export const CommandDeck = ({
   onResetFilters,
   isGpsActive,
   toggleGps,
+  isSectorsActive = false,
+  toggleSectors,
+  mode = 'map',
   onLoadSetup,
 }: CommandDeckProps) => {
   // Aktuální konfigurace pro ukládání
@@ -328,6 +337,23 @@ export const CommandDeck = ({
               </div>
             )}
           </div>
+
+          {/* Sektory - pouze v map modu */}
+          {mode === 'map' && toggleSectors && (
+            <button
+              title="Zobrazit sektory"
+              onClick={toggleSectors}
+              className={clsx(
+                "p-2 rounded-lg transition-colors border group flex items-center gap-2 font-mono text-xs",
+                isSectorsActive
+                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/60 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                  : "bg-white/5 text-white/70 border-transparent hover:bg-white/10 hover:text-white"
+              )}
+            >
+              <Grid3X3 className="w-4 h-4" />
+              <span className="hidden lg:block">SEKTORY</span>
+            </button>
+          )}
         </div>
       </div>
       

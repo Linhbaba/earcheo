@@ -2,6 +2,7 @@
 // Generated from Prisma schema
 
 export type EquipmentType = 'DETECTOR' | 'GPS' | 'OTHER';
+export type FindingVisibility = 'PRIVATE' | 'ANONYMOUS' | 'PUBLIC';
 
 export interface User {
   id: string;
@@ -66,9 +67,15 @@ export interface Finding {
   historicalContext?: string | null;
   material?: string | null;
   
-  isPublic: boolean;
+  visibility: FindingVisibility;
+  isPublic?: boolean; // Legacy
   images: FindingImage[];
   equipment: Equipment[];
+  user?: {
+    id: string;
+    nickname?: string | null;
+    avatarUrl?: string | null;
+  } | null;
   
   createdAt: string;
   updatedAt: string;
@@ -141,6 +148,7 @@ export interface CreateFindingRequest {
   locationName?: string;
   historicalContext?: string;
   material?: string;
+  visibility?: FindingVisibility;
   isPublic?: boolean;
   equipmentIds?: string[];
 }
@@ -157,6 +165,7 @@ export interface UpdateFindingRequest {
   locationName?: string;
   historicalContext?: string;
   material?: string;
+  visibility?: FindingVisibility;
   isPublic?: boolean;
   equipmentIds?: string[];
 }
@@ -225,5 +234,66 @@ export interface MapSetup {
   name: string;
   config: MapSetupConfig;
   createdAt: string;
+}
+
+// Sector Planner Types
+export type TrackStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
+
+export interface GeoJSONPolygon {
+  type: 'Polygon';
+  coordinates: number[][][];
+}
+
+export interface GeoJSONLineString {
+  type: 'LineString';
+  coordinates: number[][];
+}
+
+export interface Sector {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string | null;
+  geometry: GeoJSONPolygon;
+  stripWidth: number;
+  tracks?: Track[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Track {
+  id: string;
+  sectorId: string;
+  geometry: GeoJSONLineString;
+  status: TrackStatus;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSectorRequest {
+  name: string;
+  description?: string;
+  geometry: GeoJSONPolygon;
+  stripWidth?: number;
+}
+
+export interface UpdateSectorRequest {
+  name?: string;
+  description?: string;
+  geometry?: GeoJSONPolygon;
+  stripWidth?: number;
+}
+
+export interface CreateTracksRequest {
+  sectorId: string;
+  tracks: Array<{
+    geometry: GeoJSONLineString;
+    order: number;
+  }>;
+}
+
+export interface UpdateTrackRequest {
+  status?: TrackStatus;
 }
 

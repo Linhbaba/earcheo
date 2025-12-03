@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 
 export const LandingPage = () => {
   const { loginWithRedirect } = useAuth0();
-  const [openCategory, setOpenCategory] = useState<string | null>('findings'); // 'findings' | 'maps' | 'tools' | null
+  const [openCategory, setOpenCategory] = useState<string | null>(null); // 'findings' | 'maps' | 'tools' | null
 
   const toggleCategory = (category: string) => {
     setOpenCategory(openCategory === category ? null : category);
@@ -40,6 +40,12 @@ export const LandingPage = () => {
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Enhanced animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Custom Background Image */}
+        <div className="absolute inset-0 opacity-40">
+          <img src="/bcg.webp" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-background" />
+        </div>
+
         {/* Animated particles */}
         <ParticleField />
         
@@ -156,20 +162,17 @@ export const LandingPage = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">LIDAR DATA • ORTOFOTO</span>
+            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">NÁLEZY • MAPY • PŘÍBĚHY</span>
           </div>
 
           {/* Main heading */}
           <h2 className="font-display text-3xl sm:text-5xl md:text-7xl text-white mb-4 sm:mb-6 leading-tight px-4">
-            Prozkoumejte
-            <span className="block text-primary drop-shadow-[0_0_30px_rgba(0,243,255,0.5)]">
-              krajinu z výšky
-            </span>
+            Mapa tvých objevů
           </h2>
 
           <p className="text-white/50 text-sm sm:text-lg md:text-xl font-mono mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed px-4">
-            Přístup k detailním LiDAR datům, digitálním modelům reliéfu 
-            a leteckým snímkům České republiky.
+            eArcheo je komunitní mapa pro hledače, archeology, sběratele i vetešníky. 
+            Ukládej nálezy do mapy, plánuj výpravy a pracuj s LIDARem, ortofotem i historickými podklady.
           </p>
 
           {/* CTA Buttons */}
@@ -178,14 +181,14 @@ export const LandingPage = () => {
               onClick={handleSignUp}
               className="group flex items-center gap-3 px-8 py-4 bg-primary hover:bg-primary/90 rounded-xl text-background font-display text-lg tracking-wider transition-all hover:shadow-[0_0_40px_rgba(0,243,255,0.4)] hover:scale-105"
             >
-              Registrace
+              Začít objevovat
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
               onClick={handleLogin}
               className="flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 rounded-xl text-white font-mono transition-all"
             >
-              Mám účet
+              Otevřít mapu
             </button>
           </div>
         </div>
@@ -196,16 +199,19 @@ export const LandingPage = () => {
             icon={<Layers className="w-6 h-6" />}
             title="LiDAR Data"
             description="Vysoké rozlišení z ČÚZK"
+            image="/lidar.webp"
           />
           <FeatureCard 
             icon={<Map className="w-6 h-6" />}
             title="Více vrstev"
             description="Satelitní snímky, ortofoto ČÚZK"
+            image="/vrstvy.webp"
           />
           <FeatureCard 
             icon={<Radar className="w-6 h-6" />}
             title="3D Terén"
             description="Interaktivní vizualizace reliéfu"
+            image="/3D.webp"
           />
         </div>
 
@@ -216,10 +222,10 @@ export const LandingPage = () => {
               <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.4</span>
             </div>
             <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
-              Nové funkce pro archeology
+              Nástroje pro objevitele
             </h3>
             <p className="text-white/50 font-mono text-sm sm:text-base">
-              Kompletní přehled nástrojů rozdělený do kategorií
+              Přehled funkcí pro evidenci nálezů, výprav a studium map
             </p>
           </div>
 
@@ -384,15 +390,29 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
+  image?: string;
 }
 
-const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <div className="group p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all hover:bg-surface/60">
-    <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_20px_rgba(0,243,255,0.2)] transition-all">
-      {icon}
+const FeatureCard = ({ icon, title, description, image }: FeatureCardProps) => (
+  <div className="group relative overflow-hidden p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all hover:bg-surface/60">
+    {image && (
+      <>
+        <img 
+          src={image} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a] via-[#0f172a]/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/40 to-transparent" />
+      </>
+    )}
+    <div className="relative z-10">
+      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_20px_rgba(0,243,255,0.2)] transition-all">
+        {icon}
+      </div>
+      <h3 className="font-display text-white text-lg mb-2">{title}</h3>
+      <p className="text-white/50 font-mono text-sm leading-relaxed max-w-[80%]">{description}</p>
     </div>
-    <h3 className="font-display text-white text-lg mb-2">{title}</h3>
-    <p className="text-white/50 font-mono text-sm leading-relaxed">{description}</p>
   </div>
 );
 
@@ -406,19 +426,19 @@ interface FeatureCategoryProps {
 const FeatureCategory = ({ title, isOpen, onToggle, children }: FeatureCategoryProps) => (
   <div 
     className={`
-      rounded-2xl overflow-hidden bg-surface/20 transition-all duration-300 border
-      ${isOpen ? 'border-primary/50 shadow-[0_0_20px_rgba(0,243,255,0.15)]' : 'border-white/10 hover:border-white/20'}
+      rounded-xl overflow-hidden bg-surface/40 backdrop-blur-sm transition-all duration-300 border
+      ${isOpen ? 'border-primary/50 shadow-[0_0_20px_rgba(0,243,255,0.15)]' : 'border-white/10 hover:border-primary/30'}
     `}
   >
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between p-6 text-left hover:bg-gradient-to-b hover:from-white/10 hover:to-transparent transition-all duration-300"
+      className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-all duration-300"
     >
-      <h3 className="font-display text-xl text-white">{title}</h3>
-      <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      <h3 className="font-display text-lg text-white">{title}</h3>
+      <ChevronDown className={`w-5 h-5 text-white/50 group-hover:text-primary transition-all duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
     </button>
     {isOpen && (
-      <div className="p-6 pt-0 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+      <div className="p-4 pt-0 grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in mt-2">
         {children}
       </div>
     )}

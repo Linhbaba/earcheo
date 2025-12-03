@@ -17,7 +17,8 @@ const updateFindingSchema = z.object({
   locationName: z.string().max(200).optional(),
   historicalContext: z.string().max(2000).optional(),
   material: z.string().max(100).optional(),
-  isPublic: z.boolean().optional(),
+  visibility: z.enum(['PRIVATE', 'ANONYMOUS', 'PUBLIC']).optional(),
+  isPublic: z.boolean().optional(), // Legacy
   equipmentIds: z.array(z.string()).optional(),
 });
 
@@ -77,7 +78,20 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         });
       }
 
-      const { equipmentIds, date, ...findingData } = validation.data;
+      const { equipmentIds, date, isPublic, ...findingData } = validation.data;
+
+      const updateData: any = {
+        ...findingData,
+        date: date ? new Date(date) : undefined,
+      };
+
+      if (findingData.visibility) {
+        updateData.isPublic = findingData.visibility === 'PUBLIC';
+      } else if (isPublic !== undefined) {
+        // Legacy support
+        updateData.visibility = isPublic ? 'PUBLIC' : 'PRIVATE';
+        updateData.isPublic = isPublic;
+      }
 
       // Update finding
       const finding = await prisma.finding.updateMany({
@@ -85,10 +99,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
           id,
           userId, // Security: pouze vlastní nálezy
         },
-        data: {
-          ...findingData,
-          date: date ? new Date(date) : undefined,
-        },
+        data: updateData,
       });
 
       if (finding.count === 0) {

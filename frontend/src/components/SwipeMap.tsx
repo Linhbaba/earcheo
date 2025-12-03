@@ -2,10 +2,10 @@ import React, { useState, useRef } from 'react';
 import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
 import type { ViewState, MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Move, MapPin, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Move, MapPin } from 'lucide-react';
 import type { VisualFilters } from '../types/visualFilters';
 import type { UserLocation } from './LocationControl';
-import type { Finding } from '../types/database';
+import type { Finding, Sector, Track, GeoJSONPolygon, GeoJSONLineString } from '../types/database';
 import type { MapSideConfig, MapSourceType } from '../types/mapSource';
 
 // WMS Proxy URLs (unified proxy endpoint)
@@ -73,6 +73,18 @@ interface SwipeMapProps {
   userLocation?: UserLocation | null;
   findings?: Finding[];
   onFindingClick?: (finding: Finding) => void;
+  // Sector support
+  sectors?: Sector[];
+  isSectorsActive?: boolean;
+  selectedSectorId?: string | null;
+  drawingPolygon?: [number, number][];
+  drawnPolygon?: GeoJSONPolygon | null;
+  stripPreview?: GeoJSONLineString[];
+  isDrawingMode?: boolean;
+  onMapClick?: (lngLat: [number, number]) => void;
+  onMapDoubleClick?: () => void;
+  onRemovePoint?: (index: number) => void;
+  onUndoLastPoint?: () => void;
 }
 
 export const SwipeMap = ({ 
@@ -91,7 +103,18 @@ export const SwipeMap = ({
   filtersEnabled,
   userLocation,
   findings = [],
-  onFindingClick
+  onFindingClick,
+  sectors = [],
+  isSectorsActive = false,
+  selectedSectorId = null,
+  drawingPolygon = [],
+  drawnPolygon = null,
+  stripPreview = [],
+  isDrawingMode = false,
+  onMapClick,
+  onMapDoubleClick,
+  onRemovePoint,
+  onUndoLastPoint,
 }: SwipeMapProps) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const leftMapRef = useRef<MapRef>(null);
@@ -138,11 +161,6 @@ export const SwipeMap = ({
     document.body.classList.remove('dragging-slider');
   };
 
-  // --- FALLBACK TLAČÍTKA pro mobilní zařízení ---
-  const moveSlider = (delta: number) => {
-    setSliderPosition(prev => Math.min(Math.max(prev + delta, 5), 95));
-  };
-
   // --- FILTER STYLE ---
   const getFilterStyle = (side: 'left' | 'right') => {
     if (!filtersEnabled || activeFilterSide !== side) return {};
@@ -168,7 +186,7 @@ export const SwipeMap = ({
     </Marker>
   );
 
-  // --- FINDING MARKERS ---
+  // --- FINDING MARKERS (Fancy Design) ---
   const renderFindingMarkers = () => findings.map((finding) => {
     const firstCategory = finding.category?.split(',')[0].trim().toLowerCase() || '';
     const colors: Record<string, string> = {
@@ -180,6 +198,9 @@ export const SwipeMap = ({
     };
     const color = colors[firstCategory] || '#00f3ff';
     const thumbnail = finding.images?.[0]?.thumbnailUrl;
+    
+    // Zkrátit název pro label
+    const shortTitle = finding.title.length > 18 ? finding.title.substring(0, 16) + '...' : finding.title;
 
     return (
       <Marker
@@ -189,23 +210,111 @@ export const SwipeMap = ({
         anchor="bottom"
         onClick={(e) => { e.originalEvent.stopPropagation(); onFindingClick?.(finding); }}
       >
-        <div className="relative group cursor-pointer pointer-events-auto">
+        <div className="relative group cursor-pointer pointer-events-auto flex flex-col items-center">
+          {/* Marker Icon */}
           {thumbnail ? (
             <div className="relative">
-              <div className="absolute rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: color, width: '48px', height: '48px', left: '0', top: '0' }} />
-              <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-lg group-hover:scale-110 transition-transform" style={{ borderColor: color, borderWidth: '3px' }}>
+              {/* Animated glow ring */}
+              <div 
+                className="absolute -inset-2 rounded-full opacity-40 group-hover:opacity-80 transition-all duration-300 animate-pulse"
+                style={{ 
+                  background: `radial-gradient(circle, ${color}40 0%, transparent 70%)`,
+                  boxShadow: `0 0 20px ${color}50`
+                }} 
+              />
+              {/* Image container */}
+              <div 
+                className="relative w-11 h-11 rounded-full overflow-hidden group-hover:scale-110 transition-all duration-300"
+                style={{ 
+                  borderColor: color, 
+                  borderWidth: '2px',
+                  boxShadow: `0 0 15px ${color}60, 0 4px 12px rgba(0,0,0,0.4)`
+                }}
+              >
                 <img src={thumbnail} alt={finding.title} className="w-full h-full object-cover" />
               </div>
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0" style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: `8px solid ${color}` }} />
+              {/* Arrow pointer */}
+              <div 
+                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0" 
+                style={{ 
+                  borderLeft: '6px solid transparent', 
+                  borderRight: '6px solid transparent', 
+                  borderTop: `8px solid ${color}` 
+                }} 
+              />
             </div>
           ) : (
             <div className="relative">
-              <div className="absolute rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: color, width: '32px', height: '32px', left: '0', top: '0' }} />
-              <div className="relative w-8 h-8 flex items-center justify-center" style={{ color }}>
-                <MapPin className="w-8 h-8 drop-shadow-lg group-hover:scale-125 transition-transform" fill={color} strokeWidth={1.5} />
+              {/* Animated glow ring */}
+              <div 
+                className="absolute -inset-3 rounded-full opacity-30 group-hover:opacity-70 transition-all duration-300"
+                style={{ 
+                  background: `radial-gradient(circle, ${color}50 0%, transparent 70%)`,
+                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                }} 
+              />
+              {/* Pin icon */}
+              <div 
+                className="relative flex items-center justify-center group-hover:scale-125 transition-all duration-300" 
+                style={{ color }}
+              >
+                <MapPin 
+                  className="w-9 h-9" 
+                  fill={color} 
+                  strokeWidth={1.5}
+                  style={{ 
+                    filter: `drop-shadow(0 0 8px ${color}80) drop-shadow(0 2px 4px rgba(0,0,0,0.5))`
+                  }}
+                />
               </div>
             </div>
           )}
+          
+          {/* Floating Label */}
+          <div 
+            className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-1"
+          >
+            <div 
+              className="px-2 py-0.5 rounded-md text-[10px] font-mono tracking-wide backdrop-blur-md border"
+              style={{ 
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                borderColor: `${color}40`,
+                color: color,
+                boxShadow: `0 2px 8px rgba(0,0,0,0.4), 0 0 10px ${color}20`
+              }}
+            >
+              {shortTitle}
+            </div>
+          </div>
+
+          {/* Hover Tooltip (appears above) */}
+          <div 
+            className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 transform scale-95 group-hover:scale-100"
+          >
+            <div 
+              className="px-3 py-2 rounded-lg backdrop-blur-md border min-w-[140px] max-w-[200px]"
+              style={{ 
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                borderColor: `${color}30`,
+                boxShadow: `0 4px 20px rgba(0,0,0,0.5), 0 0 15px ${color}15`
+              }}
+            >
+              <div className="text-xs font-mono text-white/90 font-medium truncate">{finding.title}</div>
+              <div className="text-[10px] font-mono mt-0.5" style={{ color: `${color}cc` }}>
+                {finding.category}
+              </div>
+              {finding.date && (
+                <div className="text-[9px] font-mono text-white/50 mt-1">
+                  {new Date(finding.date).toLocaleDateString('cs-CZ')}
+                </div>
+              )}
+            </div>
+            {/* Tooltip arrow */}
+            <div 
+              className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45"
+              style={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', borderRight: `1px solid ${color}30`, borderBottom: `1px solid ${color}30` }}
+            />
+          </div>
         </div>
       </Marker>
     );
@@ -226,6 +335,377 @@ export const SwipeMap = ({
       )}
     </>
   );
+
+  // --- SECTORS LAYERS ---
+  const renderSectorsLayers = () => {
+    if (!isSectorsActive || sectors.length === 0) return null;
+
+    // Convert sectors to GeoJSON FeatureCollection
+    const sectorsGeoJSON = {
+      type: 'FeatureCollection' as const,
+      features: sectors.map(sector => ({
+        type: 'Feature' as const,
+        properties: {
+          id: sector.id,
+          name: sector.name,
+          isSelected: sector.id === selectedSectorId,
+        },
+        geometry: sector.geometry,
+      })),
+    };
+
+    // Tracks from all sectors
+    const tracksFeatures = sectors.flatMap(sector => 
+      (sector.tracks || []).map(track => ({
+        type: 'Feature' as const,
+        properties: {
+          id: track.id,
+          sectorId: sector.id,
+          status: track.status,
+          isSelected: sector.id === selectedSectorId,
+        },
+        geometry: track.geometry,
+      }))
+    );
+
+    const tracksGeoJSON = {
+      type: 'FeatureCollection' as const,
+      features: tracksFeatures,
+    };
+
+    return (
+      <>
+        {/* Sector Polygons */}
+        <Source id="sectors-source" type="geojson" data={sectorsGeoJSON}>
+          {/* Fill */}
+          <Layer
+            id="sectors-fill"
+            type="fill"
+            paint={{
+              'fill-color': [
+                'case',
+                ['get', 'isSelected'],
+                'rgba(16, 185, 129, 0.25)',
+                'rgba(16, 185, 129, 0.1)'
+              ],
+              'fill-opacity': 0.8,
+            }}
+          />
+          {/* Outline */}
+          <Layer
+            id="sectors-outline"
+            type="line"
+            paint={{
+              'line-color': [
+                'case',
+                ['get', 'isSelected'],
+                '#10b981',
+                '#10b981'
+              ],
+              'line-width': [
+                'case',
+                ['get', 'isSelected'],
+                3,
+                2
+              ],
+              'line-opacity': [
+                'case',
+                ['get', 'isSelected'],
+                1,
+                0.6
+              ],
+            }}
+          />
+        </Source>
+
+        {/* Tracks */}
+        {tracksFeatures.length > 0 && (
+          <Source id="tracks-source" type="geojson" data={tracksGeoJSON}>
+            <Layer
+              id="tracks-lines"
+              type="line"
+              paint={{
+                'line-color': [
+                  'match',
+                  ['get', 'status'],
+                  'PENDING', '#9ca3af',
+                  'IN_PROGRESS', '#3b82f6',
+                  'COMPLETED', '#10b981',
+                  'SKIPPED', '#f59e0b',
+                  '#9ca3af'
+                ],
+                'line-width': [
+                  'case',
+                  ['get', 'isSelected'],
+                  3,
+                  2
+                ],
+                'line-opacity': [
+                  'case',
+                  ['get', 'isSelected'],
+                  1,
+                  0.5
+                ],
+              }}
+            />
+          </Source>
+        )}
+      </>
+    );
+  };
+
+  // --- DRAWING POLYGON LAYER ---
+  const renderDrawingPolygon = () => {
+    if (drawingPolygon.length === 0) return null;
+
+    const isComplete = drawingPolygon.length >= 3;
+    
+    // Create GeoJSON for the drawing
+    const drawingGeoJSON = isComplete ? {
+      type: 'FeatureCollection' as const,
+      features: [
+        {
+          type: 'Feature' as const,
+          properties: {},
+          geometry: {
+            type: 'Polygon' as const,
+            coordinates: [[...drawingPolygon, drawingPolygon[0]]],
+          },
+        },
+      ],
+    } : null;
+
+    const lineGeoJSON = drawingPolygon.length >= 2 ? {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: drawingPolygon,
+      },
+    } : null;
+
+    return (
+      <>
+        {/* Polygon fill (only if 3+ points) */}
+        {drawingGeoJSON && (
+          <Source id="drawing-polygon-source" type="geojson" data={drawingGeoJSON}>
+            <Layer
+              id="drawing-polygon-fill"
+              type="fill"
+              paint={{
+                'fill-color': 'rgba(16, 185, 129, 0.2)',
+                'fill-opacity': 0.8,
+              }}
+            />
+            <Layer
+              id="drawing-polygon-outline"
+              type="line"
+              paint={{
+                'line-color': '#10b981',
+                'line-width': 2,
+                'line-dasharray': [2, 2],
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Line connecting points */}
+        {lineGeoJSON && (
+          <Source id="drawing-line-source" type="geojson" data={lineGeoJSON}>
+            <Layer
+              id="drawing-line"
+              type="line"
+              paint={{
+                'line-color': '#10b981',
+                'line-width': 2,
+                'line-dasharray': [4, 2],
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Interactive Point Markers */}
+        {drawingPolygon.map((coord, index) => {
+          const isFirst = index === 0;
+          const isLast = index === drawingPolygon.length - 1;
+          
+          return (
+            <Marker
+              key={`drawing-point-${index}`}
+              longitude={coord[0]}
+              latitude={coord[1]}
+              anchor="center"
+            >
+              <div 
+                className="relative group cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemovePoint?.(index);
+                }}
+                title={`Bod ${index + 1} - klikni pro odstranění`}
+              >
+                {/* Glow effect */}
+                <div 
+                  className={`absolute -inset-1 rounded-full opacity-50 group-hover:opacity-100 transition-all ${
+                    isFirst ? 'bg-emerald-400/40' : isLast ? 'bg-amber-400/40' : 'bg-emerald-400/30'
+                  }`}
+                />
+                {/* Point */}
+                <div 
+                  className={`relative w-4 h-4 rounded-full border-2 border-white shadow-lg transition-all group-hover:scale-125 ${
+                    isFirst 
+                      ? 'bg-emerald-500' 
+                      : isLast 
+                        ? 'bg-amber-500' 
+                        : 'bg-emerald-400'
+                  }`}
+                />
+                {/* Index label */}
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-surface/90 backdrop-blur-sm text-white text-[9px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap border border-white/10">
+                    {isFirst ? '1' : index + 1}
+                  </div>
+                </div>
+                {/* Remove indicator on hover */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-2 h-0.5 bg-white rounded" />
+                </div>
+              </div>
+            </Marker>
+          );
+        })}
+      </>
+    );
+  };
+
+  // --- CONFIRMED POLYGON LAYER (after user confirms drawing) ---
+  const renderDrawnPolygon = () => {
+    if (!drawnPolygon) return null;
+
+    const polygonGeoJSON = {
+      type: 'FeatureCollection' as const,
+      features: [
+        {
+          type: 'Feature' as const,
+          properties: {},
+          geometry: drawnPolygon,
+        },
+      ],
+    };
+
+    return (
+      <Source id="drawn-polygon-source" type="geojson" data={polygonGeoJSON}>
+        <Layer
+          id="drawn-polygon-fill"
+          type="fill"
+          paint={{
+            'fill-color': 'rgba(16, 185, 129, 0.1)',
+            'fill-opacity': 1,
+          }}
+        />
+        <Layer
+          id="drawn-polygon-outline"
+          type="line"
+          paint={{
+            'line-color': '#10b981',
+            'line-width': 2,
+            'line-opacity': 0.8,
+          }}
+        />
+      </Source>
+    );
+  };
+
+  // --- STRIP PREVIEW LAYER (snake route preview) ---
+  const renderStripPreview = () => {
+    if (!stripPreview || stripPreview.length === 0) return null;
+
+    const stripsGeoJSON = {
+      type: 'FeatureCollection' as const,
+      features: stripPreview.map((strip, index) => ({
+        type: 'Feature' as const,
+        properties: { 
+          index,
+          isEven: index % 2 === 0,
+        },
+        geometry: strip,
+      })),
+    };
+
+    // Create connecting lines between strips (snake pattern)
+    const connectionsGeoJSON = {
+      type: 'FeatureCollection' as const,
+      features: stripPreview.slice(0, -1).map((strip, index) => {
+        const nextStrip = stripPreview[index + 1];
+        // Connect end of current strip to start of next strip
+        const currentEnd = strip.coordinates[strip.coordinates.length - 1];
+        const nextStart = nextStrip.coordinates[0];
+        return {
+          type: 'Feature' as const,
+          properties: { index },
+          geometry: {
+            type: 'LineString' as const,
+            coordinates: [currentEnd, nextStart],
+          },
+        };
+      }),
+    };
+
+    return (
+      <>
+        {/* Strip lines */}
+        <Source id="strip-preview-source" type="geojson" data={stripsGeoJSON}>
+          <Layer
+            id="strip-preview-lines"
+            type="line"
+            paint={{
+              'line-color': '#f59e0b', // amber
+              'line-width': 2,
+              'line-opacity': 0.8,
+            }}
+          />
+        </Source>
+
+        {/* Connection lines (snake turns) */}
+        <Source id="strip-connections-source" type="geojson" data={connectionsGeoJSON}>
+          <Layer
+            id="strip-connections-lines"
+            type="line"
+            paint={{
+              'line-color': '#f59e0b',
+              'line-width': 1.5,
+              'line-opacity': 0.5,
+              'line-dasharray': [2, 2],
+            }}
+          />
+        </Source>
+
+        {/* Start/End markers */}
+        {stripPreview.length > 0 && (
+          <>
+            <Marker
+              longitude={stripPreview[0].coordinates[0][0]}
+              latitude={stripPreview[0].coordinates[0][1]}
+              anchor="center"
+            >
+              <div className="w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-lg flex items-center justify-center">
+                <span className="text-[8px] font-bold text-white">S</span>
+              </div>
+            </Marker>
+            <Marker
+              longitude={stripPreview[stripPreview.length - 1].coordinates[stripPreview[stripPreview.length - 1].coordinates.length - 1][0]}
+              latitude={stripPreview[stripPreview.length - 1].coordinates[stripPreview[stripPreview.length - 1].coordinates.length - 1][1]}
+              anchor="center"
+            >
+              <div className="w-4 h-4 bg-red-500 border-2 border-white rounded-full shadow-lg flex items-center justify-center">
+                <span className="text-[8px] font-bold text-white">E</span>
+              </div>
+            </Marker>
+          </>
+        )}
+      </>
+    );
+  };
 
   // --- MAP CONTENT based on config ---
   const renderMapContent = (config: MapSideConfig, side: 'left' | 'right') => {
@@ -260,6 +740,18 @@ export const SwipeMap = ({
         {/* Overlay vrstvy */}
         {renderOverlayLayers()}
 
+        {/* Sectors */}
+        {renderSectorsLayers()}
+
+        {/* Confirmed/Drawn polygon */}
+        {renderDrawnPolygon()}
+
+        {/* Strip preview (snake route) */}
+        {renderStripPreview()}
+
+        {/* Drawing polygon (in progress) */}
+        {renderDrawingPolygon()}
+
         {/* GPS marker */}
         {renderGpsMarker()}
 
@@ -269,15 +761,45 @@ export const SwipeMap = ({
     );
   };
 
+  // --- MAP CLICK HANDLER ---
+  const handleMapClick = (evt: any) => {
+    if (onMapClick) {
+      onMapClick([evt.lngLat.lng, evt.lngLat.lat]);
+    }
+  };
+
+  const handleMapDblClick = (evt: any) => {
+    if (onMapDoubleClick) {
+      evt.preventDefault();
+      onMapDoubleClick();
+    }
+  };
+
+  // Right-click to undo last point
+  const handleContextMenu = (evt: any) => {
+    if (isDrawingMode && onUndoLastPoint && drawingPolygon.length > 0) {
+      evt.preventDefault();
+      onUndoLastPoint();
+    }
+  };
+
+  // Cursor style when drawing
+  const drawingCursor = isDrawingMode ? 'crosshair' : undefined;
+
   // --- RENDER MAPS ---
   const renderMap = (config: MapSideConfig, side: 'left' | 'right', ref: React.RefObject<MapRef>) => (
     <Map
       ref={ref}
       {...viewState}
       onMove={evt => setViewState(evt.viewState)}
+      onClick={handleMapClick}
+      onDblClick={handleMapDblClick}
+      onContextMenu={handleContextMenu}
+      doubleClickZoom={!onMapDoubleClick}
       mapStyle={getMapStyle(config.source) as any}
       terrain={{ source: `terrain-dem-${side}`, exaggeration }}
-      style={getFilterStyle(side)}
+      style={{ ...getFilterStyle(side), cursor: drawingCursor }}
+      cursor={drawingCursor}
     >
       {renderMapContent(config, side)}
     </Map>
@@ -341,33 +863,15 @@ export const SwipeMap = ({
         />
         
         {/* Handle s tlačítky +/- */}
+        {/* Slider handle - center only */}
         <div 
-          className={`absolute bg-surface border-2 border-primary rounded-full shadow-lg flex items-center justify-center gap-1 pointer-events-none ${
+          className={`absolute bg-surface border-2 border-primary rounded-full shadow-lg shadow-primary/20 flex items-center justify-center pointer-events-none ${
             isHorizontal 
-              ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-1' 
-              : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-1 py-2 flex-col'
+              ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10' 
+              : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10'
           }`}
         >
-          {/* Tlačítko - (doleva/nahoru) */}
-          <button
-            className="w-8 h-8 flex items-center justify-center bg-primary/20 hover:bg-primary/40 active:bg-primary/60 rounded-full pointer-events-auto touch-manipulation"
-            onClick={(e) => { e.stopPropagation(); moveSlider(-10); }}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            {isHorizontal ? <ChevronUp className="w-5 h-5 text-primary" /> : <ChevronLeft className="w-5 h-5 text-primary" />}
-          </button>
-          
-          {/* Ikona tažení */}
-          <Move className={`text-primary/60 ${isHorizontal ? 'w-4 h-4 rotate-90' : 'w-4 h-4'}`} />
-          
-          {/* Tlačítko + (doprava/dolů) */}
-          <button
-            className="w-8 h-8 flex items-center justify-center bg-primary/20 hover:bg-primary/40 active:bg-primary/60 rounded-full pointer-events-auto touch-manipulation"
-            onClick={(e) => { e.stopPropagation(); moveSlider(10); }}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            {isHorizontal ? <ChevronDown className="w-5 h-5 text-primary" /> : <ChevronRight className="w-5 h-5 text-primary" />}
-          </button>
+          <Move className={`text-primary ${isHorizontal ? 'w-5 h-5 rotate-90' : 'w-5 h-5'}`} />
         </div>
 
         {/* Labels */}

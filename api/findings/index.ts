@@ -19,7 +19,8 @@ const createFindingSchema = z.object({
   historicalContext: z.string().max(2000).optional(),
   material: z.string().max(100).optional(),
   
-  isPublic: z.boolean().default(false),
+  visibility: z.enum(['PRIVATE', 'ANONYMOUS', 'PUBLIC']).default('PRIVATE'),
+  isPublic: z.boolean().optional(), // Legacy
   equipmentIds: z.array(z.string()).optional(),
 });
 
@@ -27,7 +28,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
   // GET: Seznam nálezů uživatele
   if (req.method === 'GET') {
     try {
-      const { limit = '50', offset = '0', category, isPublic } = req.query;
+      const { limit = '50', offset = '0', category, isPublic, visibility } = req.query;
 
       const where: any = { userId };
       
@@ -35,8 +36,11 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         where.category = category;
       }
       
-      if (isPublic !== undefined) {
-        where.isPublic = isPublic === 'true';
+      if (visibility && typeof visibility === 'string') {
+        where.visibility = visibility;
+      } else if (isPublic !== undefined) {
+        // Legacy support
+        where.visibility = isPublic === 'true' ? 'PUBLIC' : 'PRIVATE';
       }
 
       const findings = await prisma.finding.findMany({
@@ -81,11 +85,12 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         });
       }
 
-      const { equipmentIds, ...findingData } = validation.data;
+      const { equipmentIds, isPublic, ...findingData } = validation.data;
 
       const finding = await prisma.finding.create({
         data: {
           ...findingData,
+          isPublic: findingData.visibility === 'PUBLIC', // Sync legacy field
           date: new Date(findingData.date),
           userId,
           equipment: equipmentIds && equipmentIds.length > 0 ? {
