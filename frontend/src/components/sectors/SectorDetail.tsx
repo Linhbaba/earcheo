@@ -1,4 +1,4 @@
-import { Edit2, Trash2, Download, Play, RotateCcw, Save } from 'lucide-react';
+import { Edit2, Trash2, Download, Play, RotateCcw, Save, MapPin } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Sector, Track, GeoJSONLineString } from '../../types/database';
 import { 
@@ -7,6 +7,7 @@ import {
   calculateTotalLength, 
   formatLength 
 } from '../../utils/geometry';
+import { SectorMiniMap } from './SectorMiniMap';
 
 interface SectorDetailProps {
   sector: Sector;
@@ -20,6 +21,7 @@ interface SectorDetailProps {
   onEdit: () => void;
   onDelete: () => void;
   onExport: () => void;
+  onFocus?: () => void;
 }
 
 const TRACK_STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -41,6 +43,7 @@ export const SectorDetail = ({
   onEdit,
   onDelete,
   onExport,
+  onFocus,
 }: SectorDetailProps) => {
   const area = calculateArea(sector.geometry);
   const totalLength = tracks.length > 0 
@@ -61,6 +64,9 @@ export const SectorDetail = ({
 
   return (
     <div className="space-y-4">
+      {/* Mini Map Preview */}
+      <SectorMiniMap geometry={sector.geometry} className="h-32" />
+
       {/* Description */}
       {sector.description && (
         <p className="text-white/60 text-sm font-mono leading-relaxed">
@@ -162,6 +168,17 @@ export const SectorDetail = ({
           >
             <RotateCcw className="w-4 h-4" />
             Resetovat pásy
+          </button>
+        )}
+
+        {/* Focus on map button */}
+        {onFocus && (
+          <button
+            onClick={onFocus}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 rounded-xl text-blue-400 font-mono text-sm transition-all"
+          >
+            <MapPin className="w-4 h-4" />
+            Zobrazit na mapě
           </button>
         )}
 

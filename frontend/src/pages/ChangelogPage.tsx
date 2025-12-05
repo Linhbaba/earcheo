@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench } from 'lucide-react';
+import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 
 export const ChangelogPage = () => {
@@ -60,12 +60,42 @@ export const ChangelogPage = () => {
           {/* Changelog Entries */}
           <div className="space-y-12">
             
-            {/* v1.4 */}
+            {/* v1.0 - RELEASE */}
             <ChangelogEntry
-              version="1.4"
-              date="1. prosince 2025"
-              badge="AKTUÁLNÍ"
+              version="1.0"
+              date="5. prosince 2025"
+              badge="RELEASE 🎉"
               badgeColor="primary"
+            >
+              <ChangeItem icon={<Rocket />} title="Oficiální release verze 1.0">
+                eArcheo opouští beta verzi! Stabilní platforma připravená pro každodenní použití s kompletní sadou funkcí pro archeologický průzkum.
+              </ChangeItem>
+              <ChangeItem icon={<Target />} title="Sector Planner">
+                Nový plánovač sektorů pro systematický průzkum terénu. Kreslete polygony, generujte trasy a sledujte postup průzkumu v reálném čase.
+              </ChangeItem>
+              <ChangeItem icon={<Users />} title="Typy sběratelů">
+                Profil nyní podporuje různé typy sběratelů - numismatik, filatelista, militaria, detektorář. Přizpůsobte si eArcheo svému zaměření.
+              </ChangeItem>
+              <ChangeItem icon={<User />} title="Onboarding wizard">
+                Noví uživatelé jsou provázeni nastavením profilu včetně výběru typu sběratele a oblíbených aktivit.
+              </ChangeItem>
+              <ChangeItem icon={<Ruler />} title="Měřicí nástroje">
+                Měřte vzdálenosti a plochy přímo na mapě. Ideální pro plánování průzkumu a dokumentaci lokalit.
+              </ChangeItem>
+              <ChangeItem icon={<BarChart3 />} title="Google Analytics">
+                Anonymní sledování používání mapy pro lepší pochopení, které funkce jsou nejužitečnější.
+              </ChangeItem>
+              <ChangeItem icon={<Zap />} title="Optimalizace serverless funkcí">
+                Sloučení API endpointů pro rychlejší odezvu a nižší náklady na provoz.
+              </ChangeItem>
+            </ChangelogEntry>
+
+            {/* BETA v1.4 */}
+            <ChangelogEntry
+              version="BETA 1.4"
+              date="1. prosince 2025"
+              badge="STABLE"
+              badgeColor="green"
             >
               <ChangeItem icon={<Smartphone />} title="Vylepšené mobilní ovládání">
                 Nové tlačítka +/- pro přesné ovládání rozdělovače mapy na dotykových zařízeních. Prevence nechtěného refreshe stránky při tažení.
@@ -78,9 +108,9 @@ export const ChangelogPage = () => {
               </ChangeItem>
             </ChangelogEntry>
             
-            {/* v1.3 */}
+            {/* BETA v1.3 */}
             <ChangelogEntry
-              version="1.3"
+              version="BETA 1.3"
               date="30. listopadu 2025"
               badge="STABLE"
               badgeColor="green"
@@ -111,9 +141,9 @@ export const ChangelogPage = () => {
               </ChangeItem>
             </ChangelogEntry>
             
-            {/* v1.2 */}
+            {/* BETA v1.2 */}
             <ChangelogEntry
-              version="1.2"
+              version="BETA 1.2"
               date="28. listopadu 2025"
               badge="STABLE"
               badgeColor="green"
@@ -129,9 +159,9 @@ export const ChangelogPage = () => {
               </ChangeItem>
             </ChangelogEntry>
 
-            {/* v1.1 */}
+            {/* BETA v1.1 */}
             <ChangelogEntry
-              version="1.1"
+              version="BETA 1.1"
               date="26. listopadu 2025"
               badge="STABLE"
               badgeColor="green"
@@ -153,11 +183,11 @@ export const ChangelogPage = () => {
               </ChangeItem>
             </ChangelogEntry>
 
-            {/* v1.0 */}
+            {/* BETA v1.0 */}
             <ChangelogEntry
-              version="1.0"
+              version="BETA 1.0"
               date="15. listopadu 2025"
-              badge="LAUNCH"
+              badge="INITIAL"
               badgeColor="amber"
             >
               <ChangeItem icon={<Map />} title="LiDAR Vizualizace">

@@ -23,6 +23,7 @@ interface SectorPanelProps {
   onSelectSector: (sector: Sector | null) => void;
   selectedSector: Sector | null;
   onStripPreviewChange?: (strips: GeoJSONLineString[]) => void; // Live strip preview
+  onFocusSector?: (sector: Sector) => void; // Fly to sector on map
 }
 
 type PanelView = 'list' | 'detail' | 'create' | 'edit';
@@ -38,6 +39,7 @@ export const SectorPanel = ({
   onSelectSector,
   selectedSector,
   onStripPreviewChange,
+  onFocusSector,
 }: SectorPanelProps) => {
   const { sectors, loading, createSector, updateSector, deleteSector, fetchSectors } = useSectors();
   const { tracks, createTracks, fetchTracks, deleteTracks } = useTracks();
@@ -81,6 +83,11 @@ export const SectorPanel = ({
       onClearDrawing();
       onSelectSector(sector);
       setView('detail');
+      
+      // Focus on the new sector
+      if (onFocusSector && sector) {
+        onFocusSector(sector);
+      }
     } catch (err) {
       toast.error('Nepodařilo se vytvořit sektor');
     }
@@ -288,6 +295,7 @@ export const SectorPanel = ({
             onEdit={() => setView('edit')}
             onDelete={() => handleDelete(selectedSector.id)}
             onExport={handleExport}
+            onFocus={onFocusSector ? () => onFocusSector(selectedSector) : undefined}
           />
         )}
       </div>

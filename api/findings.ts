@@ -224,9 +224,19 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
 
       const finding = await prisma.finding.create({
         data: {
-          ...findingData,
-          isPublic: findingData.visibility === 'PUBLIC',
+          title: findingData.title,
+          latitude: findingData.latitude,
+          longitude: findingData.longitude,
           date: new Date(findingData.date),
+          description: findingData.description,
+          category: findingData.category,
+          condition: findingData.condition,
+          depth: findingData.depth,
+          locationName: findingData.locationName,
+          historicalContext: findingData.historicalContext,
+          material: findingData.material,
+          visibility: findingData.visibility,
+          isPublic: findingData.visibility === 'PUBLIC',
           userId,
           equipment: equipmentIds && equipmentIds.length > 0 ? {
             create: equipmentIds.map(equipmentId => ({
