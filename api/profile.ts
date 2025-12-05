@@ -112,10 +112,13 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
 
         if (socialLinks.length > 0) {
           await prisma.socialLink.createMany({
-            data: socialLinks.map(link => ({
-              ...link,
-              userId,
-            })),
+            data: socialLinks
+              .filter(link => link.platform && link.url)
+              .map(link => ({
+                platform: link.platform!,
+                url: link.url!,
+                userId,
+              })),
           });
         }
       }
@@ -128,10 +131,15 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
 
         if (favoriteLocations.length > 0) {
           await prisma.favoriteLocation.createMany({
-            data: favoriteLocations.map(loc => ({
-              ...loc,
-              userId,
-            })),
+            data: favoriteLocations
+              .filter(loc => loc.name && loc.latitude !== undefined && loc.longitude !== undefined)
+              .map(loc => ({
+                name: loc.name!,
+                latitude: loc.latitude!,
+                longitude: loc.longitude!,
+                notes: loc.notes,
+                userId,
+              })),
           });
         }
       }

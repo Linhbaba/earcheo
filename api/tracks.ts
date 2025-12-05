@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { prisma } from '../_lib/db';
-import { withAuth } from '../_lib/auth';
+import { prisma } from './_lib/db';
+import { withAuth } from './_lib/auth';
 import { z } from 'zod';
 
 // GeoJSON LineString validation
@@ -18,17 +18,83 @@ const createTracksSchema = z.object({
   })),
 });
 
+// Validation schema for updating track status
+const updateTrackSchema = z.object({
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED']),
+});
+
 async function handler(req: VercelRequest, res: VercelResponse, userId: string) {
+  const { id, sectorId } = req.query;
+
+  // Routes with ID - /api/tracks/[id]
+  if (id && typeof id === 'string') {
+    // GET: Detail trasy
+    if (req.method === 'GET') {
+      try {
+        const track = await prisma.track.findUnique({
+          where: { id },
+          include: {
+            sector: { select: { userId: true } },
+          },
+        });
+
+        if (!track || track.sector.userId !== userId) {
+          return res.status(404).json({ error: 'Track not found' });
+        }
+
+        return res.status(200).json(track);
+      } catch (error) {
+        console.error('Get track error:', error);
+        return res.status(500).json({ error: 'Failed to get track' });
+      }
+    }
+
+    // PUT: Aktualizovat stav trasy
+    if (req.method === 'PUT') {
+      try {
+        const validation = updateTrackSchema.safeParse(req.body);
+        
+        if (!validation.success) {
+          return res.status(400).json({ 
+            error: 'Validation error', 
+            details: validation.error.errors 
+          });
+        }
+
+        const existingTrack = await prisma.track.findUnique({
+          where: { id },
+          include: {
+            sector: { select: { userId: true } },
+          },
+        });
+
+        if (!existingTrack || existingTrack.sector.userId !== userId) {
+          return res.status(404).json({ error: 'Track not found' });
+        }
+
+        const track = await prisma.track.update({
+          where: { id },
+          data: { status: validation.data.status },
+        });
+
+        return res.status(200).json(track);
+      } catch (error) {
+        console.error('Update track error:', error);
+        return res.status(500).json({ error: 'Failed to update track' });
+      }
+    }
+
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Routes without ID - /api/tracks
   // GET: Seznam tras pro sektor
   if (req.method === 'GET') {
     try {
-      const { sectorId } = req.query;
-
       if (!sectorId || typeof sectorId !== 'string') {
         return res.status(400).json({ error: 'sectorId is required' });
       }
 
-      // Ověřit vlastnictví sektoru
       const sector = await prisma.sector.findFirst({
         where: { id: sectorId, userId },
       });
@@ -61,35 +127,31 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         });
       }
 
-      const { sectorId, tracks } = validation.data;
+      const { sectorId: bodySectorId, tracks } = validation.data;
 
-      // Ověřit vlastnictví sektoru
       const sector = await prisma.sector.findFirst({
-        where: { id: sectorId, userId },
+        where: { id: bodySectorId, userId },
       });
 
       if (!sector) {
         return res.status(404).json({ error: 'Sector not found' });
       }
 
-      // Smazat existující trasy
       await prisma.track.deleteMany({
-        where: { sectorId },
+        where: { sectorId: bodySectorId },
       });
 
-      // Vytvořit nové trasy
-      const createdTracks = await prisma.track.createMany({
+      await prisma.track.createMany({
         data: tracks.map(track => ({
-          sectorId,
+          sectorId: bodySectorId,
           geometry: track.geometry,
           order: track.order,
           status: 'PENDING',
         })),
       });
 
-      // Vrátit nově vytvořené trasy
       const newTracks = await prisma.track.findMany({
-        where: { sectorId },
+        where: { sectorId: bodySectorId },
         orderBy: { order: 'asc' },
       });
 
@@ -103,13 +165,10 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
   // DELETE: Smazat všechny trasy sektoru
   if (req.method === 'DELETE') {
     try {
-      const { sectorId } = req.query;
-
       if (!sectorId || typeof sectorId !== 'string') {
         return res.status(400).json({ error: 'sectorId is required' });
       }
 
-      // Ověřit vlastnictví sektoru
       const sector = await prisma.sector.findFirst({
         where: { id: sectorId, userId },
       });
@@ -129,9 +188,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
     }
   }
 
-  // Method not allowed
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
 export default withAuth(handler);
-
