@@ -1,8 +1,16 @@
 import { useAuth0 } from '@auth0/auth0-react';
-import { ThumbsUp, TrendingUp, ArrowRight } from 'lucide-react';
+import { ThumbsUp, TrendingUp, ArrowRight, Check } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+// Feature titles that have been implemented
+const COMPLETED_FEATURES = [
+  'tracking a planovani',
+  'tracking a plánování', 
+  'názvy obcí',
+  'nazvy obci',
+];
 
 interface FeatureRequest {
   id: string;
@@ -107,6 +115,12 @@ export const TopFeatureRequests = () => {
     }
   };
 
+  const isFeatureCompleted = (title: string) => {
+    return COMPLETED_FEATURES.some(f => 
+      title.toLowerCase().includes(f) || f.includes(title.toLowerCase())
+    );
+  };
+
   return (
     <section className="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16">
       {/* Section header */}
@@ -148,8 +162,17 @@ export const TopFeatureRequests = () => {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
-                    <h4 className="font-display text-white text-sm sm:text-base truncate">{feature.title}</h4>
-                    {feature.category && feature.category.toLowerCase() !== 'ostatní' && (
+                    <h4 className={clsx(
+                      "font-display text-sm sm:text-base truncate",
+                      isFeatureCompleted(feature.title) ? "text-white/50 line-through" : "text-white"
+                    )}>{feature.title}</h4>
+                    {isFeatureCompleted(feature.title) && (
+                      <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0">
+                        <Check className="w-2.5 h-2.5" />
+                        Přidáno
+                      </span>
+                    )}
+                    {feature.category && feature.category.toLowerCase() !== 'ostatní' && !isFeatureCompleted(feature.title) && (
                       <span className={clsx(
                         "px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-mono uppercase tracking-wider flex-shrink-0",
                         getCategoryColor(feature.category)
