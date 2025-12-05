@@ -32,8 +32,13 @@ export function useSectors(options: UseSectorsOptions = {}) {
         throw new Error('Failed to fetch sectors');
       }
 
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        throw new Error('API returned non-JSON response');
+      }
+
       const data = await response.json();
-      setSectors(data);
+      setSectors(Array.isArray(data) ? data : []);
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');

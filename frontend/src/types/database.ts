@@ -1,8 +1,9 @@
 // Database types for frontend
 // Generated from Prisma schema
 
-export type EquipmentType = 'DETECTOR' | 'GPS' | 'OTHER';
+export type EquipmentType = 'DETECTOR' | 'GPS' | 'MAGNIFIER' | 'CATALOG' | 'STORAGE' | 'OTHER';
 export type FindingVisibility = 'PRIVATE' | 'ANONYMOUS' | 'PUBLIC';
+export type CollectorType = 'NUMISMATIST' | 'PHILATELIST' | 'MILITARIA' | 'DETECTORIST';
 
 export interface User {
   id: string;
@@ -13,6 +14,8 @@ export interface User {
   location?: string | null;
   contact?: string | null;
   experience?: string | null;
+  collectorTypes: CollectorType[];
+  onboardingCompleted: boolean;
   socialLinks: SocialLink[];
   favoriteLocations: FavoriteLocation[];
   createdAt: string;
@@ -108,6 +111,8 @@ export interface UpdateProfileRequest {
   location?: string;
   contact?: string;
   experience?: string;
+  collectorTypes?: CollectorType[];
+  onboardingCompleted?: boolean;
   socialLinks?: Array<{
     platform: string;
     url: string;

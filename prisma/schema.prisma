@@ -192,24 +192,26 @@ enum TrackStatus {
 }
 
 model User {
-  id                String             @id
-  email             String             @unique
-  nickname          String?
-  bio               String?
-  avatarUrl         String?
-  location          String?
-  contact           String?
-  experience        String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  equipment         Equipment[]
-  favoriteLocations FavoriteLocation[]
-  featureRequests   FeatureRequest[]
-  featureVotes      FeatureVote[]
-  findings          Finding[]
-  mapSetups         MapSetup[]
-  sectors           Sector[]
-  socialLinks       SocialLink[]
+  id                  String             @id
+  email               String             @unique
+  nickname            String?
+  bio                 String?
+  avatarUrl           String?
+  location            String?
+  contact             String?
+  experience          String?
+  collectorTypes      CollectorType[]    @default([])
+  onboardingCompleted Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  equipment           Equipment[]
+  favoriteLocations   FavoriteLocation[]
+  featureRequests     FeatureRequest[]
+  featureVotes        FeatureVote[]
+  findings            Finding[]
+  mapSetups           MapSetup[]
+  sectors             Sector[]
+  socialLinks         SocialLink[]
 
   @@index([email])
 }
@@ -217,7 +219,17 @@ model User {
 enum EquipmentType {
   DETECTOR
   GPS
+  MAGNIFIER   // Lupa/mikroskop (numismatika, filatelie)
+  CATALOG     // Katalogy
+  STORAGE     // Úložné systémy (alba, boxy)
   OTHER
+}
+
+enum CollectorType {
+  NUMISMATIST   // Mince + bankovky
+  PHILATELIST   // Poštovní známky
+  MILITARIA     // Militárie a legionáře
+  DETECTORIST   // Detektoráři
 }
 
 enum FeatureStatus {

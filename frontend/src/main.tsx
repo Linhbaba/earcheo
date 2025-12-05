@@ -64,11 +64,9 @@ createRoot(document.getElementById('root')!).render(
           <Route 
             path="/features" 
             element={
-              <ProtectedRoute>
-                <FeaturesLayout>
-                  <FeatureRequests />
-                </FeaturesLayout>
-              </ProtectedRoute>
+              <FeaturesLayout>
+                <FeatureRequests />
+              </FeaturesLayout>
             } 
           />
         </Routes>

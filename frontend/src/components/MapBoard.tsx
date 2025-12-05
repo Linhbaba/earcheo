@@ -20,6 +20,8 @@ interface MapBoardProps {
   katastrOpacity: number;
   isVrstevniceActive: boolean;
   vrstevniceOpacity: number;
+  isPlaceNamesActive: boolean;
+  placeNamesOpacity: number;
   // Filtry
   visualFilters: VisualFilters;
   filtersEnabled: boolean;
@@ -39,6 +41,10 @@ interface MapBoardProps {
   onMapDoubleClick?: () => void;
   onRemovePoint?: (index: number) => void;
   onUndoLastPoint?: () => void;
+  // Measurement
+  measurementPoints?: { lng: number; lat: number }[];
+  isMeasuring?: boolean;
+  onMeasurementPointMove?: (index: number, lng: number, lat: number) => void;
 }
 
 export const MapBoard = ({ 
@@ -53,6 +59,8 @@ export const MapBoard = ({
     katastrOpacity,
     isVrstevniceActive,
     vrstevniceOpacity,
+    isPlaceNamesActive,
+    placeNamesOpacity,
     visualFilters,
     filtersEnabled,
     userLocation,
@@ -69,6 +77,9 @@ export const MapBoard = ({
     onMapDoubleClick,
     onRemovePoint,
     onUndoLastPoint,
+    measurementPoints,
+    isMeasuring,
+    onMeasurementPointMove,
 }: MapBoardProps) => {
 
   return (
@@ -85,6 +96,8 @@ export const MapBoard = ({
         katastrOpacity={katastrOpacity}
         isVrstevniceActive={isVrstevniceActive}
         vrstevniceOpacity={vrstevniceOpacity}
+        isPlaceNamesActive={isPlaceNamesActive}
+        placeNamesOpacity={placeNamesOpacity}
         visualFilters={visualFilters}
         filtersEnabled={filtersEnabled}
         userLocation={userLocation}
@@ -101,6 +114,9 @@ export const MapBoard = ({
         onMapDoubleClick={onMapDoubleClick}
         onRemovePoint={onRemovePoint}
         onUndoLastPoint={onUndoLastPoint}
+        measurementPoints={measurementPoints}
+        isMeasuring={isMeasuring}
+        onMeasurementPointMove={onMeasurementPointMove}
       />
     </div>
   );

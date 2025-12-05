@@ -1,6 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Search, FileText, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Search, FileText, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown, Coins, Mail, Medal, Target } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { useEffect, useState } from 'react';
@@ -137,8 +137,8 @@ export const LandingPage = () => {
           >
             Changelog
           </Link>
-          <span className="px-2 py-1 sm:px-3 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-400 text-[9px] sm:text-[10px] font-mono tracking-wider">
-            BETA v1.4
+          <span className="px-2 py-1 sm:px-3 bg-primary/20 border border-primary/30 rounded-lg text-primary text-[9px] sm:text-[10px] font-mono tracking-wider">
+            v1.0
           </span>
           <button
             onClick={handleLogin}
@@ -193,33 +193,95 @@ export const LandingPage = () => {
           </div>
         </div>
 
+        {/* Collector Types Section */}
+        <div className="mt-20 max-w-6xl w-full px-4">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full mb-4">
+              <span className="text-primary font-mono text-xs tracking-wider">KOMUNITA</span>
+            </div>
+            <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
+              Pro koho je eArcheo
+            </h3>
+            <p className="text-white/50 font-mono text-sm sm:text-base">
+              Platforma pro všechny vášnivé sběratele a badatele
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <CollectorCard 
+              icon={<Coins className="w-8 h-8" />}
+              title="Numismatici"
+              description="Mince a bankovky"
+              stats="Největší komunita v ČR"
+              highlights={['Obrovské FB skupiny', 'Silné burzy a aukce', 'Investiční zájem']}
+              color="amber"
+            />
+            <CollectorCard 
+              icon={<Mail className="w-8 h-8" />}
+              title="Filatelisté"
+              description="Poštovní známky"
+              stats="Historicky silná skupina"
+              highlights={['Desítky tisíc sběratelů', 'Silné kluby a katalogy', 'Tradice v ČR']}
+              color="emerald"
+            />
+            <CollectorCard 
+              icon={<Medal className="w-8 h-8" />}
+              title="Militárie"
+              description="Vojenské předměty"
+              stats="Extrémně aktivní"
+              highlights={['Odznaky a výstroj', 'Reenactment', 'Muzejnictví']}
+              color="red"
+            />
+            <CollectorCard 
+              icon={<Target className="w-8 h-8" />}
+              title="Detektoráři"
+              description="Hledání artefaktů"
+              stats="Nejrychleji rostoucí"
+              highlights={['Aktivní terénní komunita', 'Historie a archeologie', 'Masivní boom']}
+              color="cyan"
+            />
+          </div>
+        </div>
+
         {/* Core feature tiles */}
-        <div className="mt-16 max-w-5xl w-full px-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FeatureCard 
-            icon={<Layers className="w-6 h-6" />}
-            title="LiDAR Data"
-            description="Vysoké rozlišení z ČÚZK"
-            image="/lidar.webp"
-          />
-          <FeatureCard 
-            icon={<Map className="w-6 h-6" />}
-            title="Více vrstev"
-            description="Satelitní snímky, ortofoto ČÚZK"
-            image="/vrstvy.webp"
-          />
-          <FeatureCard 
-            icon={<Radar className="w-6 h-6" />}
-            title="3D Terén"
-            description="Interaktivní vizualizace reliéfu"
-            image="/3D.webp"
-          />
+        <div className="mt-20 max-w-5xl w-full px-4">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full mb-4">
+              <span className="text-white/60 font-mono text-xs tracking-wider">TECHNOLOGIE</span>
+            </div>
+            <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
+              Klíčové mapové vrstvy
+            </h3>
+            <p className="text-white/50 font-mono text-sm sm:text-base">
+              Pracujte s nejpřesnějšími daty pro průzkum krajiny
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FeatureCard 
+              icon={<Layers className="w-6 h-6" />}
+              title="LiDAR Data"
+              description="Vysoké rozlišení z ČÚZK"
+              image="/lidar.webp"
+            />
+            <FeatureCard 
+              icon={<Map className="w-6 h-6" />}
+              title="Více vrstev"
+              description="Satelitní snímky, ortofoto ČÚZK"
+              image="/vrstvy.webp"
+            />
+            <FeatureCard 
+              icon={<Radar className="w-6 h-6" />}
+              title="3D Terén"
+              description="Interaktivní vizualizace reliéfu"
+              image="/3D.webp"
+            />
+          </div>
         </div>
 
         {/* New feature tiles - Categorized */}
         <div className="mt-20 max-w-6xl w-full px-4">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
-              <span className="text-amber-400 font-mono text-xs tracking-wider">NOVINKY V BETA 1.4</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full mb-4">
+              <span className="text-primary font-mono text-xs tracking-wider">NOVINKY VE VERZI 1.0</span>
             </div>
             <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
               Nástroje pro objevitele
@@ -469,6 +531,97 @@ const NewFeatureCard = ({ icon, title, description, features }: NewFeatureCardPr
     </ul>
   </div>
 );
+
+// Collector type card component
+interface CollectorCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  stats: string;
+  highlights: string[];
+  color: 'amber' | 'emerald' | 'red' | 'cyan';
+}
+
+const colorClasses = {
+  amber: {
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30',
+    hoverBorder: 'hover:border-amber-500/50',
+    iconBg: 'bg-amber-500/20',
+    iconBorder: 'border-amber-500/30',
+    text: 'text-amber-400',
+    dot: 'bg-amber-400',
+    glow: 'group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)]',
+  },
+  emerald: {
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30',
+    hoverBorder: 'hover:border-emerald-500/50',
+    iconBg: 'bg-emerald-500/20',
+    iconBorder: 'border-emerald-500/30',
+    text: 'text-emerald-400',
+    dot: 'bg-emerald-400',
+    glow: 'group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)]',
+  },
+  red: {
+    bg: 'bg-red-500/10',
+    border: 'border-red-500/30',
+    hoverBorder: 'hover:border-red-500/50',
+    iconBg: 'bg-red-500/20',
+    iconBorder: 'border-red-500/30',
+    text: 'text-red-400',
+    dot: 'bg-red-400',
+    glow: 'group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)]',
+  },
+  cyan: {
+    bg: 'bg-primary/10',
+    border: 'border-primary/30',
+    hoverBorder: 'hover:border-primary/50',
+    iconBg: 'bg-primary/20',
+    iconBorder: 'border-primary/30',
+    text: 'text-primary',
+    dot: 'bg-primary',
+    glow: 'group-hover:shadow-[0_0_30px_rgba(0,243,255,0.2)]',
+  },
+};
+
+const CollectorCard = ({ icon, title, description, stats, highlights, color }: CollectorCardProps) => {
+  const classes = colorClasses[color];
+  
+  return (
+    <div className={`group relative p-6 ${classes.bg} backdrop-blur-sm border ${classes.border} ${classes.hoverBorder} rounded-2xl transition-all duration-300 ${classes.glow}`}>
+      {/* Decorative corner */}
+      <div className={`absolute top-0 right-0 w-20 h-20 ${classes.bg} rounded-bl-[100px] opacity-50`} />
+      
+      <div className="relative z-10">
+        {/* Icon */}
+        <div className={`w-16 h-16 rounded-2xl ${classes.iconBg} border ${classes.iconBorder} flex items-center justify-center ${classes.text} mb-4 transition-all ${classes.glow}`}>
+          {icon}
+        </div>
+        
+        {/* Title & Description */}
+        <h3 className="font-display text-white text-xl mb-1">{title}</h3>
+        <p className={`${classes.text} font-mono text-sm mb-3`}>{description}</p>
+        
+        {/* Stats badge */}
+        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 ${classes.bg} border ${classes.border} rounded-full mb-4`}>
+          <span className={`w-1.5 h-1.5 ${classes.dot} rounded-full animate-pulse`} />
+          <span className={`${classes.text} font-mono text-[10px] tracking-wider uppercase`}>{stats}</span>
+        </div>
+        
+        {/* Highlights */}
+        <ul className="space-y-1.5">
+          {highlights.map((highlight) => (
+            <li key={highlight} className="flex items-center gap-2 text-white/60 font-mono text-xs">
+              <div className={`w-1 h-1 rounded-full ${classes.dot}`} />
+              {highlight}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
 
 // Animated particle field component
 const ParticleField = () => {

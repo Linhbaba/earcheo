@@ -1,10 +1,25 @@
 import { useState, useEffect } from 'react';
-import { X, User as UserIcon, Mail, MapPin, Calendar, Edit, Loader } from 'lucide-react';
+import { X, User as UserIcon, Mail, MapPin, Calendar, Edit, Loader, Coins, Target, Medal, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import clsx from 'clsx';
 import { useProfile } from '../../hooks/useProfile';
 import { useFindings } from '../../hooks/useFindings';
 import { useEquipment } from '../../hooks/useEquipment';
 import { LoadingSkeleton } from '../shared';
+import { 
+  COLLECTOR_TYPE_LABELS, 
+  COLLECTOR_TYPE_DESCRIPTIONS, 
+  COLLECTOR_TYPE_COLORS 
+} from '../../utils/collectorPresets';
+import type { CollectorType } from '../../types/database';
+
+// Ikony pro typy sběratelů
+const CollectorIcons: Record<CollectorType, React.ReactNode> = {
+  NUMISMATIST: <Coins className="w-5 h-5" />,
+  PHILATELIST: <Mail className="w-5 h-5" />,
+  MILITARIA: <Medal className="w-5 h-5" />,
+  DETECTORIST: <Target className="w-5 h-5" />,
+};
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -24,6 +39,24 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
     location: profile?.location || '',
     contact: profile?.contact || '',
   });
+  const [selectedCollectorTypes, setSelectedCollectorTypes] = useState<CollectorType[]>(
+    profile?.collectorTypes || []
+  );
+  
+  // Sync collector types when profile loads
+  useEffect(() => {
+    if (profile?.collectorTypes) {
+      setSelectedCollectorTypes(profile.collectorTypes);
+    }
+  }, [profile?.collectorTypes]);
+  
+  const toggleCollectorType = (type: CollectorType) => {
+    setSelectedCollectorTypes(prev => 
+      prev.includes(type) 
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
   
   // Refresh data when modal opens
   useEffect(() => {
@@ -55,6 +88,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         bio: formData.bio || undefined,
         location: formData.location || undefined,
         contact: formData.contact || undefined,
+        collectorTypes: selectedCollectorTypes,
       });
       toast.success('Profil byl aktualizován');
       setIsEditing(false);
@@ -75,6 +109,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       location: profile?.location || '',
       contact: profile?.contact || '',
     });
+    setSelectedCollectorTypes(profile?.collectorTypes || []);
     setIsEditing(false);
   };
 
@@ -252,6 +287,96 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Collector Types Section */}
+                <div className="bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl p-5">
+                  <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider mb-4">
+                    🎯 Moje zaměření
+                  </h3>
+                  
+                  {isEditing ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {(Object.keys(COLLECTOR_TYPE_LABELS) as CollectorType[]).map((type) => {
+                        const isSelected = selectedCollectorTypes.includes(type);
+                        const colors = COLLECTOR_TYPE_COLORS[type];
+                        
+                        return (
+                          <button
+                            key={type}
+                            onClick={() => toggleCollectorType(type)}
+                            className={clsx(
+                              "relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-200 text-left",
+                              isSelected
+                                ? `${colors.bg} ${colors.border}`
+                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                            )}
+                          >
+                            {/* Checkbox */}
+                            <div className={clsx(
+                              "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0",
+                              isSelected ? `${colors.bg} ${colors.border}` : "border-white/20"
+                            )}>
+                              {isSelected && <Check className={`w-3 h-3 ${colors.text}`} />}
+                            </div>
+                            
+                            {/* Icon */}
+                            <div className={clsx(
+                              "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                              isSelected ? `${colors.bg} ${colors.border} border` : "bg-white/10"
+                            )}>
+                              <span className={isSelected ? colors.text : 'text-white/50'}>
+                                {CollectorIcons[type]}
+                              </span>
+                            </div>
+                            
+                            {/* Text */}
+                            <div className="flex-1 min-w-0">
+                              <div className={clsx(
+                                "font-medium text-sm transition-colors",
+                                isSelected ? colors.text : "text-white"
+                              )}>
+                                {COLLECTOR_TYPE_LABELS[type]}
+                              </div>
+                              <div className="text-white/40 text-xs truncate">
+                                {COLLECTOR_TYPE_DESCRIPTIONS[type]}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <>
+                      {profile?.collectorTypes && profile.collectorTypes.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {profile.collectorTypes.map((type) => {
+                            const colors = COLLECTOR_TYPE_COLORS[type];
+                            return (
+                              <div
+                                key={type}
+                                className={clsx(
+                                  "flex items-center gap-2 px-3 py-2 rounded-xl border",
+                                  colors.bg, colors.border
+                                )}
+                              >
+                                <span className={colors.text}>{CollectorIcons[type]}</span>
+                                <span className={`font-mono text-sm ${colors.text}`}>
+                                  {COLLECTOR_TYPE_LABELS[type]}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-white/40 text-sm font-mono text-center py-4">
+                          Zatím nemáte vybrané žádné zaměření.
+                          <br />
+                          <span className="text-white/30">Klikněte na "Upravit" pro nastavení.</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* Statistics */}

@@ -3,9 +3,11 @@ import { X, Loader, ChevronDown, ChevronUp, MapPin, Lock, Eye, Globe } from 'luc
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import { useFindings } from '../../hooks/useFindings';
+import { useProfile } from '../../hooks/useProfile';
 import { ImageUploader } from './ImageUploader';
 import { LocationPicker } from './LocationPicker';
 import { TagInput } from '../shared';
+import { getCategoriesForCollectorTypes } from '../../utils/collectorPresets';
 import type { CreateFindingRequest, Finding, FindingVisibility } from '../../types/database';
 
 interface FindingFormProps {
@@ -16,10 +18,14 @@ interface FindingFormProps {
 
 export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) => {
   const { createFinding, updateFinding, uploadImage } = useFindings({ autoFetch: false });
+  const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
   const [showExtended, setShowExtended] = useState(false);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const isEditing = !!finding;
+  
+  // Get suggested categories based on user's collector types
+  const suggestedCategories = getCategoriesForCollectorTypes(profile?.collectorTypes || []);
   
   const [formData, setFormData] = useState<CreateFindingRequest & {
     condition?: string;
@@ -212,6 +218,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
             <TagInput
               tags={categories}
               onChange={setCategories}
+              suggestions={suggestedCategories}
               placeholder="např. Mince, Střelivo..."
               maxTags={3}
               disabled={loading}

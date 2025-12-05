@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { ViewState } from 'react-map-gl';
-import { Plus, Package, MousePointer2, Undo2, X, Hand, Pencil, Check } from 'lucide-react';
+import { Plus, Package, Undo2, X, Hand, Pencil, Check } from 'lucide-react';
+import { trackLayerToggle } from '../hooks/useMapAnalytics';
 import { AuthHeader, type MapMode } from '../components/AuthHeader';
 import { CommandDeck } from '../components/CommandDeck';
 import { MapBoard } from '../components/MapBoard';
@@ -15,6 +16,9 @@ import { FeatureRequestsModal } from '../components/FeatureRequestsModal';
 import { EquipmentModal } from '../components/equipment';
 import { ProfileModal } from '../components/profile';
 import { SectorPanel } from '../components/sectors';
+import { MeasurementTool, ScaleBar, type MeasurementPoint } from '../components/measurement';
+import { RulersControl } from '../components/RulersControl';
+import { OnboardingWizard } from '../components/onboarding';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useProfile } from '../hooks/useProfile';
 import { useFindings } from '../hooks/useFindings';
@@ -22,7 +26,7 @@ import { useSectors } from '../hooks/useSectors';
 import type { VisualFilters } from '../types/visualFilters';
 import { defaultVisualFilters } from '../types/visualFilters';
 import { SEOHead } from '../components/SEOHead';
-import type { Finding, MapSetupConfig, Sector, GeoJSONPolygon, GeoJSONLineString } from '../types/database';
+import type { Finding, MapSetupConfig, Sector, GeoJSONPolygon, GeoJSONLineString, CollectorType } from '../types/database';
 import type { MapSideConfig } from '../types/mapSource';
 import { DEFAULT_LEFT_CONFIG, DEFAULT_RIGHT_CONFIG } from '../types/mapSource';
 import { coordsToPolygon, isValidPolygon } from '../utils/geometry';
@@ -31,7 +35,47 @@ export const MapPage = () => {
   const isMobile = useIsMobile();
   
   // Initialize user profile (creates profile on first login)
-  useProfile();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
+  
+  // Onboarding wizard state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const onboardingDismissedRef = useRef(false);
+  
+  // Show onboarding wizard if profile loaded and not completed (only once per session)
+  useEffect(() => {
+    if (!profileLoading && profile && !profile.onboardingCompleted && !onboardingDismissedRef.current) {
+      setShowOnboarding(true);
+    }
+  }, [profileLoading, profile]);
+  
+  // Handle onboarding complete
+  const handleOnboardingComplete = async (collectorTypes: CollectorType[]) => {
+    console.log('[Onboarding] Completing with types:', collectorTypes);
+    onboardingDismissedRef.current = true;
+    setShowOnboarding(false);
+    try {
+      const result = await updateProfile({
+        collectorTypes,
+        onboardingCompleted: true,
+      });
+      console.log('[Onboarding] Complete - saved profile:', result);
+    } catch (error) {
+      console.error('Onboarding complete error:', error);
+    }
+  };
+  
+  // Handle onboarding skip
+  const handleOnboardingSkip = async () => {
+    onboardingDismissedRef.current = true;
+    setShowOnboarding(false);
+    try {
+      await updateProfile({
+        onboardingCompleted: true,
+      });
+    } catch (error) {
+      console.error('Onboarding skip error:', error);
+    }
+  };
   
   // Load findings for map markers
   const { findings } = useFindings();
@@ -52,6 +96,8 @@ export const MapPage = () => {
   const [katastrOpacity, setKatastrOpacity] = useState(0.6);
   const [isVrstevniceActive, setIsVrstevniceActive] = useState(false);
   const [vrstevniceOpacity, setVrstevniceOpacity] = useState(0.7);
+  const [isPlaceNamesActive, setIsPlaceNamesActive] = useState(false);
+  const [placeNamesOpacity, setPlaceNamesOpacity] = useState(0.9);
   const [isSectorsActive, setIsSectorsActive] = useState(true);
   
   // Mode přepínač (Mapa / Plánovač)
@@ -79,6 +125,11 @@ export const MapPage = () => {
   const [isPanningMode, setIsPanningMode] = useState(false); // Spacebar hold for pan
   const [stripPreview, setStripPreview] = useState<GeoJSONLineString[]>([]); // Live strip preview
 
+  // Measurement state
+  const [isMeasuring, setIsMeasuring] = useState(false);
+  const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
+  const [isRulersActive, setIsRulersActive] = useState(false);
+
   const [viewState, setViewState] = useState<ViewState>({
     longitude: 15.5,
     latitude: 49.75,
@@ -97,6 +148,37 @@ export const MapPage = () => {
     }));
   };
 
+  // --- LAYER TOGGLE HANDLERS s GA4 trackingem ---
+  const handleToggleKatastr = useCallback(() => {
+    const newState = !isKatastrActive;
+    setIsKatastrActive(newState);
+    trackLayerToggle('katastr', newState);
+  }, [isKatastrActive]);
+
+  const handleToggleVrstevnice = useCallback(() => {
+    const newState = !isVrstevniceActive;
+    setIsVrstevniceActive(newState);
+    trackLayerToggle('vrstevnice', newState);
+  }, [isVrstevniceActive]);
+
+  const handleTogglePlaceNames = useCallback(() => {
+    const newState = !isPlaceNamesActive;
+    setIsPlaceNamesActive(newState);
+    trackLayerToggle('place_names', newState);
+  }, [isPlaceNamesActive]);
+
+  const handleToggleSectors = useCallback(() => {
+    const newState = !isSectorsActive;
+    setIsSectorsActive(newState);
+    trackLayerToggle('sectors', newState);
+  }, [isSectorsActive]);
+
+  const handleToggleGps = useCallback(() => {
+    const newState = !isGpsActive;
+    setIsGpsActive(newState);
+    trackLayerToggle('gps', newState);
+  }, [isGpsActive]);
+
   const handleSplitModeChange = (mode: 'vertical' | 'horizontal' | 'none') => {
       setSplitMode(mode);
   };
@@ -114,16 +196,58 @@ export const MapPage = () => {
     setIsDrawingPolygon(true);
     setDrawingPolygon([]);
     setDrawnPolygon(null);
+    // Vypnout měření pokud je aktivní
+    setIsMeasuring(false);
   };
 
   const handleMapClick = (lngLat: [number, number]) => {
+    // Měření má prioritu
+    if (isMeasuring) {
+      setMeasurementPoints(prev => [...prev, { lng: lngLat[0], lat: lngLat[1] }]);
+      return;
+    }
     if (!isDrawingPolygon) return;
     setDrawingPolygon(prev => [...prev, lngLat]);
   };
 
   const handleMapDoubleClick = () => {
+    // Měření - ukončit při double-click
+    if (isMeasuring) {
+      setIsMeasuring(false);
+      return;
+    }
     if (!isDrawingPolygon || drawingPolygon.length < 3) return;
     handleConfirmPolygon();
+  };
+
+  // Measurement handlers - toggle
+  const handleToggleMeasuring = () => {
+    if (isMeasuring) {
+      // Vypnout měření
+      setIsMeasuring(false);
+      setMeasurementPoints([]);
+    } else {
+      // Zapnout měření
+      setIsMeasuring(true);
+      setMeasurementPoints([]);
+      // Vypnout kreslení pokud je aktivní
+      setIsDrawingPolygon(false);
+    }
+  };
+
+  const handleClearMeasurement = () => {
+    setMeasurementPoints([]);
+  };
+
+  const handleCloseMeasurement = () => {
+    setIsMeasuring(false);
+    setMeasurementPoints([]);
+  };
+
+  const handleMeasurementPointMove = (index: number, lng: number, lat: number) => {
+    setMeasurementPoints(prev => prev.map((p, i) => 
+      i === index ? { lng, lat } : p
+    ));
   };
 
   // Confirm and close the polygon
@@ -241,6 +365,8 @@ export const MapPage = () => {
               katastrOpacity={katastrOpacity}
               isVrstevniceActive={isVrstevniceActive}
               vrstevniceOpacity={vrstevniceOpacity}
+              isPlaceNamesActive={isPlaceNamesActive}
+              placeNamesOpacity={placeNamesOpacity}
               visualFilters={visualFilters}
               filtersEnabled={filtersEnabled}
               userLocation={userLocation}
@@ -253,10 +379,13 @@ export const MapPage = () => {
               drawnPolygon={drawnPolygon}
               stripPreview={stripPreview}
               isDrawingMode={isDrawingPolygon && !isPanningMode}
-              onMapClick={isDrawingPolygon && !isPanningMode ? handleMapClick : undefined}
-              onMapDoubleClick={isDrawingPolygon && !isPanningMode ? handleMapDoubleClick : undefined}
+              onMapClick={(isDrawingPolygon && !isPanningMode) || isMeasuring ? handleMapClick : undefined}
+              onMapDoubleClick={(isDrawingPolygon && !isPanningMode) || isMeasuring ? handleMapDoubleClick : undefined}
               onRemovePoint={isDrawingPolygon && !isPanningMode ? handleRemovePoint : undefined}
               onUndoLastPoint={isDrawingPolygon && !isPanningMode ? handleUndoLastPoint : undefined}
+              measurementPoints={measurementPoints}
+              isMeasuring={isMeasuring}
+              onMeasurementPointMove={handleMeasurementPointMove}
             />
 
         {/* MOBILE UI */}
@@ -295,20 +424,24 @@ export const MapPage = () => {
               splitMode={splitMode}
               setSplitMode={handleSplitModeChange}
               isKatastrActive={isKatastrActive}
-              toggleKatastr={() => setIsKatastrActive(!isKatastrActive)}
+              toggleKatastr={handleToggleKatastr}
               katastrOpacity={katastrOpacity}
               setKatastrOpacity={setKatastrOpacity}
               isVrstevniceActive={isVrstevniceActive}
-              toggleVrstevnice={() => setIsVrstevniceActive(!isVrstevniceActive)}
+              toggleVrstevnice={handleToggleVrstevnice}
               vrstevniceOpacity={vrstevniceOpacity}
               setVrstevniceOpacity={setVrstevniceOpacity}
+              isPlaceNamesActive={isPlaceNamesActive}
+              togglePlaceNames={handleTogglePlaceNames}
+              placeNamesOpacity={placeNamesOpacity}
+              setPlaceNamesOpacity={setPlaceNamesOpacity}
               filters={visualFilters}
               onFiltersChange={(key, value) => setVisualFilters(prev => ({ ...prev, [key]: value }))}
               filtersEnabled={filtersEnabled}
               toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
               onResetFilters={() => setVisualFilters(defaultVisualFilters)}
               isGpsActive={isGpsActive}
-              toggleGps={() => setIsGpsActive(!isGpsActive)}
+              toggleGps={handleToggleGps}
               onCenterGps={() => {
                 if (userLocation) {
                   setViewState(prev => ({ ...prev, longitude: userLocation.lng, latitude: userLocation.lat, zoom: 16 }));
@@ -316,7 +449,7 @@ export const MapPage = () => {
               }}
               exaggeration={exaggeration}
               isSectorsActive={isSectorsActive}
-              toggleSectors={() => setIsSectorsActive(!isSectorsActive)}
+              toggleSectors={handleToggleSectors}
               mode={mode}
               onLoadSetup={handleLoadSetup}
               onOpenFindings={() => setIsFindingsOpen(true)}
@@ -383,6 +516,12 @@ export const MapPage = () => {
                 pitch={viewState.pitch || 0}
                 onPitchChange={(pitch) => setViewState(prev => ({ ...prev, pitch }))}
               />
+
+              {/* Vodítka */}
+              <RulersControl
+                isActive={isRulersActive}
+                onActiveChange={setIsRulersActive}
+              />
             </div>
 
             {/* GPS Location tracking - hidden, controlled from CommandDeck */}
@@ -406,13 +545,17 @@ export const MapPage = () => {
               setSplitMode={handleSplitModeChange}
               exaggeration={exaggeration}
               isKatastrActive={isKatastrActive}
-              toggleKatastr={() => setIsKatastrActive(!isKatastrActive)}
+              toggleKatastr={handleToggleKatastr}
               katastrOpacity={katastrOpacity}
               setKatastrOpacity={setKatastrOpacity}
               isVrstevniceActive={isVrstevniceActive}
-              toggleVrstevnice={() => setIsVrstevniceActive(!isVrstevniceActive)}
+              toggleVrstevnice={handleToggleVrstevnice}
               vrstevniceOpacity={vrstevniceOpacity}
               setVrstevniceOpacity={setVrstevniceOpacity}
+              isPlaceNamesActive={isPlaceNamesActive}
+              togglePlaceNames={handleTogglePlaceNames}
+              placeNamesOpacity={placeNamesOpacity}
+              setPlaceNamesOpacity={setPlaceNamesOpacity}
               filtersOpen={filtersOpen}
               toggleFilters={() => setFiltersOpen(!filtersOpen)}
               filters={visualFilters}
@@ -421,11 +564,29 @@ export const MapPage = () => {
               toggleFiltersEnabled={() => setFiltersEnabled(!filtersEnabled)}
               onResetFilters={() => setVisualFilters(defaultVisualFilters)}
               isGpsActive={isGpsActive}
-              toggleGps={() => setIsGpsActive(!isGpsActive)}
+              toggleGps={handleToggleGps}
               isSectorsActive={isSectorsActive}
-              toggleSectors={() => setIsSectorsActive(!isSectorsActive)}
+              toggleSectors={handleToggleSectors}
               mode={mode}
               onLoadSetup={handleLoadSetup}
+              isMeasuring={isMeasuring}
+              toggleMeasuring={handleToggleMeasuring}
+            />
+
+            {/* Scale Bar - vlevo dole */}
+            <div className="absolute bottom-6 left-6 z-40 pointer-events-none">
+              <ScaleBar 
+                latitude={viewState.latitude} 
+                zoom={viewState.zoom} 
+              />
+            </div>
+
+            {/* Measurement Tool UI */}
+            <MeasurementTool
+              points={measurementPoints}
+              isActive={isMeasuring}
+              onClear={handleClearMeasurement}
+              onClose={handleCloseMeasurement}
             />
           </>
         )}
@@ -597,6 +758,13 @@ export const MapPage = () => {
             </div>
           </div>
         )}
+
+        {/* Onboarding Wizard */}
+        <OnboardingWizard
+          isOpen={showOnboarding}
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
       </div>
     </>
   );

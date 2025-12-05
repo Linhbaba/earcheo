@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Columns3, Rows3, Maximize2, SlidersHorizontal, RotateCcw, Layers, Mountain, Navigation, Grid3X3 } from 'lucide-react';
+import { Columns3, Rows3, Maximize2, SlidersHorizontal, RotateCcw, Layers, Mountain, Navigation, Grid3X3, MapPin, Ruler } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { VisualFilters } from '../types/visualFilters';
 import type { MapSideConfig } from '../types/mapSource';
@@ -36,6 +36,11 @@ interface CommandDeckProps {
   toggleVrstevnice: () => void;
   vrstevniceOpacity: number;
   setVrstevniceOpacity: (opacity: number) => void;
+  // Názvy míst
+  isPlaceNamesActive: boolean;
+  togglePlaceNames: () => void;
+  placeNamesOpacity: number;
+  setPlaceNamesOpacity: (opacity: number) => void;
   // Filtry
   filtersOpen: boolean;
   toggleFilters: () => void;
@@ -54,6 +59,9 @@ interface CommandDeckProps {
   mode?: MapMode;
   // Map Setups
   onLoadSetup: (config: MapSetupConfig) => void;
+  // Measurement
+  isMeasuring?: boolean;
+  toggleMeasuring?: () => void;
 }
 
 export const CommandDeck = ({ 
@@ -74,6 +82,10 @@ export const CommandDeck = ({
   toggleVrstevnice,
   vrstevniceOpacity,
   setVrstevniceOpacity,
+  isPlaceNamesActive,
+  togglePlaceNames,
+  placeNamesOpacity,
+  setPlaceNamesOpacity,
   filtersOpen,
   toggleFilters,
   filters,
@@ -87,6 +99,8 @@ export const CommandDeck = ({
   toggleSectors,
   mode = 'map',
   onLoadSetup,
+  isMeasuring = false,
+  toggleMeasuring,
 }: CommandDeckProps) => {
   // Aktuální konfigurace pro ukládání
   const currentConfig: MapSetupConfig = {
@@ -338,6 +352,43 @@ export const CommandDeck = ({
             )}
           </div>
 
+          {/* Názvy míst */}
+          <div className="relative group/placenames">
+            <button
+              title="Názvy měst a obcí"
+              onClick={togglePlaceNames}
+              className={clsx(
+                "p-2 rounded-lg transition-colors border group flex items-center gap-2 font-mono text-xs",
+                isPlaceNamesActive
+                  ? "bg-amber-500/20 text-amber-400 border-amber-500/60 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                  : "bg-white/5 text-white/70 border-transparent hover:bg-white/10 hover:text-white"
+              )}
+            >
+              <MapPin className="w-4 h-4" />
+              <span className="hidden lg:block">MÍSTA</span>
+            </button>
+            
+            {isPlaceNamesActive && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 pb-2 opacity-0 group-hover/placenames:opacity-100 transition-opacity pointer-events-none group-hover/placenames:pointer-events-auto">
+                <div className="w-44 p-3 bg-surface/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl shadow-black/50 space-y-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[9px] uppercase tracking-wider text-white/50 font-mono">Opacity</span>
+                    <span className="text-amber-400 text-[10px] font-mono">{Math.round(placeNamesOpacity * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={placeNamesOpacity}
+                    onChange={(e) => setPlaceNamesOpacity(parseFloat(e.target.value))}
+                    className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Sektory - pouze v map modu */}
           {mode === 'map' && toggleSectors && (
             <button
@@ -352,6 +403,26 @@ export const CommandDeck = ({
             >
               <Grid3X3 className="w-4 h-4" />
               <span className="hidden lg:block">SEKTORY</span>
+            </button>
+          )}
+
+          {/* Separator */}
+          <div className="w-px h-6 bg-white/10" />
+
+          {/* Měření vzdálenosti */}
+          {toggleMeasuring && (
+            <button
+              title="Měřit vzdálenost"
+              onClick={toggleMeasuring}
+              className={clsx(
+                "p-2 rounded-lg transition-colors border group flex items-center gap-2 font-mono text-xs",
+                isMeasuring
+                  ? "bg-amber-500/20 text-amber-400 border-amber-500/60 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                  : "bg-white/5 text-white/70 border-transparent hover:bg-white/10 hover:text-white"
+              )}
+            >
+              <Ruler className="w-4 h-4" />
+              <span className="hidden lg:block">MĚŘENÍ</span>
             </button>
           )}
         </div>

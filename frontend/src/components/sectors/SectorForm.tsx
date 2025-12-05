@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Check, X, MapPin, AlertCircle, Clock, Maximize2, RotateCcw, Rows3, Ruler, Edit3 } from 'lucide-react';
+import { Check, X, MapPin, AlertCircle, Clock, Maximize2, RotateCcw, Edit3 } from 'lucide-react';
 import type { GeoJSONPolygon, GeoJSONLineString } from '../../types/database';
 import { 
   calculateArea, 

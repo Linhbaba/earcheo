@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package, Lock, Eye, Globe } from 'lucide-react';
 import { toast } from 'sonner';
-import { clsx } from 'clsx';
 import { PhotoGallery } from './PhotoGallery';
 import { ImageUploader } from './ImageUploader';
 import { ConfirmDialog } from '../shared';

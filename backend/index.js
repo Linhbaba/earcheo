@@ -226,6 +226,10 @@ app.all('/api/features', (req, res) => proxyToVercel(req, res, '/api/features'))
 app.all('/api/features/:id', (req, res) => proxyToVercel(req, res, `/api/features/${req.params.id}`));
 app.all('/api/features/:id/vote', (req, res) => proxyToVercel(req, res, `/api/features/${req.params.id}/vote`));
 
+// Sectors API
+app.all('/api/sectors', (req, res) => proxyToVercel(req, res, '/api/sectors'));
+app.all('/api/sectors/:id', (req, res) => proxyToVercel(req, res, `/api/sectors/${req.params.id}`));
+
 const PORT = 3010;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`[SYSTEM] Backend Proxy Online on port ${PORT} (IPv4 + IPv6)`);

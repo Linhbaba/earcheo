@@ -3,6 +3,9 @@ import { prisma } from './_lib/db';
 import { withAuth } from './_lib/auth';
 import { z } from 'zod';
 
+// Collector types enum values
+const collectorTypeValues = ['NUMISMATIST', 'PHILATELIST', 'MILITARIA', 'DETECTORIST'] as const;
+
 // Validation schema
 const updateProfileSchema = z.object({
   nickname: z.string().min(1).max(50).optional(),
@@ -11,6 +14,8 @@ const updateProfileSchema = z.object({
   location: z.string().max(100).optional(),
   contact: z.string().max(100).optional(),
   experience: z.string().max(1000).optional(),
+  collectorTypes: z.array(z.enum(collectorTypeValues)).optional(),
+  onboardingCompleted: z.boolean().optional(),
   socialLinks: z.array(z.object({
     platform: z.string(),
     url: z.string().url(),
@@ -95,6 +100,9 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         where: { id: userId },
         data: profileData,
       });
+      
+      console.log('[Profile Update] Updated data:', profileData);
+      console.log('[Profile Update] Result:', user);
 
       // Update social links (replace all)
       if (socialLinks) {

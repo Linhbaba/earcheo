@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Package, X } from 'lucide-react';
+import { Plus, Package, X, Sparkles } from 'lucide-react';
 import { useFindings } from '../../hooks/useFindings';
+import { useProfile } from '../../hooks/useProfile';
 import { FindingCard } from './FindingCard';
 import { FindingForm } from './FindingForm';
 import { FindingDetail } from './FindingDetail';
 import { LoadingSkeleton, EmptyState } from '../shared';
+import { getCategoriesForCollectorTypes, COLLECTOR_TYPE_LABELS } from '../../utils/collectorPresets';
 import type { Finding } from '../../types/database';
 
 interface FindingsModalProps {
@@ -15,10 +17,17 @@ interface FindingsModalProps {
 
 export const FindingsModal = ({ isOpen, onClose, initialShowForm = false }: FindingsModalProps) => {
   const { findings, loading, fetchFindings } = useFindings();
+  const { profile } = useProfile();
   const [showForm, setShowForm] = useState(initialShowForm);
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
   const [editingFinding, setEditingFinding] = useState<Finding | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  
+  // Get suggested categories based on user's collector types
+  const suggestedCategories = getCategoriesForCollectorTypes(profile?.collectorTypes || []);
+  
+  // Get collector type labels for display
+  const collectorTypeLabels = profile?.collectorTypes?.map(t => COLLECTOR_TYPE_LABELS[t]) || [];
   
   // Refresh data when modal opens
   useEffect(() => {
@@ -47,6 +56,9 @@ export const FindingsModal = ({ isOpen, onClose, initialShowForm = false }: Find
       )
     )
   ).sort();
+  
+  // Combine user's categories with suggested ones (prioritize user's)
+  const displayCategories = [...new Set([...allCategories, ...suggestedCategories.slice(0, 5)])];
 
   // Filter findings by category
   const filteredFindings = activeCategory === 'all' 
@@ -81,9 +93,17 @@ export const FindingsModal = ({ isOpen, onClose, initialShowForm = false }: Find
             <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/30 rounded-tr-xl" />
             
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl tracking-wider text-primary">
-                Moje Nálezy
-              </h2>
+              <div>
+                <h2 className="font-display text-xl tracking-wider text-primary">
+                  Moje Nálezy
+                </h2>
+                {collectorTypeLabels.length > 0 && (
+                  <p className="text-white/40 font-mono text-[10px] mt-0.5 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    {collectorTypeLabels.join(' • ')}
+                  </p>
+                )}
+              </div>
               
               <div className="flex items-center gap-2">
                 <button
@@ -104,7 +124,7 @@ export const FindingsModal = ({ isOpen, onClose, initialShowForm = false }: Find
               </div>
             </div>
             
-            {/* Filters - Dynamic categories */}
+            {/* Filters - Dynamic categories with suggestions */}
             <div className="mt-3 flex flex-wrap gap-1.5">
               <button 
                 onClick={() => setActiveCategory('all')}
@@ -117,19 +137,27 @@ export const FindingsModal = ({ isOpen, onClose, initialShowForm = false }: Find
                 Vše ({getCategoryCount('all')})
               </button>
               
-              {allCategories.map(category => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-3 py-1 border rounded-md font-mono text-xs transition-colors ${
-                    activeCategory === category
-                      ? 'bg-primary/20 border-primary/30 text-primary'
-                      : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  {category} ({getCategoryCount(category)})
-                </button>
-              ))}
+              {displayCategories.map(category => {
+                const count = getCategoryCount(category);
+                const isSuggested = !allCategories.includes(category) && suggestedCategories.includes(category);
+                
+                return (
+                  <button
+                    key={category}
+                    onClick={() => setActiveCategory(category)}
+                    className={`px-3 py-1 border rounded-md font-mono text-xs transition-colors ${
+                      activeCategory === category
+                        ? 'bg-primary/20 border-primary/30 text-primary'
+                        : isSuggested
+                          ? 'bg-white/5 border-dashed border-white/20 text-white/30 hover:text-white/50 hover:bg-white/10'
+                          : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
+                    }`}
+                    title={isSuggested ? 'Doporučená kategorie' : undefined}
+                  >
+                    {category} {count > 0 ? `(${count})` : ''}
+                  </button>
+                );
+              })}
             </div>
           </div>
           

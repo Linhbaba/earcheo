@@ -94,3 +94,4 @@ DEBUG-*.md
 
 /generated/prisma
 .cursorrules
+.env*.local

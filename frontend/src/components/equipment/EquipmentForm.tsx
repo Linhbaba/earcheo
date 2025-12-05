@@ -2,6 +2,8 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { X, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEquipment } from '../../hooks/useEquipment';
+import { useProfile } from '../../hooks/useProfile';
+import { getEquipmentTypesForCollectorTypes, EQUIPMENT_TYPE_LABELS } from '../../utils/collectorPresets';
 import type { Equipment, EquipmentType, CreateEquipmentRequest } from '../../types/database';
 
 interface EquipmentFormProps {
@@ -12,12 +14,16 @@ interface EquipmentFormProps {
 
 export const EquipmentForm = ({ equipment, onClose, onSuccess }: EquipmentFormProps) => {
   const { createEquipment, updateEquipment } = useEquipment({ autoFetch: false });
+  const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
   const isEditing = !!equipment;
   
+  // Get available equipment types based on user's collector types
+  const availableEquipmentTypes = getEquipmentTypesForCollectorTypes(profile?.collectorTypes || []);
+  
   const [formData, setFormData] = useState<CreateEquipmentRequest>({
     name: '',
-    type: 'DETECTOR',
+    type: availableEquipmentTypes[0] || 'DETECTOR',
     manufacturer: '',
     model: '',
     notes: '',
@@ -117,9 +123,11 @@ export const EquipmentForm = ({ equipment, onClose, onSuccess }: EquipmentFormPr
               className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-primary/50 transition-colors"
               required
             >
-              <option value="DETECTOR">Detektor kovů</option>
-              <option value="GPS">GPS zařízení</option>
-              <option value="OTHER">Ostatní</option>
+              {availableEquipmentTypes.map(type => (
+                <option key={type} value={type}>
+                  {EQUIPMENT_TYPE_LABELS[type]}
+                </option>
+              ))}
             </select>
           </div>
 

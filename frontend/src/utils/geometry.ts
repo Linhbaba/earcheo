@@ -211,7 +211,9 @@ export function generateStrips(
       
       if (points.length >= 2) {
         // Create line segment(s) within the polygon
-        const segments = createSegmentsFromIntersections(points, polygon);
+        const lineStartCoords = start.geometry.coordinates as [number, number];
+        const lineEndCoords = end.geometry.coordinates as [number, number];
+        const segments = createSegmentsFromIntersections(points, polygon, lineStartCoords, lineEndCoords);
         strips.push(...segments);
       }
     }
@@ -223,7 +225,7 @@ export function generateStrips(
 /**
  * Calculate polygon width along a given bearing
  */
-function calculatePolygonWidth(polygon: GeoJSONPolygon, bearing: number): number {
+function calculatePolygonWidth(polygon: GeoJSONPolygon, _bearing: number): number {
   const feature = turf.polygon(polygon.coordinates);
   const bbox = turf.bbox(feature);
   
@@ -237,39 +239,40 @@ function calculatePolygonWidth(polygon: GeoJSONPolygon, bearing: number): number
 
 /**
  * Create line segments from intersection points
+ * Projects points along the line to ensure correct ordering
  */
 function createSegmentsFromIntersections(
   points: [number, number][],
-  polygon: GeoJSONPolygon
+  polygon: GeoJSONPolygon,
+  lineStart: [number, number],
+  lineEnd: [number, number]
 ): GeoJSONLineString[] {
   if (points.length < 2) return [];
   
-  // Sort points by longitude (or latitude if vertical)
+  // Sort points by their distance along the line direction
+  const lineVector = [lineEnd[0] - lineStart[0], lineEnd[1] - lineStart[1]];
+  
   points.sort((a, b) => {
-    const lonDiff = a[0] - b[0];
-    if (Math.abs(lonDiff) < 0.0000001) {
-      return a[1] - b[1];
-    }
-    return lonDiff;
+    const projA = (a[0] - lineStart[0]) * lineVector[0] + (a[1] - lineStart[1]) * lineVector[1];
+    const projB = (b[0] - lineStart[0]) * lineVector[0] + (b[1] - lineStart[1]) * lineVector[1];
+    return projA - projB;
   });
   
   const segments: GeoJSONLineString[] = [];
+  const polyFeature = turf.polygon(polygon.coordinates);
   
-  // Create segments between consecutive pairs
-  for (let i = 0; i < points.length - 1; i += 2) {
-    const lineString: GeoJSONLineString = {
-      type: 'LineString',
-      coordinates: [points[i], points[i + 1]],
-    };
-    
-    // Verify the midpoint is inside the polygon
-    const midpoint = [
+  // Check each consecutive pair - only keep segments whose midpoint is inside
+  for (let i = 0; i < points.length - 1; i++) {
+    const midpoint: [number, number] = [
       (points[i][0] + points[i + 1][0]) / 2,
       (points[i][1] + points[i + 1][1]) / 2,
     ];
     
-    const polyFeature = turf.polygon(polygon.coordinates);
     if (turf.booleanPointInPolygon(turf.point(midpoint), polyFeature)) {
+      const lineString: GeoJSONLineString = {
+        type: 'LineString',
+        coordinates: [points[i], points[i + 1]],
+      };
       segments.push(lineString);
     }
   }

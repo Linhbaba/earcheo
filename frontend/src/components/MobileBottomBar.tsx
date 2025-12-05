@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   Map, SlidersHorizontal, Navigation, Menu,
   X, Layers, Mountain, ChevronUp, ChevronDown,
-  Rows3, Maximize2, User, Package, Lightbulb, LogOut, Search, Grid3X3
+  Rows3, Maximize2, User, Package, Lightbulb, LogOut, Search, Grid3X3, MapPin
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -31,6 +31,11 @@ interface MobileBottomBarProps {
   toggleVrstevnice: () => void;
   vrstevniceOpacity: number;
   setVrstevniceOpacity: (v: number) => void;
+  // Place Names
+  isPlaceNamesActive: boolean;
+  togglePlaceNames: () => void;
+  placeNamesOpacity: number;
+  setPlaceNamesOpacity: (v: number) => void;
   // Filters
   filters: VisualFilters;
   onFiltersChange: (key: keyof VisualFilters, value: number) => void;
@@ -76,6 +81,10 @@ export const MobileBottomBar = ({
   toggleVrstevnice,
   vrstevniceOpacity,
   setVrstevniceOpacity,
+  isPlaceNamesActive,
+  togglePlaceNames,
+  placeNamesOpacity,
+  setPlaceNamesOpacity,
   filters,
   onFiltersChange,
   filtersEnabled,
@@ -365,6 +374,39 @@ export const MobileBottomBar = ({
                           value={vrstevniceOpacity}
                           onChange={(e) => setVrstevniceOpacity(parseFloat(e.target.value))}
                           className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-purple-400"
+                        />
+                      )}
+                    </div>
+
+                    {/* Názvy míst */}
+                    <div className="bg-white/5 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-amber-400" />
+                          <span className="text-white/80 text-sm font-mono">Názvy míst</span>
+                        </div>
+                        <button
+                          onClick={togglePlaceNames}
+                          className={clsx(
+                            'w-12 h-7 rounded-full transition-all relative',
+                            isPlaceNamesActive ? 'bg-amber-500' : 'bg-white/20'
+                          )}
+                        >
+                          <div className={clsx(
+                            'absolute top-1 w-5 h-5 bg-white rounded-full transition-transform shadow-md',
+                            isPlaceNamesActive ? 'translate-x-6' : 'translate-x-1'
+                          )} />
+                        </button>
+                      </div>
+                      {isPlaceNamesActive && (
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={placeNamesOpacity}
+                          onChange={(e) => setPlaceNamesOpacity(parseFloat(e.target.value))}
+                          className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-400"
                         />
                       )}
                     </div>

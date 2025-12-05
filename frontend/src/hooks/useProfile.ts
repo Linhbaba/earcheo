@@ -83,6 +83,8 @@ export function useProfile() {
       setLoading(true);
       setError(null);
 
+      console.log('[useProfile] Updating profile with:', data);
+      
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/api/profile`, {
         method: 'PUT',
@@ -94,13 +96,17 @@ export function useProfile() {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[useProfile] Update failed:', response.status, errorText);
         throw new Error('Failed to update profile');
       }
 
       const updated = await response.json();
+      console.log('[useProfile] Profile updated:', updated);
       setProfile(updated);
       return updated;
     } catch (err) {
+      console.error('[useProfile] Update error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     } finally {

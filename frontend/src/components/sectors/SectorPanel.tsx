@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, ChevronLeft, Trash2, Edit2, Play, Download, Upload, Grid3X3, MapPin } from 'lucide-react';
-import { clsx } from 'clsx';
+import { X, ChevronLeft, Grid3X3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSectors } from '../../hooks/useSectors';
 import { useTracks } from '../../hooks/useTracks';
 import type { Sector, GeoJSONPolygon, GeoJSONLineString } from '../../types/database';
 import { 
-  calculateArea, 
-  formatArea, 
-  calculateTotalLength, 
-  formatLength,
   generateStrips,
   createSnakeRoute,
 } from '../../utils/geometry';

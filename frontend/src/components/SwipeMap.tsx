@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
 import type { ViewState, MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Move, MapPin } from 'lucide-react';
 import type { VisualFilters } from '../types/visualFilters';
 import type { UserLocation } from './LocationControl';
-import type { Finding, Sector, Track, GeoJSONPolygon, GeoJSONLineString } from '../types/database';
+import type { Finding, Sector, GeoJSONPolygon, GeoJSONLineString } from '../types/database';
 import type { MapSideConfig, MapSourceType } from '../types/mapSource';
 
 // WMS Proxy URLs (unified proxy endpoint)
@@ -17,6 +17,9 @@ const VRSTEVNICE_URL = '/api/proxy?type=zabaged&service=WMS&version=1.1.1&reques
 // Archiv URL s dynamickým rokem
 const getArchiveUrl = (year: number) => 
   `/api/proxy?type=archive&year=${year}&service=WMS&version=1.1.1&request=GetMap&styles=&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png&transparent=true`;
+
+// Place Names (názvy měst a obcí) - Stadia Maps Terrain Labels
+const PLACE_NAMES_URL = 'https://tiles.stadiamaps.com/tiles/stamen_terrain_labels/{z}/{x}/{y}.png';
 
 // Map Styles
 const STYLE_SATELLITE = {
@@ -37,6 +40,18 @@ const STYLE_SATELLITE = {
 
 const STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const STYLE_STREET = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
+
+// --- GA4 TRACKING ---
+const MOVE_THROTTLE_MS = 2000; // Max 1× za 2 sekundy
+
+const sendGAEvent = (eventName: string, params: Record<string, unknown>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, params);
+    if (import.meta.env.DEV) {
+      console.log(`[GA4] ${eventName}`, JSON.stringify(params));
+    }
+  }
+};
 
 // Získat mapStyle podle typu zdroje
 const getMapStyle = (source: MapSourceType): string | object => {
@@ -68,6 +83,8 @@ interface SwipeMapProps {
   katastrOpacity?: number;
   isVrstevniceActive?: boolean;
   vrstevniceOpacity?: number;
+  isPlaceNamesActive?: boolean;
+  placeNamesOpacity?: number;
   visualFilters: VisualFilters;
   filtersEnabled: boolean;
   userLocation?: UserLocation | null;
@@ -85,6 +102,10 @@ interface SwipeMapProps {
   onMapDoubleClick?: () => void;
   onRemovePoint?: (index: number) => void;
   onUndoLastPoint?: () => void;
+  // Measurement support
+  measurementPoints?: { lng: number; lat: number }[];
+  isMeasuring?: boolean;
+  onMeasurementPointMove?: (index: number, lng: number, lat: number) => void;
 }
 
 export const SwipeMap = ({ 
@@ -99,6 +120,8 @@ export const SwipeMap = ({
   katastrOpacity = 0.6,
   isVrstevniceActive = false,
   vrstevniceOpacity = 0.7,
+  isPlaceNamesActive = false,
+  placeNamesOpacity = 0.9,
   visualFilters,
   filtersEnabled,
   userLocation,
@@ -115,11 +138,106 @@ export const SwipeMap = ({
   onMapDoubleClick,
   onRemovePoint,
   onUndoLastPoint,
+  measurementPoints = [],
+  isMeasuring = false,
+  onMeasurementPointMove,
 }: SwipeMapProps) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const leftMapRef = useRef<MapRef>(null);
   const rightMapRef = useRef<MapRef>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
+
+  // --- GA4 TRACKING REFS & STATE ---
+  const lastMoveEventRef = useRef<number>(0);
+  const isZoomingRef = useRef(false);
+
+  // GA4: Track zoom start
+  const handleGAZoomStart = useCallback(() => {
+    const map = leftMapRef.current?.getMap();
+    if (!map || isZoomingRef.current) return;
+    isZoomingRef.current = true;
+    const center = map.getCenter();
+    sendGAEvent('map_zoom_start', {
+      zoom: parseFloat(map.getZoom().toFixed(2)),
+      lng: parseFloat(center.lng.toFixed(6)),
+      lat: parseFloat(center.lat.toFixed(6)),
+    });
+  }, []);
+
+  // GA4: Track zoom end
+  const handleGAZoomEnd = useCallback(() => {
+    const map = leftMapRef.current?.getMap();
+    if (!map || !isZoomingRef.current) return;
+    isZoomingRef.current = false;
+    const center = map.getCenter();
+    sendGAEvent('map_zoom_end', {
+      zoom: parseFloat(map.getZoom().toFixed(2)),
+      lng: parseFloat(center.lng.toFixed(6)),
+      lat: parseFloat(center.lat.toFixed(6)),
+    });
+  }, []);
+
+  // GA4: Track map move (throttled)
+  const handleGAMoveEnd = useCallback(() => {
+    const now = Date.now();
+    if (now - lastMoveEventRef.current < MOVE_THROTTLE_MS) return;
+    if (isZoomingRef.current) return;
+
+    const map = leftMapRef.current?.getMap();
+    if (!map) return;
+
+    lastMoveEventRef.current = now;
+    const center = map.getCenter();
+    sendGAEvent('map_move', {
+      zoom: parseFloat(map.getZoom().toFixed(2)),
+      center_lng: parseFloat(center.lng.toFixed(6)),
+      center_lat: parseFloat(center.lat.toFixed(6)),
+    });
+  }, []);
+
+  // GA4: Připojení listenerů k mapě
+  useEffect(() => {
+    const map = leftMapRef.current?.getMap();
+    if (!map) return;
+
+    map.on('zoomstart', handleGAZoomStart);
+    map.on('zoomend', handleGAZoomEnd);
+    map.on('moveend', handleGAMoveEnd);
+
+    // Layer click tracking pro interaktivní vrstvy
+    const interactiveLayers = ['sectors-fill', 'tracks-lines'];
+    const layerClickHandlers: Record<string, (e: maplibregl.MapMouseEvent) => void> = {};
+
+    interactiveLayers.forEach((layerName) => {
+      const handler = (e: maplibregl.MapMouseEvent & { features?: Array<{ id?: string | number; properties?: Record<string, unknown> }> }) => {
+        const feature = e.features?.[0];
+        sendGAEvent('layer_click', {
+          layer: layerName,
+          feature_id: feature?.id,
+          name: typeof feature?.properties?.name === 'string' ? feature.properties.name.slice(0, 100) : undefined,
+          type: typeof feature?.properties?.type === 'string' ? feature.properties.type.slice(0, 50) : undefined,
+        });
+      };
+      layerClickHandlers[layerName] = handler;
+      // Přidáme listener pouze pokud vrstva existuje
+      if (map.getLayer(layerName)) {
+        map.on('click', layerName, handler);
+      }
+    });
+
+    return () => {
+      map.off('zoomstart', handleGAZoomStart);
+      map.off('zoomend', handleGAZoomEnd);
+      map.off('moveend', handleGAMoveEnd);
+
+      interactiveLayers.forEach((layerName) => {
+        const handler = layerClickHandlers[layerName];
+        if (handler && map.getLayer(layerName)) {
+          map.off('click', layerName, handler);
+        }
+      });
+    };
+  }, [leftMapRef.current, handleGAZoomStart, handleGAZoomEnd, handleGAMoveEnd]);
 
   // --- POINTER EVENTS HANDLER (funguje pro mouse i touch) ---
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -208,7 +326,17 @@ export const SwipeMap = ({
         longitude={finding.longitude}
         latitude={finding.latitude}
         anchor="bottom"
-        onClick={(e) => { e.originalEvent.stopPropagation(); onFindingClick?.(finding); }}
+        onClick={(e) => {
+          e.originalEvent.stopPropagation();
+          // GA4: Track finding marker click
+          sendGAEvent('layer_click', {
+            layer: 'findings',
+            feature_id: finding.id,
+            name: finding.title?.slice(0, 100),
+            type: finding.category?.split(',')[0]?.trim(),
+          });
+          onFindingClick?.(finding);
+        }}
       >
         <div className="relative group cursor-pointer pointer-events-auto flex flex-col items-center">
           {/* Marker Icon */}
@@ -320,7 +448,7 @@ export const SwipeMap = ({
     );
   });
 
-  // --- OVERLAY LAYERS (Katastr, Vrstevnice) ---
+  // --- OVERLAY LAYERS (Katastr, Vrstevnice, Place Names) ---
   const renderOverlayLayers = () => (
     <>
       {isKatastrActive && (
@@ -331,6 +459,11 @@ export const SwipeMap = ({
       {isVrstevniceActive && (
         <Source id="vrstevnice-wms" type="raster" tiles={[VRSTEVNICE_URL]} tileSize={256}>
           <Layer id="vrstevnice-layer" type="raster" paint={{ 'raster-opacity': vrstevniceOpacity }} />
+        </Source>
+      )}
+      {isPlaceNamesActive && (
+        <Source id="place-names" type="raster" tiles={[PLACE_NAMES_URL]} tileSize={256}>
+          <Layer id="place-names-layer" type="raster" paint={{ 'raster-opacity': placeNamesOpacity }} />
         </Source>
       )}
     </>
@@ -707,6 +840,77 @@ export const SwipeMap = ({
     );
   };
 
+  // --- MEASUREMENT LINE LAYER ---
+  const renderMeasurementLine = () => {
+    if (measurementPoints.length === 0) return null;
+
+    const lineGeoJSON = measurementPoints.length >= 2 ? {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: measurementPoints.map(p => [p.lng, p.lat]),
+      },
+    } : null;
+
+    return (
+      <>
+        {/* Measurement line */}
+        {lineGeoJSON && (
+          <Source id="measurement-line-source" type="geojson" data={lineGeoJSON}>
+            <Layer
+              id="measurement-line-glow"
+              type="line"
+              paint={{
+                'line-color': '#f59e0b',
+                'line-width': 6,
+                'line-opacity': 0.3,
+                'line-blur': 3,
+              }}
+            />
+            <Layer
+              id="measurement-line"
+              type="line"
+              paint={{
+                'line-color': '#f59e0b',
+                'line-width': 2,
+                'line-opacity': 1,
+                'line-dasharray': [4, 4],
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Measurement points - draggable */}
+        {measurementPoints.map((point, index) => (
+          <Marker
+            key={`measurement-point-${index}`}
+            longitude={point.lng}
+            latitude={point.lat}
+            anchor="center"
+            draggable={true}
+            onDragEnd={(e) => {
+              if (onMeasurementPointMove) {
+                onMeasurementPointMove(index, e.lngLat.lng, e.lngLat.lat);
+              }
+            }}
+          >
+            <div className="relative group cursor-grab active:cursor-grabbing">
+              {/* Glow */}
+              <div className="absolute -inset-2 rounded-full bg-amber-400/30 group-hover:bg-amber-400/50 transition-all" />
+              {/* Point */}
+              <div className="relative w-4 h-4 rounded-full bg-amber-500 border-2 border-white shadow-lg group-hover:scale-125 transition-transform" />
+              {/* Index */}
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-amber-500/90 text-white text-[8px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap pointer-events-none">
+                {index + 1}
+              </div>
+            </div>
+          </Marker>
+        ))}
+      </>
+    );
+  };
+
   // --- MAP CONTENT based on config ---
   const renderMapContent = (config: MapSideConfig, side: 'left' | 'right') => {
     const { source, archiveYear } = config;
@@ -752,6 +956,9 @@ export const SwipeMap = ({
         {/* Drawing polygon (in progress) */}
         {renderDrawingPolygon()}
 
+        {/* Measurement line */}
+        {renderMeasurementLine()}
+
         {/* GPS marker */}
         {renderGpsMarker()}
 
@@ -763,6 +970,18 @@ export const SwipeMap = ({
 
   // --- MAP CLICK HANDLER ---
   const handleMapClick = (evt: any) => {
+    // GA4: Track map click
+    const map = leftMapRef.current?.getMap();
+    if (map) {
+      sendGAEvent('map_click', {
+        lng: parseFloat(evt.lngLat.lng.toFixed(6)),
+        lat: parseFloat(evt.lngLat.lat.toFixed(6)),
+        zoom: parseFloat(map.getZoom().toFixed(2)),
+        bearing: parseFloat(map.getBearing().toFixed(2)),
+        pitch: parseFloat(map.getPitch().toFixed(2)),
+      });
+    }
+
     if (onMapClick) {
       onMapClick([evt.lngLat.lng, evt.lngLat.lat]);
     }
@@ -783,8 +1002,8 @@ export const SwipeMap = ({
     }
   };
 
-  // Cursor style when drawing
-  const drawingCursor = isDrawingMode ? 'crosshair' : undefined;
+  // Cursor style when drawing or measuring
+  const drawingCursor = (isDrawingMode || isMeasuring) ? 'crosshair' : undefined;
 
   // --- RENDER MAPS ---
   const renderMap = (config: MapSideConfig, side: 'left' | 'right', ref: React.RefObject<MapRef>) => (

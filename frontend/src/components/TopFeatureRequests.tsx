@@ -87,14 +87,7 @@ export const TopFeatureRequests = () => {
   };
 
   const handleSeeAll = () => {
-    if (!isAuthenticated) {
-      loginWithRedirect({
-        appState: { returnTo: '/' }
-      });
-    } else {
-      // Open feature requests modal or navigate
-      window.location.href = '/map'; // User can then open feature requests from menu
-    }
+    window.location.href = '/features';
   };
 
   // Get top 3 features sorted by votes
@@ -198,8 +191,8 @@ export const TopFeatureRequests = () => {
           onClick={handleSeeAll}
           className="group inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-surface/60 hover:bg-surface/80 border border-white/10 hover:border-primary/30 rounded-xl text-white/70 hover:text-primary font-mono text-xs sm:text-sm transition-all"
         >
-          <span className="hidden sm:inline">{isAuthenticated ? 'Zobrazit všechny návrhy' : 'Přihlásit se a navrhnout funkci'}</span>
-          <span className="sm:hidden">{isAuthenticated ? 'Všechny návrhy' : 'Navrhnout funkci'}</span>
+          <span className="hidden sm:inline">Zobrazit všechny návrhy</span>
+          <span className="sm:hidden">Všechny návrhy</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>

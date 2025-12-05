@@ -30,6 +30,10 @@
     { "source": "/api/findings/:id/images", "destination": "/api/findings/[id]/images" },
     { "source": "/api/features", "destination": "/api/features" },
     { "source": "/api/map-setups", "destination": "/api/map-setups" },
+    { "source": "/api/sectors", "destination": "/api/sectors/index" },
+    { "source": "/api/sectors/:id", "destination": "/api/sectors/[id]" },
+    { "source": "/api/tracks", "destination": "/api/tracks/index" },
+    { "source": "/api/tracks/:id", "destination": "/api/tracks/[id]" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
