@@ -1,28 +1,46 @@
-import { Edit2, Trash2, Download, Play, RotateCcw, Save, MapPin } from 'lucide-react';
+import { useMemo } from 'react';
+import { Trash2, Download, MapPin, Clock, Maximize2, RotateCcw, Edit3 } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Sector, Track, GeoJSONLineString } from '../../types/database';
 import { 
   calculateArea, 
   formatArea, 
   calculateTotalLength, 
-  formatLength 
+  formatLength,
+  calculatePolygonOrientation,
 } from '../../utils/geometry';
 import { SectorMiniMap } from './SectorMiniMap';
 
 interface SectorDetailProps {
   sector: Sector;
   tracks: Track[];
-  generatedStrips: GeoJSONLineString[];
   stripWidth: number;
-  onStripWidthChange: (width: number) => void;
-  onGenerateStrips: () => void;
-  onSaveTracks: () => void;
-  onResetTracks: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onExport: () => void;
   onFocus?: () => void;
 }
+
+// Exploration speed based on walking pace with detector
+const EXPLORATION_SPEED_M_PER_HOUR = 2500;
+
+const formatExplorationTime = (lengthMeters: number): string => {
+  const hoursNeeded = lengthMeters / EXPLORATION_SPEED_M_PER_HOUR;
+  
+  if (hoursNeeded < 1/60) {
+    return '< 1 min';
+  } else if (hoursNeeded < 1) {
+    const minutes = Math.round(hoursNeeded * 60);
+    return `~${minutes} min`;
+  } else if (hoursNeeded < 24) {
+    const hours = Math.floor(hoursNeeded);
+    const minutes = Math.round((hoursNeeded - hours) * 60);
+    return minutes > 0 ? `~${hours}h ${minutes}m` : `~${hours}h`;
+  } else {
+    const days = (hoursNeeded / 8).toFixed(1);
+    return `~${days} dní`;
+  }
+};
 
 const TRACK_STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   PENDING: { bg: 'bg-gray-500/20', text: 'text-gray-400', label: 'Čeká' },
@@ -34,179 +52,187 @@ const TRACK_STATUS_COLORS: Record<string, { bg: string; text: string; label: str
 export const SectorDetail = ({
   sector,
   tracks,
-  generatedStrips,
   stripWidth,
-  onStripWidthChange,
-  onGenerateStrips,
-  onSaveTracks,
-  onResetTracks,
   onEdit,
   onDelete,
   onExport,
   onFocus,
 }: SectorDetailProps) => {
+  const hasTracks = tracks.length > 0;
+
+  // Calculate stats
+  const stats = useMemo(() => {
   const area = calculateArea(sector.geometry);
-  const totalLength = tracks.length > 0 
+    const totalLength = hasTracks 
     ? calculateTotalLength(tracks.map(t => t.geometry as GeoJSONLineString))
-    : generatedStrips.length > 0
-      ? calculateTotalLength(generatedStrips)
-      : 0;
+      : area / stripWidth; // Estimate if no tracks
+    
+    return {
+      area,
+      formattedArea: formatArea(area),
+      totalLength,
+      formattedLength: formatLength(totalLength),
+      estimatedTime: formatExplorationTime(totalLength),
+    };
+  }, [sector.geometry, tracks, stripWidth, hasTracks]);
+
+  // Calculate orientation
+  const orientationInfo = useMemo(() => {
+    return calculatePolygonOrientation(sector.geometry, stripWidth);
+  }, [sector.geometry, stripWidth]);
 
   // Track statistics
+  const trackStats = useMemo(() => {
+    if (!hasTracks) return null;
+    
   const completed = tracks.filter(t => t.status === 'COMPLETED').length;
   const inProgress = tracks.filter(t => t.status === 'IN_PROGRESS').length;
   const pending = tracks.filter(t => t.status === 'PENDING').length;
   const skipped = tracks.filter(t => t.status === 'SKIPPED').length;
-  const progress = tracks.length > 0 ? ((completed + skipped) / tracks.length) * 100 : 0;
+    const progress = ((completed + skipped) / tracks.length) * 100;
 
-  const hasGeneratedStrips = generatedStrips.length > 0;
-  const hasSavedTracks = tracks.length > 0;
+    return { completed, inProgress, pending, skipped, progress };
+  }, [tracks, hasTracks]);
 
   return (
     <div className="space-y-4">
-      {/* Mini Map Preview */}
-      <SectorMiniMap geometry={sector.geometry} className="h-32" />
-
-      {/* Description */}
-      {sector.description && (
-        <p className="text-white/60 text-sm font-mono leading-relaxed">
-          {sector.description}
-        </p>
+      {/* Mini Map with Focus Button */}
+      {onFocus && (
+        <SectorMiniMap 
+          geometry={sector.geometry} 
+          onFocus={onFocus}
+        />
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white/5 rounded-xl p-3">
-          <div className="text-emerald-400 text-lg font-display">{formatArea(area)}</div>
-          <div className="text-white/40 text-[10px] font-mono uppercase">Plocha</div>
-        </div>
-        <div className="bg-white/5 rounded-xl p-3">
-          <div className="text-emerald-400 text-lg font-display">
-            {hasSavedTracks ? tracks.length : hasGeneratedStrips ? generatedStrips.length : '-'}
+      {/* Main Stats Card */}
+      <div className="rounded-xl overflow-hidden border border-emerald-500/30">
+        {/* Status Header */}
+        <div className="px-4 py-3 bg-emerald-500/10">
+          <div className="flex items-center gap-3">
+            <MapPin className="w-5 h-5 text-emerald-400" />
+            <div className="flex-1">
+              <div className="text-sm font-mono text-emerald-400">
+                {hasTracks ? `${tracks.length} pásů uloženo` : 'Sektor uložen'}
+              </div>
+              {sector.description && (
+                <div className="text-[10px] font-mono text-white/40 mt-0.5 truncate">
+                  {sector.description}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="text-white/40 text-[10px] font-mono uppercase">Pásů</div>
         </div>
-        {totalLength > 0 && (
-          <div className="bg-white/5 rounded-xl p-3 col-span-2">
-            <div className="text-emerald-400 text-lg font-display">{formatLength(totalLength)}</div>
-            <div className="text-white/40 text-[10px] font-mono uppercase">Celková délka tras</div>
+        
+        {/* Stats Display */}
+        <div className="grid grid-cols-2 divide-x divide-white/10 bg-black/30">
+          {/* Area */}
+          <div className="p-3 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Maximize2 className="w-3 h-3 text-amber-400/70" />
+              <span className="text-[9px] uppercase tracking-wider text-white/40 font-mono">Plocha</span>
+            </div>
+            <div className="text-lg font-mono font-medium text-amber-400">
+              {stats.formattedArea}
+            </div>
           </div>
-        )}
+          
+          {/* Time */}
+          <div className="p-3 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Clock className="w-3 h-3 text-purple-400/70" />
+              <span className="text-[9px] uppercase tracking-wider text-white/40 font-mono">Průzkum</span>
+            </div>
+            <div className="text-lg font-mono font-medium text-purple-400">
+              {stats.estimatedTime}
+            </div>
+          </div>
+        </div>
+        
+        {/* Strip Orientation Info */}
+        <div className="bg-black/40 border-t border-white/5">
+          {/* Orientation header */}
+          <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <RotateCcw className="w-3.5 h-3.5 text-sky-400/70" />
+              <span className="text-[9px] uppercase tracking-wider text-white/40 font-mono">Orientace pásů</span>
+            </div>
+            <span className="text-sky-400 text-xs font-mono">
+              {Math.round(orientationInfo.angle)}°
+            </span>
+          </div>
+          
+          {/* Strip stats grid */}
+          <div className="grid grid-cols-3 divide-x divide-white/5">
+            <div className="p-2 text-center">
+              <div className="text-[8px] uppercase text-white/30 font-mono mb-0.5">Pásů</div>
+              <div className="text-sm font-mono text-sky-400 font-medium">
+                {hasTracks ? tracks.length : Math.ceil(stats.area / (stripWidth * 100))}
+              </div>
+            </div>
+            <div className="p-2 text-center">
+              <div className="text-[8px] uppercase text-white/30 font-mono mb-0.5">Délka</div>
+              <div className="text-sm font-mono text-emerald-400 font-medium">{stats.formattedLength}</div>
+            </div>
+            <div className="p-2 text-center">
+              <div className="text-[8px] uppercase text-white/30 font-mono mb-0.5">Šířka</div>
+              <div className="text-sm font-mono text-amber-400 font-medium">{stripWidth}m</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Edit actions */}
+        <button
+          onClick={onEdit}
+          className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 border-t border-white/5 flex items-center justify-center gap-2 text-white/50 hover:text-white text-xs font-mono transition-colors"
+        >
+          <Edit3 className="w-3.5 h-3.5" />
+          Upravit info
+        </button>
       </div>
 
-      {/* Progress (only if has saved tracks) */}
-      {hasSavedTracks && (
-        <div className="bg-white/5 rounded-xl p-4">
+      {/* Progress Card - Only if has tracks */}
+      {trackStats && (
+        <div className="rounded-xl overflow-hidden border border-white/10 bg-black/30">
+          <div className="px-4 py-3 border-b border-white/5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-white/70 text-sm font-mono">Pokrok</span>
-            <span className="text-emerald-400 text-sm font-mono">{Math.round(progress)}%</span>
+              <span className="text-white/70 text-sm font-mono">Pokrok průzkumu</span>
+              <span className="text-emerald-400 text-sm font-mono font-bold">{Math.round(trackStats.progress)}%</span>
           </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-3">
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all"
-              style={{ width: `${progress}%` }}
+                style={{ width: `${trackStats.progress}%` }}
             />
+            </div>
           </div>
-          <div className="grid grid-cols-4 gap-2">
-            {Object.entries({ PENDING: pending, IN_PROGRESS: inProgress, COMPLETED: completed, SKIPPED: skipped }).map(([status, count]) => (
-              <div key={status} className={clsx('rounded-lg p-2 text-center', TRACK_STATUS_COLORS[status].bg)}>
-                <div className={clsx('text-sm font-mono', TRACK_STATUS_COLORS[status].text)}>{count}</div>
-                <div className="text-[8px] font-mono text-white/40">{TRACK_STATUS_COLORS[status].label}</div>
+          <div className="grid grid-cols-4 divide-x divide-white/5">
+            {Object.entries({ PENDING: trackStats.pending, IN_PROGRESS: trackStats.inProgress, COMPLETED: trackStats.completed, SKIPPED: trackStats.skipped }).map(([status, count]) => (
+              <div key={status} className={clsx('p-2 text-center', TRACK_STATUS_COLORS[status].bg)}>
+                <div className={clsx('text-sm font-mono font-medium', TRACK_STATUS_COLORS[status].text)}>{count}</div>
+                <div className="text-[7px] font-mono text-white/40 uppercase">{TRACK_STATUS_COLORS[status].label}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Strip Width Control */}
-      <div className="bg-white/5 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white/70 text-sm font-mono">Šířka pásu</span>
-          <span className="text-emerald-400 text-sm font-mono">{stripWidth} m</span>
-        </div>
-        <input
-          type="range"
-          min="1"
-          max="10"
-          step="0.5"
-          value={stripWidth}
-          onChange={(e) => onStripWidthChange(parseFloat(e.target.value))}
-          className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-emerald-400"
-        />
-      </div>
-
-      {/* Actions */}
-      <div className="space-y-2">
-        {/* Generate / Save buttons */}
-        {!hasSavedTracks && (
-          <>
-            <button
-              onClick={onGenerateStrips}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-xl text-emerald-400 font-mono text-sm transition-all"
-            >
-              <Play className="w-4 h-4" />
-              {hasGeneratedStrips ? 'Přegenerovat pásy' : 'Vygenerovat pásy'}
-            </button>
-            
-            {hasGeneratedStrips && (
-              <button
-                onClick={onSaveTracks}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-white font-mono text-sm transition-all"
-              >
-                <Save className="w-4 h-4" />
-                Uložit pásy ({generatedStrips.length})
-              </button>
-            )}
-          </>
-        )}
-
-        {/* Reset tracks button */}
-        {hasSavedTracks && (
-          <button
-            onClick={onResetTracks}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white font-mono text-sm transition-all"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Resetovat pásy
-          </button>
-        )}
-
-        {/* Focus on map button */}
-        {onFocus && (
-          <button
-            onClick={onFocus}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 rounded-xl text-blue-400 font-mono text-sm transition-all"
-          >
-            <MapPin className="w-4 h-4" />
-            Zobrazit na mapě
-          </button>
-        )}
-
-        {/* Secondary actions */}
+      {/* Bottom Actions */}
         <div className="flex gap-2">
-          <button
-            onClick={onEdit}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white font-mono text-xs transition-all"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            Upravit
-          </button>
           <button
             onClick={onExport}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white font-mono text-xs transition-all"
           >
             <Download className="w-3.5 h-3.5" />
-            Export
+          Export GeoJSON
           </button>
           <button
             onClick={onDelete}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 font-mono text-xs transition-all"
           >
             <Trash2 className="w-3.5 h-3.5" />
+          Smazat
           </button>
-        </div>
       </div>
     </div>
   );
 };
-

@@ -122,3 +122,7 @@ export const COLLECTOR_TYPE_ICONS: Record<CollectorType, string> = {
   MILITARIA: 'Medal',
   DETECTORIST: 'Target',
 };
+
+// Re-export from findingFieldsConfig for convenience
+export { COLLECTOR_TO_FINDING_TYPE, getDefaultFindingType } from './findingFieldsConfig';
+

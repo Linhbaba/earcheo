@@ -4,13 +4,10 @@ import { toast } from 'sonner';
 import { useSectors } from '../../hooks/useSectors';
 import { useTracks } from '../../hooks/useTracks';
 import type { Sector, GeoJSONPolygon, GeoJSONLineString } from '../../types/database';
-import { 
-  generateStrips,
-  createSnakeRoute,
-} from '../../utils/geometry';
 import { SectorList } from './SectorList';
 import { SectorDetail } from './SectorDetail';
 import { SectorForm } from './SectorForm';
+import { generateStrips } from '../../utils/geometry';
 
 interface SectorPanelProps {
   isOpen: boolean;
@@ -41,28 +38,42 @@ export const SectorPanel = ({
   onStripPreviewChange,
   onFocusSector,
 }: SectorPanelProps) => {
-  const { sectors, loading, createSector, updateSector, deleteSector, fetchSectors } = useSectors();
-  const { tracks, createTracks, fetchTracks, deleteTracks } = useTracks();
+  const { sectors, loading, createSector, updateSector, deleteSector } = useSectors();
+  const { tracks, fetchTracks, createTracks } = useTracks();
   
   const [view, setView] = useState<PanelView>('list');
   const [stripWidth, setStripWidth] = useState(3);
-  const [generatedStrips, setGeneratedStrips] = useState<GeoJSONLineString[]>([]);
 
   // Reset view when panel opens/closes
   useEffect(() => {
     if (!isOpen) {
       setView('list');
-      setGeneratedStrips([]);
     }
   }, [isOpen]);
 
-  // When a sector is selected, load its tracks
+  // When a sector is selected, load its tracks and set strip width
   useEffect(() => {
     if (selectedSector) {
       fetchTracks(selectedSector.id);
+      setStripWidth(selectedSector.stripWidth);
       setView('detail');
     }
   }, [selectedSector?.id]);
+
+  // When in detail view, show strips on map (from tracks or generated)
+  useEffect(() => {
+    if (view === 'detail' && selectedSector && onStripPreviewChange) {
+      if (tracks.length > 0) {
+        // Use saved tracks
+        const trackGeometries = tracks.map(t => t.geometry as GeoJSONLineString);
+        onStripPreviewChange(trackGeometries);
+      } else {
+        // Generate strips dynamically
+        const strips = generateStrips(selectedSector.geometry, stripWidth);
+        onStripPreviewChange(strips);
+      }
+    }
+  }, [tracks, view, selectedSector, stripWidth, onStripPreviewChange]);
 
   // Handle creating new sector
   const handleCreate = async (name: string, description?: string) => {
@@ -78,6 +89,16 @@ export const SectorPanel = ({
         geometry: drawnPolygon,
         stripWidth,
       });
+      
+      // Generate and save tracks
+      const strips = generateStrips(drawnPolygon, stripWidth);
+      if (strips.length > 0) {
+        const trackData = strips.map((geometry, index) => ({
+          geometry,
+          order: index,
+        }));
+        await createTracks(sector.id, trackData);
+      }
       
       toast.success('Sektor byl vytvořen');
       onClearDrawing();
@@ -96,7 +117,24 @@ export const SectorPanel = ({
   // Handle updating sector
   const handleUpdate = async (id: string, name: string, description?: string) => {
     try {
-      const sector = await updateSector(id, { name, description });
+      // Check if strip width changed - regenerate tracks
+      const currentSector = sectors.find(s => s.id === id);
+      const stripWidthChanged = currentSector && currentSector.stripWidth !== stripWidth;
+      
+      const sector = await updateSector(id, { name, description, stripWidth });
+      
+      // If strip width changed, regenerate and save tracks
+      if (stripWidthChanged && sector) {
+        const strips = generateStrips(sector.geometry, stripWidth);
+        if (strips.length > 0) {
+          const trackData = strips.map((geometry, index) => ({
+            geometry,
+            order: index,
+          }));
+          await createTracks(sector.id, trackData);
+        }
+      }
+      
       toast.success('Sektor byl aktualizován');
       onSelectSector(sector);
       setView('detail');
@@ -116,46 +154,6 @@ export const SectorPanel = ({
       setView('list');
     } catch (err) {
       toast.error('Nepodařilo se smazat sektor');
-    }
-  };
-
-  // Generate strips preview
-  const handleGenerateStrips = () => {
-    if (!selectedSector) return;
-    
-    const strips = generateStrips(selectedSector.geometry, stripWidth);
-    const snakeRoute = createSnakeRoute(strips);
-    setGeneratedStrips(snakeRoute);
-  };
-
-  // Save generated tracks
-  const handleSaveTracks = async () => {
-    if (!selectedSector || generatedStrips.length === 0) return;
-
-    try {
-      await createTracks(
-        selectedSector.id,
-        generatedStrips.map((geometry, index) => ({ geometry, order: index }))
-      );
-      toast.success(`${generatedStrips.length} pásů bylo uloženo`);
-      setGeneratedStrips([]);
-      fetchSectors(); // Refresh to get updated track count
-    } catch (err) {
-      toast.error('Nepodařilo se uložit pásy');
-    }
-  };
-
-  // Reset tracks
-  const handleResetTracks = async () => {
-    if (!selectedSector) return;
-    if (!confirm('Opravdu chcete smazat všechny pásy?')) return;
-
-    try {
-      await deleteTracks(selectedSector.id);
-      toast.success('Pásy byly smazány');
-      setGeneratedStrips([]);
-    } catch (err) {
-      toast.error('Nepodařilo se smazat pásy');
     }
   };
 
@@ -209,7 +207,6 @@ export const SectorPanel = ({
               onClick={() => {
                 setView('list');
                 onSelectSector(null);
-                setGeneratedStrips([]);
               }}
               className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
             >
@@ -247,6 +244,7 @@ export const SectorPanel = ({
               setView('create');
               onStartDrawing();
             }}
+            onFocusSector={onFocusSector}
           />
         )}
 
@@ -273,10 +271,11 @@ export const SectorPanel = ({
             initialName={selectedSector.name}
             initialDescription={selectedSector.description || ''}
             drawnPolygon={selectedSector.geometry}
-            stripWidth={selectedSector.stripWidth}
+            stripWidth={stripWidth}
             onStripWidthChange={setStripWidth}
             onSubmit={(name, desc) => handleUpdate(selectedSector.id, name, desc)}
             onCancel={() => setView('detail')}
+            onStripsGenerated={onStripPreviewChange}
             isEdit
           />
         )}
@@ -286,12 +285,7 @@ export const SectorPanel = ({
           <SectorDetail
             sector={selectedSector}
             tracks={tracks}
-            generatedStrips={generatedStrips}
             stripWidth={stripWidth}
-            onStripWidthChange={setStripWidth}
-            onGenerateStrips={handleGenerateStrips}
-            onSaveTracks={handleSaveTracks}
-            onResetTracks={handleResetTracks}
             onEdit={() => setView('edit')}
             onDelete={() => handleDelete(selectedSector.id)}
             onExport={handleExport}

@@ -45,6 +45,9 @@ interface MapBoardProps {
   measurementPoints?: { lng: number; lat: number }[];
   isMeasuring?: boolean;
   onMeasurementPointMove?: (index: number, lng: number, lat: number) => void;
+  // Focus
+  focusBounds?: [[number, number], [number, number]] | null;
+  onFocusComplete?: () => void;
 }
 
 export const MapBoard = ({ 
@@ -80,6 +83,8 @@ export const MapBoard = ({
     measurementPoints,
     isMeasuring,
     onMeasurementPointMove,
+    focusBounds,
+    onFocusComplete,
 }: MapBoardProps) => {
 
   return (
@@ -117,6 +122,8 @@ export const MapBoard = ({
         measurementPoints={measurementPoints}
         isMeasuring={isMeasuring}
         onMeasurementPointMove={onMeasurementPointMove}
+        focusBounds={focusBounds}
+        onFocusComplete={onFocusComplete}
       />
     </div>
   );

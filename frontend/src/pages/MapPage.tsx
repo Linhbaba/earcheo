@@ -124,6 +124,7 @@ export const MapPage = () => {
   const [drawnPolygon, setDrawnPolygon] = useState<GeoJSONPolygon | null>(null);
   const [isPanningMode, setIsPanningMode] = useState(false); // Spacebar hold for pan
   const [stripPreview, setStripPreview] = useState<GeoJSONLineString[]>([]); // Live strip preview
+  const [focusBounds, setFocusBounds] = useState<[[number, number], [number, number]] | null>(null);
 
   // Measurement state
   const [isMeasuring, setIsMeasuring] = useState(false);
@@ -189,6 +190,20 @@ export const MapPage = () => {
     if (newMode === 'planner') {
       setIsSectorPanelOpen(true);
     }
+  };
+
+  // Focus on sector handler
+  const handleFocusSector = (sector: Sector) => {
+    const coords = sector.geometry.coordinates[0];
+    if (!coords || coords.length < 3) return;
+
+    const lngs = coords.map(c => c[0]);
+    const lats = coords.map(c => c[1]);
+
+    setFocusBounds([
+      [Math.min(...lngs), Math.min(...lats)],
+      [Math.max(...lngs), Math.max(...lats)],
+    ]);
   };
 
   // Polygon drawing handlers
@@ -386,6 +401,8 @@ export const MapPage = () => {
               measurementPoints={measurementPoints}
               isMeasuring={isMeasuring}
               onMeasurementPointMove={handleMeasurementPointMove}
+              focusBounds={focusBounds}
+              onFocusComplete={() => setFocusBounds(null)}
             />
 
         {/* MOBILE UI */}
@@ -651,6 +668,7 @@ export const MapPage = () => {
             onSelectSector={setSelectedSector}
             selectedSector={selectedSector}
             onStripPreviewChange={setStripPreview}
+            onFocusSector={handleFocusSector}
           />
         )}
 

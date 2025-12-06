@@ -77,24 +77,73 @@ model Finding {
   date              DateTime
   description       String
   category          String
+  
+  // Typ nálezu (wizard)
+  findingType       String             @default("GENERAL") // COIN, STAMP, MILITARY, TERRAIN, GENERAL
+  
+  // Existující rozšířená pole
   condition         String?
   depth             Float?
   locationName      String?
   historicalContext String?
   material          String?
+  
+  // Univerzální pole (identifikace)
+  period            String?            // Období / datace (text)
+  periodFrom        Int?               // Rok od
+  periodTo          Int?               // Rok do
+  dimensions        String?            // Rozměry
+  weight            Float?             // Hmotnost v gramech
+  
+  // Specifická pole - COIN (numismatika)
+  denomination      String?            // Nominál
+  mintYear          Int?               // Rok ražby
+  mint              String?            // Mincovna
+  catalogNumber     String?            // Katalogové číslo
+  grade             String?            // Kvalita / grading
+  
+  // Specifická pole - STAMP (filatelie)
+  stampYear         Int?               // Rok vydání
+  stampCatalogNumber String?           // Katalogové číslo (filatelie)
+  perforation       String?            // Perforace / zoubkování
+  printType         String?            // Typ tisku
+  cancellation      String?            // Razítko
+  
+  // Specifická pole - MILITARY (militárie)
+  army              String?            // Armáda / země
+  conflict          String?            // Konflikt / období
+  unit              String?            // Jednotka
+  authenticity      String?            // Autenticita
+  
+  // Specifická pole - TERRAIN (detektoráři)
+  detectorSignal    String?            // Signál detektoru
+  landType          String?            // Typ pozemku
+  soilConditions    String?            // Půdní podmínky
+  
+  // Provenience
+  origin            String?            // Původ / země
+  acquisitionMethod String?            // Způsob získání
+  estimatedValue    String?            // Odhadovaná hodnota
+  storageLocation   String?            // Úložné místo
+  
+  // Systémová pole
   visibility        FindingVisibility  @default(PRIVATE)
   isPublic          Boolean            @default(false)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+  
+  // Relace
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   images            FindingImage[]
   equipment         FindingEquipment[]
+  customFieldValues CustomFieldValue[]
 
   @@index([category])
   @@index([date])
   @@index([visibility])
   @@index([isPublic])
   @@index([userId])
+  @@index([findingType])
 }
 
 enum FindingVisibility {
@@ -212,8 +261,42 @@ model User {
   mapSetups           MapSetup[]
   sectors             Sector[]
   socialLinks         SocialLink[]
+  customFields        CustomField[]
 
   @@index([email])
+}
+
+// Vlastní pole definovaná uživatelem
+model CustomField {
+  id        String             @id @default(cuid())
+  userId    String
+  name      String             // Název pole
+  fieldType String             // text, number, date, select
+  options   String?            // Pro select: "Ano,Ne,Možná" (čárkou oddělené)
+  icon      String?            // Lucide icon name
+  order     Int                @default(0)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  values    CustomFieldValue[]
+
+  @@index([userId])
+  @@index([userId, order])
+}
+
+// Hodnota vlastního pole pro konkrétní nález
+model CustomFieldValue {
+  id            String      @id @default(cuid())
+  findingId     String
+  customFieldId String
+  value         String
+  createdAt     DateTime    @default(now())
+  finding       Finding     @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+
+  @@unique([findingId, customFieldId])
+  @@index([findingId])
+  @@index([customFieldId])
 }
 
 enum EquipmentType {

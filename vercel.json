@@ -35,6 +35,8 @@
     { "source": "/api/sectors/:id", "destination": "/api/sectors?id=:id" },
     { "source": "/api/tracks", "destination": "/api/tracks" },
     { "source": "/api/tracks/:id", "destination": "/api/tracks?id=:id" },
+    { "source": "/api/custom-fields", "destination": "/api/custom-fields" },
+    { "source": "/api/custom-fields/:id", "destination": "/api/custom-fields?id=:id" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

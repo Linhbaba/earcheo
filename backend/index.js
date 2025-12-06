@@ -230,6 +230,21 @@ app.all('/api/features/:id/vote', (req, res) => proxyToVercel(req, res, `/api/fe
 app.all('/api/sectors', (req, res) => proxyToVercel(req, res, '/api/sectors'));
 app.all('/api/sectors/:id', (req, res) => proxyToVercel(req, res, `/api/sectors/${req.params.id}`));
 
+// Tracks API
+app.all('/api/tracks', (req, res) => proxyToVercel(req, res, '/api/tracks'));
+app.all('/api/tracks/:id', (req, res) => proxyToVercel(req, res, `/api/tracks/${req.params.id}`));
+
+// Map Setups API
+app.all('/api/map-setups', (req, res) => proxyToVercel(req, res, '/api/map-setups'));
+app.all('/api/map-setups/:id', (req, res) => proxyToVercel(req, res, `/api/map-setups/${req.params.id}`));
+
+// Custom Fields API
+app.all('/api/custom-fields', (req, res) => proxyToVercel(req, res, '/api/custom-fields'));
+app.all('/api/custom-fields/:id', (req, res) => proxyToVercel(req, res, `/api/custom-fields/${req.params.id}`));
+
+// Stats API
+app.all('/api/stats', (req, res) => proxyToVercel(req, res, '/api/stats'));
+
 const PORT = 3010;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`[SYSTEM] Backend Proxy Online on port ${PORT} (IPv4 + IPv6)`);

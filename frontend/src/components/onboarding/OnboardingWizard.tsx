@@ -234,3 +234,4 @@ export const OnboardingWizard = ({ isOpen, onComplete, onSkip }: OnboardingWizar
     </>
   );
 };
+

@@ -4,6 +4,8 @@
 export type EquipmentType = 'DETECTOR' | 'GPS' | 'MAGNIFIER' | 'CATALOG' | 'STORAGE' | 'OTHER';
 export type FindingVisibility = 'PRIVATE' | 'ANONYMOUS' | 'PUBLIC';
 export type CollectorType = 'NUMISMATIST' | 'PHILATELIST' | 'MILITARIA' | 'DETECTORIST';
+export type FindingType = 'COIN' | 'STAMP' | 'MILITARY' | 'TERRAIN' | 'GENERAL';
+export type CustomFieldType = 'text' | 'number' | 'date' | 'select';
 
 export interface User {
   id: string;
@@ -63,17 +65,59 @@ export interface Finding {
   description: string;
   category: string;
   
-  // Extended fields
+  // Typ nálezu (wizard)
+  findingType: FindingType;
+  
+  // Existující rozšířená pole
   condition?: string | null;
   depth?: number | null;
   locationName?: string | null;
   historicalContext?: string | null;
   material?: string | null;
   
+  // Univerzální pole (identifikace)
+  period?: string | null;
+  periodFrom?: number | null;
+  periodTo?: number | null;
+  dimensions?: string | null;
+  weight?: number | null;
+  
+  // Specifická pole - COIN (numismatika)
+  denomination?: string | null;
+  mintYear?: number | null;
+  mint?: string | null;
+  catalogNumber?: string | null;
+  grade?: string | null;
+  
+  // Specifická pole - STAMP (filatelie)
+  stampYear?: number | null;
+  stampCatalogNumber?: string | null;
+  perforation?: string | null;
+  printType?: string | null;
+  cancellation?: string | null;
+  
+  // Specifická pole - MILITARY (militárie)
+  army?: string | null;
+  conflict?: string | null;
+  unit?: string | null;
+  authenticity?: string | null;
+  
+  // Specifická pole - TERRAIN (detektoráři)
+  detectorSignal?: string | null;
+  landType?: string | null;
+  soilConditions?: string | null;
+  
+  // Provenience
+  origin?: string | null;
+  acquisitionMethod?: string | null;
+  estimatedValue?: string | null;
+  storageLocation?: string | null;
+  
   visibility: FindingVisibility;
   isPublic?: boolean; // Legacy
   images: FindingImage[];
   equipment: Equipment[];
+  customFieldValues?: CustomFieldValue[];
   user?: {
     id: string;
     nickname?: string | null;
@@ -148,14 +192,57 @@ export interface CreateFindingRequest {
   date: string; // ISO datetime
   description: string;
   category: string;
+  findingType?: FindingType;
+  
+  // Existující rozšířená pole
   condition?: string;
   depth?: number;
   locationName?: string;
   historicalContext?: string;
   material?: string;
+  
+  // Univerzální pole
+  period?: string;
+  periodFrom?: number;
+  periodTo?: number;
+  dimensions?: string;
+  weight?: number;
+  
+  // Specifická pole - COIN
+  denomination?: string;
+  mintYear?: number;
+  mint?: string;
+  catalogNumber?: string;
+  grade?: string;
+  
+  // Specifická pole - STAMP
+  stampYear?: number;
+  stampCatalogNumber?: string;
+  perforation?: string;
+  printType?: string;
+  cancellation?: string;
+  
+  // Specifická pole - MILITARY
+  army?: string;
+  conflict?: string;
+  unit?: string;
+  authenticity?: string;
+  
+  // Specifická pole - TERRAIN
+  detectorSignal?: string;
+  landType?: string;
+  soilConditions?: string;
+  
+  // Provenience
+  origin?: string;
+  acquisitionMethod?: string;
+  estimatedValue?: string;
+  storageLocation?: string;
+  
   visibility?: FindingVisibility;
   isPublic?: boolean;
   equipmentIds?: string[];
+  customFieldValues?: Array<{ customFieldId: string; value: string }>;
 }
 
 export interface UpdateFindingRequest {
@@ -165,14 +252,57 @@ export interface UpdateFindingRequest {
   date?: string;
   description?: string;
   category?: string;
+  findingType?: FindingType;
+  
+  // Existující rozšířená pole
   condition?: string;
   depth?: number;
   locationName?: string;
   historicalContext?: string;
   material?: string;
+  
+  // Univerzální pole
+  period?: string;
+  periodFrom?: number;
+  periodTo?: number;
+  dimensions?: string;
+  weight?: number;
+  
+  // Specifická pole - COIN
+  denomination?: string;
+  mintYear?: number;
+  mint?: string;
+  catalogNumber?: string;
+  grade?: string;
+  
+  // Specifická pole - STAMP
+  stampYear?: number;
+  stampCatalogNumber?: string;
+  perforation?: string;
+  printType?: string;
+  cancellation?: string;
+  
+  // Specifická pole - MILITARY
+  army?: string;
+  conflict?: string;
+  unit?: string;
+  authenticity?: string;
+  
+  // Specifická pole - TERRAIN
+  detectorSignal?: string;
+  landType?: string;
+  soilConditions?: string;
+  
+  // Provenience
+  origin?: string;
+  acquisitionMethod?: string;
+  estimatedValue?: string;
+  storageLocation?: string;
+  
   visibility?: FindingVisibility;
   isPublic?: boolean;
   equipmentIds?: string[];
+  customFieldValues?: Array<{ customFieldId: string; value: string }>;
 }
 
 export interface UploadImageRequest {
@@ -300,5 +430,42 @@ export interface CreateTracksRequest {
 
 export interface UpdateTrackRequest {
   status?: TrackStatus;
+}
+
+// Custom Fields
+export interface CustomField {
+  id: string;
+  userId: string;
+  name: string;
+  fieldType: CustomFieldType;
+  options?: string | null; // Pro select: "Ano,Ne,Možná" (čárkou oddělené)
+  icon?: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomFieldValue {
+  id: string;
+  findingId: string;
+  customFieldId: string;
+  value: string;
+  customField?: CustomField;
+  createdAt: string;
+}
+
+export interface CreateCustomFieldRequest {
+  name: string;
+  fieldType: CustomFieldType;
+  options?: string;
+  icon?: string;
+}
+
+export interface UpdateCustomFieldRequest {
+  name?: string;
+  fieldType?: CustomFieldType;
+  options?: string;
+  icon?: string;
+  order?: number;
 }
 

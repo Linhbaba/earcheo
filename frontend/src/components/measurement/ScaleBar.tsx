@@ -81,3 +81,4 @@ export const ScaleBar = ({ latitude, zoom, className = '' }: ScaleBarProps) => {
   );
 };
 
+

@@ -1,15 +1,17 @@
-import { Plus, Grid3X3, Loader } from 'lucide-react';
+import { Plus, Grid3X3, Loader, Crosshair } from 'lucide-react';
 import type { Sector } from '../../types/database';
 import { calculateArea, formatArea } from '../../utils/geometry';
+import { PolygonPreview } from './PolygonPreview';
 
 interface SectorListProps {
   sectors: Sector[];
   loading: boolean;
   onSelect: (sector: Sector) => void;
   onNewSector: () => void;
+  onFocusSector?: (sector: Sector) => void;
 }
 
-export const SectorList = ({ sectors, loading, onSelect, onNewSector }: SectorListProps) => {
+export const SectorList = ({ sectors, loading, onSelect, onNewSector, onFocusSector }: SectorListProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -57,8 +59,8 @@ export const SectorList = ({ sectors, loading, onSelect, onNewSector }: SectorLi
                 onClick={() => onSelect(sector)}
                 className="w-full flex items-start gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-left group"
               >
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                  <Grid3X3 className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <PolygonPreview geometry={sector.geometry} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-white font-mono text-sm truncate group-hover:text-emerald-300 transition-colors">
@@ -86,6 +88,18 @@ export const SectorList = ({ sectors, loading, onSelect, onNewSector }: SectorLi
                     </div>
                   )}
                 </div>
+                {onFocusSector && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFocusSector(sector);
+                    }}
+                    className="p-2 rounded-lg hover:bg-emerald-500/20 transition-all self-center"
+                    title="Zaměřit na sektor"
+                  >
+                    <Crosshair className="w-4 h-4 text-white/30 hover:text-emerald-400 transition-colors" />
+                  </div>
+                )}
               </button>
             );
           })}

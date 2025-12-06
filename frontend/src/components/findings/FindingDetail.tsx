@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package, Lock, Eye, Globe } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import { toast } from 'sonner';
 import { PhotoGallery } from './PhotoGallery';
 import { ImageUploader } from './ImageUploader';
+import { DynamicFieldDisplay } from './DynamicField';
+import { CustomFieldDisplay } from '../customFields';
 import { ConfirmDialog } from '../shared';
 import { useFindings } from '../../hooks/useFindings';
+import { 
+  getFieldsForSection, 
+  FINDING_TYPE_META,
+  type FindingType 
+} from '../../utils/findingFieldsConfig';
 import type { Finding } from '../../types/database';
 
 interface FindingDetailProps {
@@ -16,7 +24,10 @@ interface FindingDetailProps {
 
 export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDelete }: FindingDetailProps) => {
   const { findings, uploadImage, deleteImage, deleteFinding } = useFindings();
-  const [showExtended, setShowExtended] = useState(false);
+  const [showIdentification, setShowIdentification] = useState(true);
+  const [showSpecific, setShowSpecific] = useState(true);
+  const [showProvenance, setShowProvenance] = useState(false);
+  const [showCustomFields, setShowCustomFields] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
@@ -26,12 +37,38 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
   
   // Determine visibility with legacy fallback
   const visibility = finding.visibility || (finding.isPublic ? 'PUBLIC' : 'PRIVATE');
+  const findingType = (finding.findingType || 'GENERAL') as FindingType;
+  const typeMeta = FINDING_TYPE_META[findingType];
+
+  // Get fields for this finding type
+  const identificationFields = getFieldsForSection(findingType, 'identification');
+  const specificFields = getFieldsForSection(findingType, 'specific');
+  const provenanceFields = getFieldsForSection(findingType, 'provenance');
+
+  // Check which sections have data
+  const hasIdentificationData = identificationFields.some(f => {
+    const value = (finding as Record<string, unknown>)[f.key];
+    return value !== null && value !== undefined && value !== '';
+  });
+
+  const hasSpecificData = specificFields.some(f => {
+    const value = (finding as Record<string, unknown>)[f.key];
+    return value !== null && value !== undefined && value !== '';
+  });
+
+  const hasProvenanceData = provenanceFields.some(f => {
+    const value = (finding as Record<string, unknown>)[f.key];
+    return value !== null && value !== undefined && value !== '';
+  });
+
+  const hasCustomFieldData = finding.customFieldValues && finding.customFieldValues.length > 0;
 
   useEffect(() => {
-    // Show extended fields if any are filled
-    if (finding.condition || finding.depth || finding.material || finding.historicalContext || finding.locationName) {
-      setShowExtended(true);
-    }
+    // Auto-expand sections with data
+    if (hasIdentificationData) setShowIdentification(true);
+    if (hasSpecificData) setShowSpecific(true);
+    if (hasProvenanceData) setShowProvenance(true);
+    if (hasCustomFieldData) setShowCustomFields(true);
   }, [finding]);
 
   const formattedDate = new Date(finding.date).toLocaleDateString('cs-CZ', {
@@ -67,6 +104,9 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
     }
   };
 
+  // Get type icon
+  const TypeIcon = Icons[typeMeta.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+
   return (
     <>
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -87,9 +127,20 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
           {/* Header */}
           <div className="border-b border-white/10 px-6 py-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl text-primary tracking-wider">
-                {finding.title}
-              </h2>
+              <div className="flex items-center gap-3">
+                {/* Type badge */}
+                <div className={`w-10 h-10 rounded-xl ${typeMeta.color.bg} ${typeMeta.color.border} border flex items-center justify-center`}>
+                  {TypeIcon && <TypeIcon className={`w-5 h-5 ${typeMeta.color.text}`} />}
+                </div>
+                <div>
+                  <h2 className="font-display text-2xl text-primary tracking-wider">
+                    {finding.title}
+                  </h2>
+                  <p className={`text-xs font-mono ${typeMeta.color.text}`}>
+                    {typeMeta.label}
+                  </p>
+                </div>
+              </div>
               
               <button
                 onClick={onClose}
@@ -249,52 +300,127 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
                   </div>
                 )}
 
-                {/* Extended info (collapsible) */}
-                {(finding.condition || finding.depth || finding.material || finding.historicalContext || finding.locationName) && (
+                {/* Identification fields */}
+                {hasIdentificationData && (
                   <div className="border-t border-white/10 pt-6">
                     <button
-                      onClick={() => setShowExtended(!showExtended)}
+                      onClick={() => setShowIdentification(!showIdentification)}
                       className="flex items-center justify-between w-full text-left group"
                     >
                       <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider group-hover:text-primary transition-colors">
-                        Rozšířené informace
+                        Identifikace předmětu
                       </h3>
-                      {showExtended ? (
+                      {showIdentification ? (
                         <ChevronUp className="w-4 h-4 text-primary" />
                       ) : (
                         <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-primary transition-colors" />
                       )}
                     </button>
 
-                    {showExtended && (
-                      <div className="mt-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
-                        {finding.condition && (
-                          <div>
-                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Stav</p>
-                            <p className="text-white/80">{finding.condition}</p>
-                          </div>
-                        )}
-                        
-                        {finding.depth && (
-                          <div>
-                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Hloubka nálezu</p>
-                            <p className="text-white/80">{finding.depth} cm</p>
-                          </div>
-                        )}
+                    {showIdentification && (
+                      <div className="mt-4 grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200">
+                        {identificationFields.map(field => (
+                          <DynamicFieldDisplay
+                            key={field.key}
+                            field={field}
+                            value={(finding as Record<string, unknown>)[field.key] as string | number | null}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                        {finding.material && (
-                          <div>
-                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Materiál</p>
-                            <p className="text-white/80">{finding.material}</p>
-                          </div>
-                        )}
+                {/* Type-specific fields */}
+                {hasSpecificData && (
+                  <div className="border-t border-white/10 pt-6">
+                    <button
+                      onClick={() => setShowSpecific(!showSpecific)}
+                      className="flex items-center justify-between w-full text-left group"
+                    >
+                      <h3 className={`font-mono text-xs uppercase tracking-wider group-hover:text-primary transition-colors ${typeMeta.color.text}`}>
+                        {typeMeta.label.split(' / ')[0]} · Specifické
+                      </h3>
+                      {showSpecific ? (
+                        <ChevronUp className="w-4 h-4 text-primary" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-primary transition-colors" />
+                      )}
+                    </button>
 
-                        {finding.historicalContext && (
-                          <div>
-                            <p className="text-xs text-white/50 font-mono uppercase mb-1">Historický kontext</p>
-                            <p className="text-white/80 whitespace-pre-wrap">{finding.historicalContext}</p>
-                          </div>
-                        )}
+                    {showSpecific && (
+                      <div className="mt-4 grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200">
+                        {specificFields.map(field => (
+                          <DynamicFieldDisplay
+                            key={field.key}
+                            field={field}
+                            value={(finding as Record<string, unknown>)[field.key] as string | number | null}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Provenance fields */}
+                {hasProvenanceData && (
+                  <div className="border-t border-white/10 pt-6">
+                    <button
+                      onClick={() => setShowProvenance(!showProvenance)}
+                      className="flex items-center justify-between w-full text-left group"
+                    >
+                      <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider group-hover:text-primary transition-colors">
+                        Provenience a sbírka
+                      </h3>
+                      {showProvenance ? (
+                        <ChevronUp className="w-4 h-4 text-primary" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-primary transition-colors" />
+                      )}
+                    </button>
+
+                    {showProvenance && (
+                      <div className="mt-4 grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200">
+                        {provenanceFields.map(field => (
+                          <DynamicFieldDisplay
+                            key={field.key}
+                            field={field}
+                            value={(finding as Record<string, unknown>)[field.key] as string | number | null}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Custom fields */}
+                {hasCustomFieldData && finding.customFieldValues && (
+                  <div className="border-t border-white/10 pt-6">
+                    <button
+                      onClick={() => setShowCustomFields(!showCustomFields)}
+                      className="flex items-center justify-between w-full text-left group"
+                    >
+                      <h3 className="font-mono text-xs text-white/70 uppercase tracking-wider group-hover:text-primary transition-colors">
+                        Vlastní pole ({finding.customFieldValues.length})
+                      </h3>
+                      {showCustomFields ? (
+                        <ChevronUp className="w-4 h-4 text-primary" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-primary transition-colors" />
+                      )}
+                    </button>
+
+                    {showCustomFields && (
+                      <div className="mt-4 grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200">
+                        {finding.customFieldValues.map(cfv => (
+                          cfv.customField && (
+                            <CustomFieldDisplay
+                              key={cfv.id}
+                              field={cfv.customField}
+                              value={cfv.value}
+                            />
+                          )
+                        ))}
                       </div>
                     )}
                   </div>
@@ -356,4 +482,3 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
     </>
   );
 };
-

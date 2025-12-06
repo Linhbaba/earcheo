@@ -106,6 +106,9 @@ interface SwipeMapProps {
   measurementPoints?: { lng: number; lat: number }[];
   isMeasuring?: boolean;
   onMeasurementPointMove?: (index: number, lng: number, lat: number) => void;
+  // Focus on bounds
+  focusBounds?: [[number, number], [number, number]] | null;
+  onFocusComplete?: () => void;
 }
 
 export const SwipeMap = ({ 
@@ -141,6 +144,8 @@ export const SwipeMap = ({
   measurementPoints = [],
   isMeasuring = false,
   onMeasurementPointMove,
+  focusBounds = null,
+  onFocusComplete,
 }: SwipeMapProps) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const leftMapRef = useRef<MapRef>(null);
@@ -238,6 +243,43 @@ export const SwipeMap = ({
       });
     };
   }, [leftMapRef.current, handleGAZoomStart, handleGAZoomEnd, handleGAMoveEnd]);
+
+  // Focus on bounds when focusBounds changes
+  useEffect(() => {
+    if (!focusBounds) return;
+    
+    // Calculate center and zoom from bounds
+    const [[minLng, minLat], [maxLng, maxLat]] = focusBounds;
+    const centerLng = (minLng + maxLng) / 2;
+    const centerLat = (minLat + maxLat) / 2;
+    
+    // Calculate appropriate zoom level
+    const lngDiff = maxLng - minLng;
+    const latDiff = maxLat - minLat;
+    const maxDiff = Math.max(lngDiff, latDiff);
+    
+    // Approximate zoom calculation (works well for typical sector sizes)
+    let zoom = 14;
+    if (maxDiff > 0.1) zoom = 10;
+    else if (maxDiff > 0.05) zoom = 11;
+    else if (maxDiff > 0.02) zoom = 12;
+    else if (maxDiff > 0.01) zoom = 13;
+    else if (maxDiff > 0.005) zoom = 14;
+    else if (maxDiff > 0.002) zoom = 15;
+    else if (maxDiff > 0.001) zoom = 16;
+    else zoom = 17;
+
+    // Update viewState - this syncs both maps
+    setViewState({
+      ...viewState,
+      longitude: centerLng,
+      latitude: centerLat,
+      zoom: zoom,
+    });
+
+    // Notify parent that focus is complete
+    onFocusComplete?.();
+  }, [focusBounds]);
 
   // --- POINTER EVENTS HANDLER (funguje pro mouse i touch) ---
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {

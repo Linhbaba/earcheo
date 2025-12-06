@@ -146,7 +146,6 @@ export const SectorForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Polygon Status & Stats */}
-      {!isEdit && (
         <div className={`rounded-xl overflow-hidden border ${hasPolygon ? 'border-emerald-500/30' : isDrawing ? 'border-amber-500/30' : 'border-white/10'}`}>
           {/* Status Header */}
           <div className={`px-4 py-3 ${hasPolygon ? 'bg-emerald-500/10' : isDrawing ? 'bg-amber-500/10' : 'bg-white/5'}`}>
@@ -163,9 +162,9 @@ export const SectorForm = ({
               )}
               <div className="flex-1">
                 <div className={`text-sm font-mono ${hasPolygon ? 'text-emerald-400' : isDrawing ? 'text-amber-400' : 'text-white/50'}`}>
-                  {hasPolygon ? 'Polygon hotov' : isDrawing ? `Kreslení... (${stats.pointCount} ${stats.pointCount === 1 ? 'bod' : stats.pointCount < 5 ? 'body' : 'bodů'})` : 'Nakreslete polygon'}
+                {isEdit ? 'Úprava sektoru' : hasPolygon ? 'Polygon hotov' : isDrawing ? `Kreslení... (${stats.pointCount} ${stats.pointCount === 1 ? 'bod' : stats.pointCount < 5 ? 'body' : 'bodů'})` : 'Nakreslete polygon'}
                 </div>
-                {!hasPolygon && !isDrawing && (
+              {!hasPolygon && !isDrawing && !isEdit && (
                   <div className="text-[10px] font-mono text-white/40 mt-0.5">
                     Klikáním na mapu přidejte body
                   </div>
@@ -233,8 +232,8 @@ export const SectorForm = ({
             </div>
           )}
           
-          {/* Edit polygon button - only when polygon is confirmed */}
-          {hasPolygon && onEditPolygon && (
+          {/* Edit polygon button - only when polygon is confirmed and not in edit mode */}
+          {hasPolygon && onEditPolygon && !isEdit && (
             <button
               type="button"
               onClick={onEditPolygon}
@@ -245,8 +244,8 @@ export const SectorForm = ({
             </button>
           )}
           
-          {/* Instructions - only when not drawing yet */}
-          {!hasPolygon && !isDrawing && (
+          {/* Instructions - only when not drawing yet and not in edit mode */}
+          {!hasPolygon && !isDrawing && !isEdit && (
             <div className="px-4 py-3 bg-black/20 space-y-1.5">
               <div className="flex items-center gap-2 text-[9px] font-mono text-white/40">
                 <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/60">klik</kbd>
@@ -264,7 +263,7 @@ export const SectorForm = ({
           )}
           
           {/* Minimum points hint */}
-          {isDrawing && stats.pointCount < 3 && (
+          {isDrawing && stats.pointCount < 3 && !isEdit && (
             <div className="px-4 py-2 bg-black/20 border-t border-white/5">
               <span className="text-[9px] font-mono text-amber-400/60">
                 ⚠ Min. 3 body pro výpočet plochy
@@ -272,7 +271,6 @@ export const SectorForm = ({
             </div>
           )}
         </div>
-      )}
 
       {/* Name Input */}
       <div>

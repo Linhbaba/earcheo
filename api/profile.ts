@@ -117,8 +117,8 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
               .map(link => ({
                 platform: link.platform!,
                 url: link.url!,
-                userId,
-              })),
+              userId,
+            })),
           });
         }
       }
@@ -138,8 +138,8 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
                 latitude: loc.latitude!,
                 longitude: loc.longitude!,
                 notes: loc.notes,
-                userId,
-              })),
+              userId,
+            })),
           });
         }
       }
