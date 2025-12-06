@@ -158,9 +158,12 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
 
       const customField = await prisma.customField.create({
         data: {
-          ...validation.data,
+          name: validation.data.name,
+          fieldType: validation.data.fieldType,
+          options: validation.data.options,
+          icon: validation.data.icon,
           order: (maxOrder?.order ?? -1) + 1,
-          userId,
+          user: { connect: { id: userId } },
         },
       });
 
