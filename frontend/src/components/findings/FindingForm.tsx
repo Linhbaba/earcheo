@@ -11,7 +11,7 @@ import { FindingTypeSelector } from './FindingTypeSelector';
 import { DynamicField } from './DynamicField';
 import { CustomFieldInput } from '../customFields';
 import { TagInput } from '../shared';
-import { getCategoriesForCollectorTypes, COLLECTOR_TO_FINDING_TYPE, getDefaultFindingType } from '../../utils/collectorPresets';
+import { getCategoriesForCollectorTypes, getDefaultFindingType } from '../../utils/collectorPresets';
 import { 
   getFieldsForSection, 
   FINDING_TYPE_META,
@@ -191,7 +191,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
       optionalFields.forEach(field => {
         const value = formData[field];
         if (value !== undefined && value !== null && value !== '') {
-          (dataToSend as Record<string, unknown>)[field] = value;
+          (dataToSend as unknown as Record<string, unknown>)[field] = value;
         }
       });
 

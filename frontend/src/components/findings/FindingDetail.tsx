@@ -46,18 +46,20 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
   const provenanceFields = getFieldsForSection(findingType, 'provenance');
 
   // Check which sections have data
+  const findingRecord = finding as unknown as Record<string, unknown>;
+  
   const hasIdentificationData = identificationFields.some(f => {
-    const value = (finding as Record<string, unknown>)[f.key];
+    const value = findingRecord[f.key];
     return value !== null && value !== undefined && value !== '';
   });
 
   const hasSpecificData = specificFields.some(f => {
-    const value = (finding as Record<string, unknown>)[f.key];
+    const value = findingRecord[f.key];
     return value !== null && value !== undefined && value !== '';
   });
 
   const hasProvenanceData = provenanceFields.some(f => {
-    const value = (finding as Record<string, unknown>)[f.key];
+    const value = findingRecord[f.key];
     return value !== null && value !== undefined && value !== '';
   });
 
@@ -323,7 +325,7 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
                           <DynamicFieldDisplay
                             key={field.key}
                             field={field}
-                            value={(finding as Record<string, unknown>)[field.key] as string | number | null}
+                            value={findingRecord[field.key] as string | number | null}
                           />
                         ))}
                       </div>
@@ -354,7 +356,7 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
                           <DynamicFieldDisplay
                             key={field.key}
                             field={field}
-                            value={(finding as Record<string, unknown>)[field.key] as string | number | null}
+                            value={findingRecord[field.key] as string | number | null}
                           />
                         ))}
                       </div>
@@ -385,7 +387,7 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
                           <DynamicFieldDisplay
                             key={field.key}
                             field={field}
-                            value={(finding as Record<string, unknown>)[field.key] as string | number | null}
+                            value={findingRecord[field.key] as string | number | null}
                           />
                         ))}
                       </div>

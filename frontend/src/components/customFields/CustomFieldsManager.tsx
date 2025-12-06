@@ -8,11 +8,7 @@ import { useCustomFields } from '../../hooks/useCustomFields';
 import { CUSTOM_FIELD_TYPE_LABELS } from '../../utils/findingFieldsConfig';
 import type { CustomField, CreateCustomFieldRequest } from '../../types/database';
 
-interface CustomFieldsManagerProps {
-  onClose?: () => void;
-}
-
-export const CustomFieldsManager = ({ onClose }: CustomFieldsManagerProps) => {
+export const CustomFieldsManager = () => {
   const { 
     customFields, 
     loading, 
