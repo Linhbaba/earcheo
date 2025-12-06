@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket } from 'lucide-react';
+import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket, Wand2, Coins, Hash } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 
 export const ChangelogPage = () => {
@@ -59,13 +59,37 @@ export const ChangelogPage = () => {
 
           {/* Changelog Entries */}
           <div className="space-y-12">
+
+            {/* v1.1 - WIZARD & CUSTOM FIELDS */}
+            <ChangelogEntry
+              version="1.1"
+              date="6. prosince 2025"
+              badge="NEW ✨"
+              badgeColor="primary"
+            >
+              <ChangeItem icon={<Wand2 />} title="Wizard pro typ nálezu">
+                Nový průvodce při vytváření nálezu - vyberte typ (Mince, Známky, Militárie, Terén, Obecný) a zobrazí se relevantní pole pro danou kategorii.
+              </ChangeItem>
+              <ChangeItem icon={<Coins />} title="Rozšířená pole podle typu">
+                Specifická pole pro každý typ nálezu: numismatika (nominál, mincovna, grading), filatelie (perforace, razítko), militárie (armáda, konflikt), terén (signál detektoru, typ pozemku).
+              </ChangeItem>
+              <ChangeItem icon={<Hash />} title="Vlastní uživatelská pole">
+                Vytvořte si až 10 vlastních polí pro evidenci nálezů - text, číslo, datum nebo výběr z možností. Každé pole může mít vlastní ikonu.
+              </ChangeItem>
+              <ChangeItem icon={<Package />} title="Univerzální pole">
+                Nová společná pole pro všechny typy: období/datace, rozměry, hmotnost, původ, způsob získání, odhadovaná hodnota, úložné místo.
+              </ChangeItem>
+              <ChangeItem icon={<Zap />} title="Dynamické sekce formuláře">
+                Formulář pro nálezy nyní zobrazuje sekce podle vybraného typu - méně polí, lepší přehlednost.
+              </ChangeItem>
+            </ChangelogEntry>
             
             {/* v1.0 - RELEASE */}
             <ChangelogEntry
               version="1.0"
               date="5. prosince 2025"
               badge="RELEASE 🎉"
-              badgeColor="primary"
+              badgeColor="green"
             >
               <ChangeItem icon={<Rocket />} title="Oficiální release verze 1.0">
                 eArcheo opouští beta verzi! Stabilní platforma připravená pro každodenní použití s kompletní sadou funkcí pro archeologický průzkum.
