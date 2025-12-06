@@ -217,7 +217,7 @@ export const AuthHeader = ({
         {/* Version badge */}
         <div className="text-right pointer-events-auto">
           <span className="bg-primary/20 px-3 py-1 rounded-lg text-primary border border-primary/30 text-[10px] font-mono tracking-wider">
-            v1.0
+            v1.1
           </span>
         </div>
 
