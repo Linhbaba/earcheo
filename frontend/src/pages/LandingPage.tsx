@@ -138,7 +138,7 @@ export const LandingPage = () => {
             Changelog
           </Link>
           <span className="px-2 py-1 sm:px-3 bg-primary/20 border border-primary/30 rounded-lg text-primary text-[9px] sm:text-[10px] font-mono tracking-wider">
-            v1.0
+            v1.1
           </span>
           <button
             onClick={handleLogin}
@@ -281,7 +281,7 @@ export const LandingPage = () => {
         <div className="mt-20 max-w-6xl w-full px-4">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full mb-4">
-              <span className="text-primary font-mono text-xs tracking-wider">NOVINKY VE VERZI 1.0</span>
+              <span className="text-primary font-mono text-xs tracking-wider">NOVINKY VE VERZI 1.1</span>
             </div>
             <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
               Nástroje pro objevitele
@@ -307,8 +307,8 @@ export const LandingPage = () => {
               <NewFeatureCard
                 icon={<Search className="w-7 h-7" />}
                 title="Nálezy"
-                description="Kompletní systém pro dokumentaci archeologických nálezů"
-                features={['Fotogalerie', 'GPS lokace', 'Kategorie a tagy', 'Veřejné/soukromé']}
+                description="Wizard pro výběr typu nálezu s rozšířenými poli"
+                features={['Mince, Známky, Militárie, Terén', 'Dynamická pole podle typu', 'Vlastní uživatelská pole', 'Fotogalerie + GPS']}
               />
               <NewFeatureCard
                 icon={<Package className="w-7 h-7" />}
