@@ -22,11 +22,10 @@ export const LandingPage = () => {
   };
 
   const handleSignUp = () => {
+    // Otevře Universal Login - uživatel si vybere login/signup sám
+    // Zabraňuje chybě "user already exists" když kliknou existující uživatelé
     loginWithRedirect({
-      appState: { returnTo: '/map' },
-      authorizationParams: {
-        screen_hint: 'signup'
-      }
+      appState: { returnTo: '/map' }
     });
   };
 
