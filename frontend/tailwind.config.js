@@ -21,7 +21,7 @@ export default {
       },
       fontFamily: {
         sans: ['Share Tech Mono', 'ui-monospace', 'SFMono-Regular'], // Default text is now tech mono
-        display: ['Orbitron', 'sans-serif'], // For headers
+        display: ['Exo 2', 'sans-serif'], // For headers (with Czech diacritics)
         mono: ['Share Tech Mono', 'monospace'],
       },
       letterSpacing: {
