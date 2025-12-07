@@ -11,10 +11,10 @@ interface SEOHeadProps {
   structuredData?: object;
 }
 
-const DEFAULT_TITLE = 'eArcheo - Dálkový průzkum krajiny České republiky';
-const DEFAULT_DESCRIPTION = 'Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele.';
-const DEFAULT_KEYWORDS = 'lidar, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie';
-const DEFAULT_OG_IMAGE = '/earcheo_OG_new.jpg';
+const DEFAULT_TITLE = 'eArcheo - Evidence sbírek pro numismatiky, filatelisty a sběratele';
+const DEFAULT_DESCRIPTION = 'Komunitní mapa pro sběratele mincí, bankovek, známek a militárií. Evidence s Pofis/Michel katalogy, LiDAR mapami a plánováním výprav.';
+const DEFAULT_KEYWORDS = 'numismatika, filatelie, sběratelství, mince, bankovky, známky, pofis, michel, militárie, detektory kovů, lidar, archeologický průzkum, evidence sbírky';
+const DEFAULT_OG_IMAGE = '/earcheo_OG_new.jpg?v=2';
 const SITE_URL = 'https://earcheo.cz';
 
 export const SEOHead = ({

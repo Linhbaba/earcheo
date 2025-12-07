@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket, Wand2, Coins, Hash } from 'lucide-react';
+import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket, Wand2, Coins, Hash, Mail, Banknote, ScrollText, Pickaxe } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 
 export const ChangelogPage = () => {
@@ -60,12 +60,39 @@ export const ChangelogPage = () => {
           {/* Changelog Entries */}
           <div className="space-y-12">
 
+            {/* v1.2 - ROZŠÍŘENÁ EVIDENCE PRO SBĚRATELE */}
+            <ChangelogEntry
+              version="1.2"
+              date="7. prosince 2025"
+              badge="NEW ✨"
+              badgeColor="primary"
+            >
+              <ChangeItem icon={<Mail />} title="Filatelie - kompletní evidence">
+                Nová pole pro známky: Pofis/Michel katalogy, typ položky (Celistvost, FDC, Aršík), perforace, typ tisku, barva, papír, lep, vodoznak a razítko.
+              </ChangeItem>
+              <ChangeItem icon={<Banknote />} title="Notafilie - bankovky a série">
+                Rozšíření pro bankovky: Pick katalog, série, emise, prefix, podpis guvernéra, ochranné prvky. Typ položky: Mince, Bankovka, Medaile, Žeton, Notgeld.
+              </ChangeItem>
+              <ChangeItem icon={<Pickaxe />} title="Archeologie - profesionální dokumentace">
+                Nová pole pro archeologické nálezy: stratigrafie, kontext (SU/sektor), metoda výzkumu, interpretace, nálezová situace.
+              </ChangeItem>
+              <ChangeItem icon={<ScrollText />} title="12 specifických polí pro filatelii">
+                Typ položky, rok vydání, Pofis č., Michel č., jiný katalog, perforace, typ tisku, barva, papír, lep, vodoznak, razítko.
+              </ChangeItem>
+              <ChangeItem icon={<Coins />} title="12 specifických polí pro numismatiku">
+                Typ položky, nominál, rok, mincovna/tiskárna, katalog, Pick č., grading, série, emise, prefix, podpis, ochranné prvky.
+              </ChangeItem>
+              <ChangeItem icon={<Image />} title="Nový OG obrázek">
+                Aktualizovaný náhledový obrázek pro sdílení na sociálních sítích.
+              </ChangeItem>
+            </ChangelogEntry>
+
             {/* v1.1 - WIZARD & CUSTOM FIELDS */}
             <ChangelogEntry
               version="1.1"
               date="6. prosince 2025"
-              badge="NEW ✨"
-              badgeColor="primary"
+              badge="STABLE"
+              badgeColor="green"
             >
               <ChangeItem icon={<Wand2 />} title="Wizard pro typ nálezu">
                 Nový průvodce při vytváření nálezu - vyberte typ (Mince, Známky, Militárie, Terén, Obecný) a zobrazí se relevantní pole pro danou kategorii.

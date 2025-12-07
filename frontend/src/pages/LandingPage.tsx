@@ -140,7 +140,7 @@ export const LandingPage = () => {
             Changelog
           </Link>
           <span className="px-2 py-1 sm:px-3 bg-primary/20 border border-primary/30 rounded-lg text-primary text-[9px] sm:text-[10px] font-mono tracking-wider">
-            v1.1
+            v1.2
           </span>
           <button
             onClick={handleLogin}
@@ -226,12 +226,14 @@ export const LandingPage = () => {
 
           {/* Main heading */}
           <h2 className="font-display text-3xl sm:text-5xl md:text-7xl text-white mb-4 sm:mb-6 leading-tight px-4">
-            Mapa tvých objevů
+            Mapa<br />
+            <span className="text-white/70">pro všechny</span><br />
+            <span className="text-primary">objevitele!</span>
           </h2>
 
           <p className="text-white/50 text-sm sm:text-lg md:text-xl font-mono mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed px-4">
-            eArcheo je komunitní mapa pro hledače, archeology, sběratele i vetešníky. 
-            Ukládej nálezy do mapy, plánuj výpravy a pracuj s LIDARem, ortofotem i historickými podklady.
+            Evidence sbírek pro numismatiky, filatelisty, detektoráře i archeology. 
+            Mince, bankovky, známky, militárie – vše přehledně na jednom místě s mapou a LiDARem.
           </p>
 
           {/* CTA Buttons */}
@@ -340,7 +342,7 @@ export const LandingPage = () => {
         <div className="mt-20 max-w-6xl w-full px-4">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full mb-4">
-              <span className="text-primary font-mono text-xs tracking-wider">NOVINKY VE VERZI 1.1</span>
+              <span className="text-primary font-mono text-xs tracking-wider">NOVINKY VE VERZI 1.2</span>
             </div>
             <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
               Nástroje pro objevitele
