@@ -161,7 +161,14 @@ export const LandingPage = () => {
       {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-center px-4 sm:px-8 pt-8 sm:pt-12 pb-8">
         <div className="text-center max-w-3xl w-full">
-          {/* Live Stats Bar */}
+          {/* Main heading */}
+          <h1 className="font-display text-3xl sm:text-5xl md:text-7xl text-white mb-6 sm:mb-8 leading-tight px-4">
+            Mapa<br />
+            <span className="text-white/70">pro všechny</span><br />
+            <span className="text-primary">objevitele!</span>
+          </h1>
+
+          {/* Live Stats Bar - under H1 */}
           {stats && stats.totalFindings > 0 ? (
             <div className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -223,13 +230,6 @@ export const LandingPage = () => {
               <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">NÁLEZY • MAPY • PŘÍBĚHY</span>
             </div>
           )}
-
-          {/* Main heading */}
-          <h2 className="font-display text-3xl sm:text-5xl md:text-7xl text-white mb-4 sm:mb-6 leading-tight px-4">
-            Mapa<br />
-            <span className="text-white/70">pro všechny</span><br />
-            <span className="text-primary">objevitele!</span>
-          </h2>
 
           <p className="text-white/50 text-sm sm:text-lg md:text-xl font-mono mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed px-4">
             Evidence sbírek pro numismatiky, filatelisty, detektoráře i archeology. 
