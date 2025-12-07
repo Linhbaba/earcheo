@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Check, X, MapPin, AlertCircle, Clock, Maximize2, RotateCcw, Edit3 } from 'lucide-react';
 import type { GeoJSONPolygon, GeoJSONLineString } from '../../types/database';
 import { 
@@ -11,6 +11,16 @@ import {
   calculateTotalLength,
   formatLength,
 } from '../../utils/geometry';
+
+// --- GA4 TRACKING ---
+const sendGA4Event = (eventName: string, params: Record<string, unknown>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, params);
+    if (import.meta.env.DEV) {
+      console.log(`[GA4] ${eventName}`, JSON.stringify(params));
+    }
+  }
+};
 
 interface SectorFormProps {
   initialName?: string;
@@ -63,12 +73,7 @@ export const SectorForm = ({
 }: SectorFormProps) => {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    onSubmit(name.trim(), description.trim() || undefined);
-  };
+  const stripWidthChangesRef = useRef(0);
 
   const hasPolygon = drawnPolygon !== null;
   const isDrawing = drawingPolygon.length > 0;
@@ -97,6 +102,22 @@ export const SectorForm = ({
       pointCount: drawingPolygon.length,
     };
   }, [hasPolygon, drawnPolygon, drawingPolygon]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    
+    // GA4: Track form submission
+    sendGA4Event('sector_form_submit', {
+      is_edit: isEdit,
+      has_polygon: hasPolygon,
+      strip_width: stripWidth,
+      strip_width_changes: stripWidthChangesRef.current,
+      area_m2: stats.area > 0 ? Math.round(stats.area) : null,
+    });
+    
+    onSubmit(name.trim(), description.trim() || undefined);
+  };
 
   // Calculate orientation and strip info when polygon is confirmed
   const orientationInfo = useMemo(() => {
@@ -236,7 +257,13 @@ export const SectorForm = ({
           {hasPolygon && onEditPolygon && !isEdit && (
             <button
               type="button"
-              onClick={onEditPolygon}
+              onClick={() => {
+                sendGA4Event('sector_polygon_edit', {
+                  area_m2: Math.round(stats.area),
+                  point_count: stats.pointCount,
+                });
+                onEditPolygon();
+              }}
               className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 border-t border-white/5 flex items-center justify-center gap-2 text-white/50 hover:text-white text-xs font-mono transition-colors"
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -315,7 +342,10 @@ export const SectorForm = ({
           max="10"
           step="0.1"
           value={stripWidth}
-          onChange={(e) => onStripWidthChange(parseFloat(e.target.value))}
+          onChange={(e) => {
+            stripWidthChangesRef.current++;
+            onStripWidthChange(parseFloat(e.target.value));
+          }}
           className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-emerald-400"
         />
         <div className="flex justify-between text-[9px] font-mono text-white/30 mt-1">
@@ -329,7 +359,14 @@ export const SectorForm = ({
       <div className="flex gap-2 pt-2">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={() => {
+            sendGA4Event('sector_form_cancel', {
+              is_edit: isEdit,
+              had_polygon: hasPolygon,
+              had_name: name.trim().length > 0,
+            });
+            onCancel();
+          }}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white font-mono text-sm transition-all"
         >
           <X className="w-4 h-4" />

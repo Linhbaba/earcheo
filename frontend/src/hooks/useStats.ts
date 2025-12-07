@@ -5,6 +5,13 @@ interface PlatformStats {
   totalFindings: number;
   publicFindings: number;
   totalEquipment: number;
+  byType: {
+    coins: number;
+    stamps: number;
+    military: number;
+    terrain: number;
+    general: number;
+  };
   lastUpdated: string;
 }
 

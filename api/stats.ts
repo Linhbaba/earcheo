@@ -20,11 +20,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Paralelní dotazy pro rychlost
-    const [totalUsers, totalFindings, publicFindings, totalEquipment] = await Promise.all([
+    const [
+      totalUsers, 
+      totalFindings, 
+      publicFindings, 
+      totalEquipment,
+      coinCount,
+      stampCount,
+      militaryCount,
+      terrainCount,
+      generalCount,
+    ] = await Promise.all([
       prisma.user.count(),
       prisma.finding.count(),
       prisma.finding.count({ where: { isPublic: true } }),
       prisma.equipment.count(),
+      prisma.finding.count({ where: { findingType: 'COIN' } }),
+      prisma.finding.count({ where: { findingType: 'STAMP' } }),
+      prisma.finding.count({ where: { findingType: 'MILITARY' } }),
+      prisma.finding.count({ where: { findingType: 'TERRAIN' } }),
+      prisma.finding.count({ where: { findingType: 'GENERAL' } }),
     ]);
 
     const stats = {
@@ -32,6 +47,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       totalFindings,
       publicFindings,
       totalEquipment,
+      byType: {
+        coins: coinCount,
+        stamps: stampCount,
+        military: militaryCount,
+        terrain: terrainCount,
+        general: generalCount,
+      },
       lastUpdated: new Date().toISOString(),
     };
 

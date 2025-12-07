@@ -7,7 +7,17 @@ import type { Sector, GeoJSONPolygon, GeoJSONLineString } from '../../types/data
 import { SectorList } from './SectorList';
 import { SectorDetail } from './SectorDetail';
 import { SectorForm } from './SectorForm';
-import { generateStrips } from '../../utils/geometry';
+import { generateStrips, calculateArea } from '../../utils/geometry';
+
+// --- GA4 TRACKING ---
+const sendGA4Event = (eventName: string, params: Record<string, unknown>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, params);
+    if (import.meta.env.DEV) {
+      console.log(`[GA4] ${eventName}`, JSON.stringify(params));
+    }
+  }
+};
 
 interface SectorPanelProps {
   isOpen: boolean;
@@ -100,6 +110,16 @@ export const SectorPanel = ({
         await createTracks(sector.id, trackData);
       }
       
+      // GA4: Track sector creation
+      const area = calculateArea(drawnPolygon);
+      sendGA4Event('sector_create', {
+        sector_id: sector.id,
+        sector_name: name.slice(0, 50),
+        area_m2: Math.round(area),
+        strip_width: stripWidth,
+        strip_count: strips.length,
+      });
+      
       toast.success('Sektor byl vytvořen');
       onClearDrawing();
       onSelectSector(sector);
@@ -135,6 +155,14 @@ export const SectorPanel = ({
         }
       }
       
+      // GA4: Track sector update
+      sendGA4Event('sector_update', {
+        sector_id: id,
+        sector_name: name.slice(0, 50),
+        strip_width: stripWidth,
+        strip_width_changed: stripWidthChanged,
+      });
+      
       toast.success('Sektor byl aktualizován');
       onSelectSector(sector);
       setView('detail');
@@ -148,6 +176,13 @@ export const SectorPanel = ({
     if (!confirm('Opravdu chcete smazat tento sektor?')) return;
     
     try {
+      // GA4: Track sector deletion
+      const sectorToDelete = sectors.find(s => s.id === id);
+      sendGA4Event('sector_delete', {
+        sector_id: id,
+        sector_name: sectorToDelete?.name?.slice(0, 50) || 'unknown',
+      });
+      
       await deleteSector(id);
       toast.success('Sektor byl smazán');
       onSelectSector(null);
@@ -184,6 +219,14 @@ export const SectorPanel = ({
         })),
       ],
     };
+
+    // GA4: Track sector export
+    sendGA4Event('sector_export', {
+      sector_id: selectedSector.id,
+      sector_name: selectedSector.name.slice(0, 50),
+      track_count: tracks.length,
+      format: 'geojson',
+    });
 
     const blob = new Blob([JSON.stringify(geoJSON, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

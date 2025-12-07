@@ -82,19 +82,33 @@ export interface Finding {
   dimensions?: string | null;
   weight?: number | null;
   
-  // Specifická pole - COIN (numismatika)
+  // Specifická pole - COIN (numismatika - mince i bankovky)
+  coinItemType?: string | null;
   denomination?: string | null;
   mintYear?: number | null;
   mint?: string | null;
   catalogNumber?: string | null;
+  pickNumber?: string | null;
   grade?: string | null;
+  series?: string | null;
+  emission?: string | null;
+  prefix?: string | null;
+  signature?: string | null;
+  securityFeatures?: string | null;
   
   // Specifická pole - STAMP (filatelie)
   stampYear?: number | null;
   stampCatalogNumber?: string | null;
+  pofisNumber?: string | null;
+  michelNumber?: string | null;
+  stampItemType?: string | null;
   perforation?: string | null;
   printType?: string | null;
   cancellation?: string | null;
+  paperType?: string | null;
+  gumType?: string | null;
+  watermark?: string | null;
+  stampColor?: string | null;
   
   // Specifická pole - MILITARY (militárie)
   army?: string | null;
@@ -102,10 +116,15 @@ export interface Finding {
   unit?: string | null;
   authenticity?: string | null;
   
-  // Specifická pole - TERRAIN (detektoráři)
+  // Specifická pole - TERRAIN (detektoráři + archeologie)
   detectorSignal?: string | null;
   landType?: string | null;
   soilConditions?: string | null;
+  stratigraphy?: string | null;
+  context?: string | null;
+  excavationMethod?: string | null;
+  interpretation?: string | null;
+  findingSituation?: string | null;
   
   // Provenience
   origin?: string | null;
@@ -208,19 +227,33 @@ export interface CreateFindingRequest {
   dimensions?: string;
   weight?: number;
   
-  // Specifická pole - COIN
+  // Specifická pole - COIN (mince i bankovky)
+  coinItemType?: string;
   denomination?: string;
   mintYear?: number;
   mint?: string;
   catalogNumber?: string;
+  pickNumber?: string;
   grade?: string;
+  series?: string;
+  emission?: string;
+  prefix?: string;
+  signature?: string;
+  securityFeatures?: string;
   
   // Specifická pole - STAMP
   stampYear?: number;
   stampCatalogNumber?: string;
+  pofisNumber?: string;
+  michelNumber?: string;
+  stampItemType?: string;
   perforation?: string;
   printType?: string;
   cancellation?: string;
+  paperType?: string;
+  gumType?: string;
+  watermark?: string;
+  stampColor?: string;
   
   // Specifická pole - MILITARY
   army?: string;
@@ -228,10 +261,15 @@ export interface CreateFindingRequest {
   unit?: string;
   authenticity?: string;
   
-  // Specifická pole - TERRAIN
+  // Specifická pole - TERRAIN (+ archeologie)
   detectorSignal?: string;
   landType?: string;
   soilConditions?: string;
+  stratigraphy?: string;
+  context?: string;
+  excavationMethod?: string;
+  interpretation?: string;
+  findingSituation?: string;
   
   // Provenience
   origin?: string;
@@ -268,19 +306,33 @@ export interface UpdateFindingRequest {
   dimensions?: string;
   weight?: number;
   
-  // Specifická pole - COIN
+  // Specifická pole - COIN (mince i bankovky)
+  coinItemType?: string;
   denomination?: string;
   mintYear?: number;
   mint?: string;
   catalogNumber?: string;
+  pickNumber?: string;
   grade?: string;
+  series?: string;
+  emission?: string;
+  prefix?: string;
+  signature?: string;
+  securityFeatures?: string;
   
   // Specifická pole - STAMP
   stampYear?: number;
   stampCatalogNumber?: string;
+  pofisNumber?: string;
+  michelNumber?: string;
+  stampItemType?: string;
   perforation?: string;
   printType?: string;
   cancellation?: string;
+  paperType?: string;
+  gumType?: string;
+  watermark?: string;
+  stampColor?: string;
   
   // Specifická pole - MILITARY
   army?: string;
@@ -288,10 +340,15 @@ export interface UpdateFindingRequest {
   unit?: string;
   authenticity?: string;
   
-  // Specifická pole - TERRAIN
+  // Specifická pole - TERRAIN (+ archeologie)
   detectorSignal?: string;
   landType?: string;
   soilConditions?: string;
+  stratigraphy?: string;
+  context?: string;
+  excavationMethod?: string;
+  interpretation?: string;
+  findingSituation?: string;
   
   // Provenience
   origin?: string;

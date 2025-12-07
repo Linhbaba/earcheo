@@ -3,6 +3,16 @@ import type { Sector } from '../../types/database';
 import { calculateArea, formatArea } from '../../utils/geometry';
 import { PolygonPreview } from './PolygonPreview';
 
+// --- GA4 TRACKING ---
+const sendGA4Event = (eventName: string, params: Record<string, unknown>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, params);
+    if (import.meta.env.DEV) {
+      console.log(`[GA4] ${eventName}`, JSON.stringify(params));
+    }
+  }
+};
+
 interface SectorListProps {
   sectors: Sector[];
   loading: boolean;
@@ -24,7 +34,10 @@ export const SectorList = ({ sectors, loading, onSelect, onNewSector, onFocusSec
     <div className="space-y-3">
       {/* New Sector Button */}
       <button
-        onClick={onNewSector}
+        onClick={() => {
+          sendGA4Event('sector_new_start', { existing_sectors: sectors.length });
+          onNewSector();
+        }}
         className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl transition-all group"
       >
         <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -56,7 +69,15 @@ export const SectorList = ({ sectors, loading, onSelect, onNewSector, onFocusSec
             return (
               <button
                 key={sector.id}
-                onClick={() => onSelect(sector)}
+                onClick={() => {
+                  sendGA4Event('sector_select', {
+                    sector_id: sector.id,
+                    sector_name: sector.name.slice(0, 50),
+                    area_m2: Math.round(area),
+                    progress_pct: Math.round(progress),
+                  });
+                  onSelect(sector);
+                }}
                 className="w-full flex items-start gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-left group"
               >
                 <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -92,6 +113,11 @@ export const SectorList = ({ sectors, loading, onSelect, onNewSector, onFocusSec
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
+                      sendGA4Event('sector_focus', {
+                        sector_id: sector.id,
+                        sector_name: sector.name.slice(0, 50),
+                        source: 'list',
+                      });
                       onFocusSector(sector);
                     }}
                     className="p-2 rounded-lg hover:bg-emerald-500/20 transition-all self-center"

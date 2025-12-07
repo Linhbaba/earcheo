@@ -95,19 +95,33 @@ model Finding {
   dimensions        String?            // Rozměry
   weight            Float?             // Hmotnost v gramech
   
-  // Specifická pole - COIN (numismatika)
+  // Specifická pole - COIN (numismatika - mince i bankovky)
+  coinItemType      String?            // Typ položky (Mince, Bankovka, Medaile, Žeton)
   denomination      String?            // Nominál
-  mintYear          Int?               // Rok ražby
-  mint              String?            // Mincovna
-  catalogNumber     String?            // Katalogové číslo
+  mintYear          Int?               // Rok ražby / vydání
+  mint              String?            // Mincovna / Tiskárna
+  catalogNumber     String?            // Katalogové číslo (obecné)
+  pickNumber        String?            // Pick katalogové číslo (bankovky)
   grade             String?            // Kvalita / grading
+  series            String?            // Série (bankovky)
+  emission          String?            // Emise (bankovky)
+  prefix            String?            // Prefix série (bankovky)
+  signature         String?            // Podpis (bankovky)
+  securityFeatures  String?            // Ochranné prvky (bankovky)
   
   // Specifická pole - STAMP (filatelie)
   stampYear         Int?               // Rok vydání
-  stampCatalogNumber String?           // Katalogové číslo (filatelie)
+  stampCatalogNumber String?           // Katalogové číslo (obecné)
+  pofisNumber       String?            // Pofis katalogové číslo
+  michelNumber      String?            // Michel katalogové číslo
+  stampItemType     String?            // Typ položky (Známka, Celistvost, FDC, Dopis, Výstřižek, Aršík, Kupón)
   perforation       String?            // Perforace / zoubkování
   printType         String?            // Typ tisku
   cancellation      String?            // Razítko
+  paperType         String?            // Typ papíru
+  gumType           String?            // Lep (originální, bez lepu, přelep)
+  watermark         String?            // Vodoznak
+  stampColor        String?            // Barva známky
   
   // Specifická pole - MILITARY (militárie)
   army              String?            // Armáda / země
@@ -115,10 +129,15 @@ model Finding {
   unit              String?            // Jednotka
   authenticity      String?            // Autenticita
   
-  // Specifická pole - TERRAIN (detektoráři)
+  // Specifická pole - TERRAIN (detektoráři + archeologie)
   detectorSignal    String?            // Signál detektoru
   landType          String?            // Typ pozemku
   soilConditions    String?            // Půdní podmínky
+  stratigraphy      String?            // Stratigrafie / vrstva
+  context           String?            // Kontext nálezu (SU, sektor)
+  excavationMethod  String?            // Metoda výzkumu
+  interpretation    String?            // Interpretace nálezu
+  findingSituation  String?            // Nálezová situace
   
   // Provenience
   origin            String?            // Původ / země

@@ -11,6 +11,16 @@ import {
 } from '../../utils/geometry';
 import { SectorMiniMap } from './SectorMiniMap';
 
+// --- GA4 TRACKING ---
+const sendGA4Event = (eventName: string, params: Record<string, unknown>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, params);
+    if (import.meta.env.DEV) {
+      console.log(`[GA4] ${eventName}`, JSON.stringify(params));
+    }
+  }
+};
+
 interface SectorDetailProps {
   sector: Sector;
   tracks: Track[];
@@ -182,7 +192,13 @@ export const SectorDetail = ({
 
         {/* Edit actions */}
         <button
-          onClick={onEdit}
+          onClick={() => {
+            sendGA4Event('sector_edit_start', {
+              sector_id: sector.id,
+              sector_name: sector.name.slice(0, 50),
+            });
+            onEdit();
+          }}
           className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 border-t border-white/5 flex items-center justify-center gap-2 text-white/50 hover:text-white text-xs font-mono transition-colors"
         >
           <Edit3 className="w-3.5 h-3.5" />
@@ -219,14 +235,27 @@ export const SectorDetail = ({
       {/* Bottom Actions */}
         <div className="flex gap-2">
           <button
-            onClick={onExport}
+            onClick={() => {
+              sendGA4Event('sector_export_click', {
+                sector_id: sector.id,
+                sector_name: sector.name.slice(0, 50),
+                track_count: tracks.length,
+              });
+              onExport();
+            }}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white font-mono text-xs transition-all"
           >
             <Download className="w-3.5 h-3.5" />
           Export GeoJSON
           </button>
           <button
-            onClick={onDelete}
+            onClick={() => {
+              sendGA4Event('sector_delete_click', {
+                sector_id: sector.id,
+                sector_name: sector.name.slice(0, 50),
+              });
+              onDelete();
+            }}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 font-mono text-xs transition-all"
           >
             <Trash2 className="w-3.5 h-3.5" />

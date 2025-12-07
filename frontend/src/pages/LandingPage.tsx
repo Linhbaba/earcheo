@@ -1,13 +1,15 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Search, FileText, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown, Coins, Mail, Medal, Target } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Search, FileText, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown, Coins, Mail, Medal, Target, Gem } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { useEffect, useState } from 'react';
+import { useStats } from '../hooks/useStats';
 
 export const LandingPage = () => {
   const { loginWithRedirect } = useAuth0();
   const [openCategory, setOpenCategory] = useState<string | null>(null); // 'findings' | 'maps' | 'tools' | null
+  const { data: stats } = useStats();
 
   const toggleCategory = (category: string) => {
     setOpenCategory(openCategory === category ? null : category);
@@ -159,11 +161,68 @@ export const LandingPage = () => {
       {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-center px-4 sm:px-8 pt-8 sm:pt-12 pb-8">
         <div className="text-center max-w-3xl w-full">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">NÁLEZY • MAPY • PŘÍBĚHY</span>
-          </div>
+          {/* Live Stats Bar */}
+          {stats && stats.totalFindings > 0 ? (
+            <div className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              
+              {/* Total findings */}
+              <div className="flex items-center gap-1.5 pl-1">
+                <Gem className="w-3.5 h-3.5 text-primary" />
+                <span className="text-primary font-mono text-xs sm:text-sm font-medium tabular-nums">{stats.totalFindings.toLocaleString('cs-CZ')}</span>
+                <span className="text-white/40 font-mono text-[10px] sm:text-xs">nálezů</span>
+              </div>
+
+              {/* Coins */}
+              {stats.byType?.coins ? (
+                <>
+                  <span className="text-white/20 mx-1 sm:mx-2">•</span>
+                  <div className="flex items-center gap-1.5">
+                    <Coins className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-amber-400 font-mono text-xs sm:text-sm font-medium tabular-nums">{stats.byType.coins.toLocaleString('cs-CZ')}</span>
+                    <span className="text-white/40 font-mono text-[10px] sm:text-xs hidden sm:inline">mincí</span>
+                  </div>
+                </>
+              ) : null}
+
+              {/* Military */}
+              {stats.byType?.military ? (
+                <>
+                  <span className="text-white/20 mx-1 sm:mx-2">•</span>
+                  <div className="flex items-center gap-1.5">
+                    <Medal className="w-3.5 h-3.5 text-red-400" />
+                    <span className="text-red-400 font-mono text-xs sm:text-sm font-medium tabular-nums">{stats.byType.military.toLocaleString('cs-CZ')}</span>
+                    <span className="text-white/40 font-mono text-[10px] sm:text-xs hidden sm:inline">militárií</span>
+                  </div>
+                </>
+              ) : null}
+
+              {/* Terrain */}
+              {stats.byType?.terrain ? (
+                <>
+                  <span className="text-white/20 mx-1 sm:mx-2">•</span>
+                  <div className="flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400 font-mono text-xs sm:text-sm font-medium tabular-nums">{stats.byType.terrain.toLocaleString('cs-CZ')}</span>
+                    <span className="text-white/40 font-mono text-[10px] sm:text-xs hidden sm:inline">terénních</span>
+                  </div>
+                </>
+              ) : null}
+
+              {/* Users */}
+              <span className="text-white/20 mx-1 sm:mx-2">•</span>
+              <div className="flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-white/60" />
+                <span className="text-white/70 font-mono text-xs sm:text-sm font-medium tabular-nums">{stats.totalUsers.toLocaleString('cs-CZ')}</span>
+                <span className="text-white/40 font-mono text-[10px] sm:text-xs hidden sm:inline">hledačů</span>
+              </div>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-full mb-6 sm:mb-8">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-white/60 font-mono text-[10px] sm:text-xs tracking-wider">NÁLEZY • MAPY • PŘÍBĚHY</span>
+            </div>
+          )}
 
           {/* Main heading */}
           <h2 className="font-display text-3xl sm:text-5xl md:text-7xl text-white mb-4 sm:mb-6 leading-tight px-4">
@@ -660,3 +719,4 @@ const ParticleField = () => {
     </div>
   );
 };
+

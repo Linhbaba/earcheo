@@ -14,7 +14,7 @@ interface SEOHeadProps {
 const DEFAULT_TITLE = 'eArcheo - Dálkový průzkum krajiny České republiky';
 const DEFAULT_DESCRIPTION = 'Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele.';
 const DEFAULT_KEYWORDS = 'lidar, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie';
-const DEFAULT_OG_IMAGE = '/earcheo_OG.png';
+const DEFAULT_OG_IMAGE = '/earcheo_OG_new.jpg';
 const SITE_URL = 'https://earcheo.cz';
 
 export const SEOHead = ({
