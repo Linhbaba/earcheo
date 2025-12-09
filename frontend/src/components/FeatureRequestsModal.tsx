@@ -127,7 +127,7 @@ export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalPr
       case 'NEW': return 'Nový';
       case 'PLANNED': return 'Plánováno';
       case 'IN_PROGRESS': return 'V realizaci';
-      case 'DONE': return 'Hotovo';
+      case 'DONE': return 'Přidáno ✨';
       default: return 'Nový';
     }
   };

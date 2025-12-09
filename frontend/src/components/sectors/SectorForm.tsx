@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Check, X, MapPin, AlertCircle, Clock, Maximize2, RotateCcw, Edit3 } from 'lucide-react';
+import { Check, X, MapPin, AlertCircle, Clock, Maximize2, RotateCcw, Edit3, Footprints } from 'lucide-react';
 import type { GeoJSONPolygon, GeoJSONLineString } from '../../types/database';
 import { 
   calculateArea, 
@@ -25,23 +25,25 @@ const sendGA4Event = (eventName: string, params: Record<string, unknown>) => {
 interface SectorFormProps {
   initialName?: string;
   initialDescription?: string;
+  initialWalkingSpeed?: number;
   drawnPolygon: GeoJSONPolygon | null;
   drawingPolygon?: [number, number][]; // In-progress drawing
   stripWidth: number;
   onStripWidthChange: (width: number) => void;
-  onSubmit: (name: string, description?: string) => void;
+  onSubmit: (name: string, description?: string, walkingSpeed?: number) => void;
   onCancel: () => void;
   onEditPolygon?: () => void; // Callback to edit polygon
   onStripsGenerated?: (strips: GeoJSONLineString[]) => void; // Live preview callback
   isEdit?: boolean;
 }
 
-// Exploration speed based on walking pace with detector
+// Default exploration speed based on walking pace with detector
 // Typical walking speed while detecting: ~2.5 km/h = ~2500 m/h
-const EXPLORATION_SPEED_M_PER_HOUR = 2500;
+const DEFAULT_WALKING_SPEED_KMH = 2.5;
 
-const formatExplorationTime = (lengthMeters: number): string => {
-  const hoursNeeded = lengthMeters / EXPLORATION_SPEED_M_PER_HOUR;
+const formatExplorationTime = (lengthMeters: number, speedKmh: number): string => {
+  const speedMPerHour = speedKmh * 1000;
+  const hoursNeeded = lengthMeters / speedMPerHour;
   
   if (hoursNeeded < 1/60) {
     return '< 1 min';
@@ -61,6 +63,7 @@ const formatExplorationTime = (lengthMeters: number): string => {
 export const SectorForm = ({
   initialName = '',
   initialDescription = '',
+  initialWalkingSpeed = DEFAULT_WALKING_SPEED_KMH,
   drawnPolygon,
   drawingPolygon = [],
   stripWidth,
@@ -73,6 +76,7 @@ export const SectorForm = ({
 }: SectorFormProps) => {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
+  const [walkingSpeed, setWalkingSpeed] = useState(initialWalkingSpeed);
   const stripWidthChangesRef = useRef(0);
 
   const hasPolygon = drawnPolygon !== null;
@@ -112,11 +116,12 @@ export const SectorForm = ({
       is_edit: isEdit,
       has_polygon: hasPolygon,
       strip_width: stripWidth,
+      walking_speed: walkingSpeed,
       strip_width_changes: stripWidthChangesRef.current,
       area_m2: stats.area > 0 ? Math.round(stats.area) : null,
     });
     
-    onSubmit(name.trim(), description.trim() || undefined);
+    onSubmit(name.trim(), description.trim() || undefined, walkingSpeed);
   };
 
   // Calculate orientation and strip info when polygon is confirmed
@@ -144,16 +149,16 @@ export const SectorForm = ({
   // Exploration time based on route length (more accurate than area)
   const estimatedTime = useMemo(() => {
     if (stripPreview && stripPreview.totalLength > 0) {
-      return formatExplorationTime(stripPreview.totalLength);
+      return formatExplorationTime(stripPreview.totalLength, walkingSpeed);
     }
     // Fallback: estimate from area (rough approximation)
     if (stats.area > 0) {
       // Assume ~3m strip width for rough estimate when no strips generated
       const estimatedLength = stats.area / 3;
-      return formatExplorationTime(estimatedLength);
+      return formatExplorationTime(estimatedLength, walkingSpeed);
     }
     return '-';
-  }, [stripPreview, stats.area]);
+  }, [stripPreview, stats.area, walkingSpeed]);
 
   // Notify parent about strip changes for map preview
   useEffect(() => {
@@ -352,6 +357,31 @@ export const SectorForm = ({
           <span>0.5m</span>
           <span>5m</span>
           <span>10m</span>
+        </div>
+      </div>
+
+      {/* Walking Speed */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/40 font-mono">
+            <Footprints className="w-3 h-3 text-purple-400/70" />
+            Rychlost chůze
+          </label>
+          <span className="text-purple-400 text-sm font-mono">{walkingSpeed.toFixed(1)} km/h</span>
+        </div>
+        <input
+          type="range"
+          min="0.1"
+          max="15"
+          step="0.1"
+          value={walkingSpeed}
+          onChange={(e) => setWalkingSpeed(parseFloat(e.target.value))}
+          className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-purple-400"
+        />
+        <div className="flex justify-between text-[9px] font-mono text-white/30 mt-1">
+          <span>0.1 km/h</span>
+          <span>7.5 km/h</span>
+          <span>15 km/h</span>
         </div>
       </div>
 

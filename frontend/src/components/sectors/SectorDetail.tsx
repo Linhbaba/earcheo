@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Trash2, Download, MapPin, Clock, Maximize2, RotateCcw, Edit3 } from 'lucide-react';
+import { Trash2, Download, MapPin, Clock, Maximize2, RotateCcw, Edit3, Footprints } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Sector, Track, GeoJSONLineString } from '../../types/database';
 import { 
@@ -31,11 +31,9 @@ interface SectorDetailProps {
   onFocus?: () => void;
 }
 
-// Exploration speed based on walking pace with detector
-const EXPLORATION_SPEED_M_PER_HOUR = 2500;
-
-const formatExplorationTime = (lengthMeters: number): string => {
-  const hoursNeeded = lengthMeters / EXPLORATION_SPEED_M_PER_HOUR;
+const formatExplorationTime = (lengthMeters: number, walkingSpeedKmh: number): string => {
+  const speedMPerHour = walkingSpeedKmh * 1000;
+  const hoursNeeded = lengthMeters / speedMPerHour;
   
   if (hoursNeeded < 1/60) {
     return '< 1 min';
@@ -82,9 +80,9 @@ export const SectorDetail = ({
       formattedArea: formatArea(area),
       totalLength,
       formattedLength: formatLength(totalLength),
-      estimatedTime: formatExplorationTime(totalLength),
+      estimatedTime: formatExplorationTime(totalLength, sector.walkingSpeed),
     };
-  }, [sector.geometry, tracks, stripWidth, hasTracks]);
+  }, [sector.geometry, sector.walkingSpeed, tracks, stripWidth, hasTracks]);
 
   // Calculate orientation
   const orientationInfo = useMemo(() => {
@@ -172,7 +170,7 @@ export const SectorDetail = ({
           </div>
           
           {/* Strip stats grid */}
-          <div className="grid grid-cols-3 divide-x divide-white/5">
+          <div className="grid grid-cols-4 divide-x divide-white/5">
             <div className="p-2 text-center">
               <div className="text-[8px] uppercase text-white/30 font-mono mb-0.5">Pásů</div>
               <div className="text-sm font-mono text-sky-400 font-medium">
@@ -186,6 +184,13 @@ export const SectorDetail = ({
             <div className="p-2 text-center">
               <div className="text-[8px] uppercase text-white/30 font-mono mb-0.5">Šířka</div>
               <div className="text-sm font-mono text-amber-400 font-medium">{stripWidth}m</div>
+            </div>
+            <div className="p-2 text-center">
+              <div className="text-[8px] uppercase text-white/30 font-mono mb-0.5 flex items-center justify-center gap-1">
+                <Footprints className="w-2 h-2" />
+                Tempo
+              </div>
+              <div className="text-sm font-mono text-purple-400 font-medium">{sector.walkingSpeed} km/h</div>
             </div>
           </div>
         </div>

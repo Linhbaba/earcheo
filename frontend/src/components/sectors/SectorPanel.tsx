@@ -86,7 +86,7 @@ export const SectorPanel = ({
   }, [tracks, view, selectedSector, stripWidth, onStripPreviewChange]);
 
   // Handle creating new sector
-  const handleCreate = async (name: string, description?: string) => {
+  const handleCreate = async (name: string, description?: string, walkingSpeed?: number) => {
     if (!drawnPolygon) {
       toast.error('Nejprve nakreslete polygon na mapě');
       return;
@@ -98,6 +98,7 @@ export const SectorPanel = ({
         description,
         geometry: drawnPolygon,
         stripWidth,
+        walkingSpeed,
       });
       
       // Generate and save tracks
@@ -117,6 +118,7 @@ export const SectorPanel = ({
         sector_name: name.slice(0, 50),
         area_m2: Math.round(area),
         strip_width: stripWidth,
+        walking_speed: walkingSpeed,
         strip_count: strips.length,
       });
       
@@ -135,13 +137,13 @@ export const SectorPanel = ({
   };
 
   // Handle updating sector
-  const handleUpdate = async (id: string, name: string, description?: string) => {
+  const handleUpdate = async (id: string, name: string, description?: string, walkingSpeed?: number) => {
     try {
       // Check if strip width changed - regenerate tracks
       const currentSector = sectors.find(s => s.id === id);
       const stripWidthChanged = currentSector && currentSector.stripWidth !== stripWidth;
       
-      const sector = await updateSector(id, { name, description, stripWidth });
+      const sector = await updateSector(id, { name, description, stripWidth, walkingSpeed });
       
       // If strip width changed, regenerate and save tracks
       if (stripWidthChanged && sector) {
@@ -313,10 +315,11 @@ export const SectorPanel = ({
           <SectorForm
             initialName={selectedSector.name}
             initialDescription={selectedSector.description || ''}
+            initialWalkingSpeed={selectedSector.walkingSpeed}
             drawnPolygon={selectedSector.geometry}
             stripWidth={stripWidth}
             onStripWidthChange={setStripWidth}
-            onSubmit={(name, desc) => handleUpdate(selectedSector.id, name, desc)}
+            onSubmit={(name, desc, speed) => handleUpdate(selectedSector.id, name, desc, speed)}
             onCancel={() => setView('detail')}
             onStripsGenerated={onStripPreviewChange}
             isEdit

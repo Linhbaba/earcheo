@@ -15,6 +15,7 @@ const createSectorSchema = z.object({
   description: z.string().max(2000).optional(),
   geometry: geoJSONPolygonSchema,
   stripWidth: z.number().positive().default(3),
+  walkingSpeed: z.number().positive().max(15).default(2.5),
 });
 
 // Validation schema for updating sector
@@ -23,6 +24,7 @@ const updateSectorSchema = z.object({
   description: z.string().max(2000).optional().nullable(),
   geometry: geoJSONPolygonSchema.optional(),
   stripWidth: z.number().positive().optional(),
+  walkingSpeed: z.number().positive().max(15).optional(),
 });
 
 async function handler(req: VercelRequest, res: VercelResponse, userId: string) {

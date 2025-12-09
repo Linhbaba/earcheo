@@ -132,3 +132,4 @@ export const CustomFieldDisplay = ({ field, value }: CustomFieldDisplayProps) =>
     </div>
   );
 };
+

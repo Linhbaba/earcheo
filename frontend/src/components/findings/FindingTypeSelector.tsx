@@ -102,3 +102,4 @@ export const FindingTypeSelector = ({ selectedType, onSelect, suggestedType }: F
     </div>
   );
 };
+

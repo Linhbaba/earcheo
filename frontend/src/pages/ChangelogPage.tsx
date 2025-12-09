@@ -167,7 +167,7 @@ export const ChangelogPage = () => {
               badge="STABLE"
               badgeColor="green"
             >
-              <ChangeItem icon={<Settings />} title="Nový L/R systém mapy">
+              <ChangeItem icon={<Settings />} title="Přidáno: L/R systém mapy">
                 Kompletně přepracované ovládání mapy - nezávislý výběr vrstev pro levou a pravou stranu s podporou swipe porovnání
               </ChangeItem>
               <ChangeItem icon={<Calendar />} title="Archiv ortofoto 2007-2022">

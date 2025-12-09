@@ -184,3 +184,4 @@ Aktuální Measurement ID: `G-RYL5BQZZTS`
 
 Definováno v: `frontend/index.html`
 
+

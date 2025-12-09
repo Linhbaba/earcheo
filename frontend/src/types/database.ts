@@ -455,6 +455,7 @@ export interface Sector {
   description?: string | null;
   geometry: GeoJSONPolygon;
   stripWidth: number;
+  walkingSpeed: number;
   tracks?: Track[];
   createdAt: string;
   updatedAt: string;
@@ -475,6 +476,7 @@ export interface CreateSectorRequest {
   description?: string;
   geometry: GeoJSONPolygon;
   stripWidth?: number;
+  walkingSpeed?: number;
 }
 
 export interface UpdateSectorRequest {
@@ -482,6 +484,7 @@ export interface UpdateSectorRequest {
   description?: string;
   geometry?: GeoJSONPolygon;
   stripWidth?: number;
+  walkingSpeed?: number;
 }
 
 export interface CreateTracksRequest {
