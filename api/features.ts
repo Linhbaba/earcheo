@@ -9,6 +9,13 @@ async function getFeatures(req: VercelRequest, res: VercelResponse, userId?: str
       include: {
         _count: { select: { votes: true } },
         votes: userId ? { where: { userId }, select: { id: true } } : false,
+        user: { select: { nickname: true } },
+        comments: {
+          include: {
+            user: { select: { id: true, nickname: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -18,10 +25,19 @@ async function getFeatures(req: VercelRequest, res: VercelResponse, userId?: str
       title: f.title,
       description: f.description,
       category: f.category,
-      userId: f.userId,
+      status: f.status,
+      authorId: f.userId,
+      authorName: f.user.nickname || 'Anonym',
       votes: f._count.votes,
-      userVoted: userId ? (f.votes && f.votes.length > 0) : false,
+      hasVoted: userId ? (f.votes && f.votes.length > 0) : false,
       createdAt: f.createdAt.toISOString(),
+      comments: f.comments.map(c => ({
+        id: c.id,
+        content: c.content,
+        authorId: c.userId,
+        authorName: c.user.nickname || 'Anonym',
+        createdAt: c.createdAt.toISOString(),
+      })),
     }));
 
     return res.status(200).json(formatted);
@@ -56,6 +72,11 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         include: {
           _count: { select: { votes: true } },
           votes: { where: { userId }, select: { id: true } },
+          user: { select: { nickname: true } },
+          comments: {
+            include: { user: { select: { id: true, nickname: true } } },
+            orderBy: { createdAt: 'asc' },
+          },
         },
       });
 
@@ -66,14 +87,83 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         title: updated.title,
         description: updated.description,
         category: updated.category,
-        userId: updated.userId,
+        status: updated.status,
+        authorId: updated.userId,
+        authorName: updated.user.nickname || 'Anonym',
         votes: updated._count.votes,
-        userVoted: updated.votes.length > 0,
+        hasVoted: updated.votes.length > 0,
         createdAt: updated.createdAt.toISOString(),
+        comments: updated.comments.map(c => ({
+          id: c.id,
+          content: c.content,
+          authorId: c.userId,
+          authorName: c.user.nickname || 'Anonym',
+          createdAt: c.createdAt.toISOString(),
+        })),
       });
     } catch (error) {
       console.error('Vote error:', error);
       return res.status(500).json({ error: 'Failed to vote' });
+    }
+  }
+
+  // COMMENT action: POST /api/features?id=xxx&action=comment
+  if (id && typeof id === 'string' && action === 'comment' && req.method === 'POST') {
+    try {
+      const { content } = req.body;
+      if (!content || typeof content !== 'string' || !content.trim()) {
+        return res.status(400).json({ error: 'Comment content is required' });
+      }
+
+      const feature = await prisma.featureRequest.findUnique({ where: { id } });
+      if (!feature) return res.status(404).json({ error: 'Feature not found' });
+
+      await prisma.featureComment.create({
+        data: {
+          featureId: id,
+          userId,
+          content: content.trim(),
+        },
+      });
+
+      // Return updated feature with comments
+      const updated = await prisma.featureRequest.findUnique({
+        where: { id },
+        include: {
+          _count: { select: { votes: true } },
+          votes: { where: { userId }, select: { id: true } },
+          user: { select: { nickname: true } },
+          comments: {
+            include: { user: { select: { id: true, nickname: true } } },
+            orderBy: { createdAt: 'asc' },
+          },
+        },
+      });
+
+      if (!updated) return res.status(404).json({ error: 'Feature not found' });
+
+      return res.status(200).json({
+        id: updated.id,
+        title: updated.title,
+        description: updated.description,
+        category: updated.category,
+        status: updated.status,
+        authorId: updated.userId,
+        authorName: updated.user.nickname || 'Anonym',
+        votes: updated._count.votes,
+        hasVoted: updated.votes.length > 0,
+        createdAt: updated.createdAt.toISOString(),
+        comments: updated.comments.map(c => ({
+          id: c.id,
+          content: c.content,
+          authorId: c.userId,
+          authorName: c.user.nickname || 'Anonym',
+          createdAt: c.createdAt.toISOString(),
+        })),
+      });
+    } catch (error) {
+      console.error('Comment error:', error);
+      return res.status(500).json({ error: 'Failed to add comment' });
     }
   }
 
@@ -122,15 +212,21 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
       // Auto-vote
       await prisma.featureVote.create({ data: { userId, featureId: feature.id } });
 
+      // Get user nickname
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { nickname: true } });
+
       return res.status(201).json({
         id: feature.id,
         title: feature.title,
         description: feature.description,
         category: feature.category,
-        userId: feature.userId,
+        status: feature.status,
+        authorId: feature.userId,
+        authorName: user?.nickname || 'Anonym',
         votes: 1,
-        userVoted: true,
+        hasVoted: true,
         createdAt: feature.createdAt.toISOString(),
+        comments: [],
       });
     } catch (error) {
       console.error('Create feature error:', error);

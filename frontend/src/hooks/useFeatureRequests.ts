@@ -122,6 +122,35 @@ export function useFeatureRequests() {
     }
   };
 
+  // Add comment to feature request
+  const addComment = async (featureId: string, content: string) => {
+    try {
+      setError(null);
+
+      const token = await getAccessTokenSilently();
+      const response = await fetch(`${API_URL}/api/features?id=${featureId}&action=comment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add comment');
+      }
+
+      const updated = await response.json();
+      setFeatures(prev => prev.map(f => f.id === featureId ? updated : f));
+      return updated;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Add comment error:', err);
+      throw err;
+    }
+  };
+
   // Migrate from localStorage to database (one-time migration)
   const migrateFromLocalStorage = async () => {
     const STORAGE_KEY = 'earcheo-features-v2';
@@ -184,5 +213,6 @@ export function useFeatureRequests() {
     createFeature,
     toggleVote,
     deleteFeature,
+    addComment,
   };
 }

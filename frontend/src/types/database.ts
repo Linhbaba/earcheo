@@ -369,6 +369,14 @@ export interface UploadImageRequest {
 
 
 // Feature Requests
+export interface FeatureComment {
+  id: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  createdAt: string;
+}
+
 export interface FeatureRequest {
   id: string;
   title: string;
@@ -377,10 +385,9 @@ export interface FeatureRequest {
   authorId: string;
   authorName: string;
   votes: number;
-  votedBy: string[];
   hasVoted: boolean;
   createdAt: string;
-  updatedAt: string;
+  comments: FeatureComment[];
 }
 
 export interface CreateFeatureRequest {

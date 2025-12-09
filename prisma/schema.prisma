@@ -38,20 +38,34 @@ model FavoriteLocation {
 }
 
 model FeatureRequest {
-  id          String        @id @default(cuid())
+  id          String           @id @default(cuid())
   userId      String
   title       String
   description String
-  status      FeatureStatus @default(NEW)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  category    String        @default("Ostatní")
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      FeatureStatus    @default(NEW)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  category    String           @default("Ostatní")
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   votes       FeatureVote[]
+  comments    FeatureComment[]
 
   @@index([category])
   @@index([createdAt])
   @@index([status])
+  @@index([userId])
+}
+
+model FeatureComment {
+  id        String         @id @default(cuid())
+  featureId String
+  userId    String
+  content   String
+  createdAt DateTime       @default(now())
+  feature   FeatureRequest @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([featureId])
   @@index([userId])
 }
 
@@ -276,6 +290,7 @@ model User {
   favoriteLocations   FavoriteLocation[]
   featureRequests     FeatureRequest[]
   featureVotes        FeatureVote[]
+  featureComments     FeatureComment[]
   findings            Finding[]
   mapSetups           MapSetup[]
   sectors             Sector[]

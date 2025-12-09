@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, ThumbsUp, TrendingUp, Clock, Trash2, Loader, Sparkles } from 'lucide-react';
+import { X, Plus, ThumbsUp, TrendingUp, Clock, Trash2, Loader, Sparkles, MessageCircle, Send, ChevronDown, ChevronUp, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { clsx } from 'clsx';
 import { toast } from 'sonner';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -13,7 +13,7 @@ interface FeatureRequestsModalProps {
 
 export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalProps) => {
   const { user } = useAuth0();
-  const { features, loading, createFeature, toggleVote, deleteFeature } = useFeatureRequests();
+  const { features, loading, createFeature, toggleVote, deleteFeature, addComment } = useFeatureRequests();
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
@@ -21,6 +21,10 @@ export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalPr
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [votingId, setVotingId] = useState<string | null>(null);
+  const [showDone, setShowDone] = useState(true);
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
+  const [submittingComment, setSubmittingComment] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -71,7 +75,39 @@ export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalPr
     }
   };
 
-  const sortedFeatures = [...features].sort((a, b) => {
+  const toggleComments = (featureId: string) => {
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(featureId)) {
+        newSet.delete(featureId);
+      } else {
+        newSet.add(featureId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleAddComment = async (featureId: string) => {
+    const content = commentTexts[featureId]?.trim();
+    if (!content) return;
+
+    setSubmittingComment(featureId);
+    try {
+      await addComment(featureId, content);
+      setCommentTexts(prev => ({ ...prev, [featureId]: '' }));
+      toast.success('Komentář byl přidán');
+    } catch (error) {
+      console.error('Comment error:', error);
+      toast.error('Chyba při přidávání komentáře');
+    } finally {
+      setSubmittingComment(null);
+    }
+  };
+
+  // Filtrování podle statusu DONE
+  const filteredFeatures = showDone ? features : features.filter(f => f.status !== 'DONE');
+
+  const sortedFeatures = [...filteredFeatures].sort((a, b) => {
     if (sortBy === 'votes') return b.votes - a.votes;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
@@ -139,31 +175,47 @@ export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalPr
               </div>
             </div>
 
-            {/* Sort tabs */}
-            <div className="flex gap-2 mt-4">
+            {/* Sort tabs and filter */}
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSortBy('votes')}
+                  className={clsx(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs transition-all",
+                    sortBy === 'votes'
+                      ? "bg-primary/20 text-primary border border-primary/30"
+                      : "text-white/50 hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  Nejžádanější
+                </button>
+                <button
+                  onClick={() => setSortBy('newest')}
+                  className={clsx(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs transition-all",
+                    sortBy === 'newest'
+                      ? "bg-primary/20 text-primary border border-primary/30"
+                      : "text-white/50 hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  Nejnovější
+                </button>
+              </div>
+              
+              {/* Toggle DONE visibility */}
               <button
-                onClick={() => setSortBy('votes')}
+                onClick={() => setShowDone(!showDone)}
                 className={clsx(
                   "flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs transition-all",
-                  sortBy === 'votes'
-                    ? "bg-primary/20 text-primary border border-primary/30"
+                  showDone
+                    ? "bg-green-500/10 text-green-400 border border-green-500/30"
                     : "text-white/50 hover:text-white hover:bg-white/5"
                 )}
               >
-                <TrendingUp className="w-3.5 h-3.5" />
-                Nejžádanější
-              </button>
-              <button
-                onClick={() => setSortBy('newest')}
-                className={clsx(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs transition-all",
-                  sortBy === 'newest'
-                    ? "bg-primary/20 text-primary border border-primary/30"
-                    : "text-white/50 hover:text-white hover:bg-white/5"
-                )}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                Nejnovější
+                {showDone ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {showDone ? 'Hotové zobrazeny' : 'Hotové skryty'}
               </button>
             </div>
           </div>
@@ -190,23 +242,32 @@ export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalPr
                 {sortedFeatures.map(feature => (
                   <div
                     key={feature.id}
-                    className="group bg-surface/40 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:border-white/20 transition-all"
+                    className={clsx(
+                      "group bg-surface/40 backdrop-blur-sm border rounded-xl p-5 transition-all",
+                      feature.status === 'DONE' 
+                        ? "border-green-500/20 bg-green-500/5" 
+                        : "border-white/10 hover:border-white/20"
+                    )}
                   >
                     <div className="flex gap-4">
                       {/* Vote button */}
                       <button
                         onClick={() => handleVote(feature.id)}
-                        disabled={votingId === feature.id}
+                        disabled={votingId === feature.id || feature.status === 'DONE'}
                         className={clsx(
                           "flex flex-col items-center gap-1 px-4 py-3 rounded-xl border transition-all min-w-[70px]",
-                          feature.hasVoted
-                            ? "bg-primary/20 border-primary/50 text-primary"
-                            : "bg-white/5 border-white/10 text-white/60 hover:border-primary/30 hover:text-primary",
+                          feature.status === 'DONE'
+                            ? "bg-green-500/20 border-green-500/50 text-green-400 cursor-default"
+                            : feature.hasVoted
+                              ? "bg-primary/20 border-primary/50 text-primary"
+                              : "bg-white/5 border-white/10 text-white/60 hover:border-primary/30 hover:text-primary",
                           votingId === feature.id && "opacity-50 cursor-wait"
                         )}
                       >
                         {votingId === feature.id ? (
                           <Loader className="w-5 h-5 animate-spin" />
+                        ) : feature.status === 'DONE' ? (
+                          <CheckCircle2 className="w-5 h-5" />
                         ) : (
                           <ThumbsUp className="w-5 h-5" />
                         )}
@@ -214,8 +275,8 @@ export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalPr
                       </button>
 
                       {/* Content */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
                           <h3 className="font-display text-white text-lg">{feature.title}</h3>
                           <span className={clsx(
                             "px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider",
@@ -229,24 +290,91 @@ export const FeatureRequestsModal = ({ isOpen, onClose }: FeatureRequestsModalPr
                             {feature.description}
                           </p>
                         )}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-4 text-white/30 text-xs font-mono">
-                            <span>{feature.authorName}</span>
+                            <span className="text-white/50">{feature.authorName}</span>
                             <span>•</span>
                             <span>{new Date(feature.createdAt).toLocaleDateString('cs-CZ')}</span>
                           </div>
-                          {/* Delete button - only for author */}
-                          {user?.sub === feature.authorId && (
+                          <div className="flex items-center gap-2">
+                            {/* Comments toggle */}
                             <button
-                              onClick={() => setDeleteConfirmId(feature.id)}
-                              className="flex items-center gap-1 px-3 py-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg font-mono text-xs transition-all"
-                              title="Smazat návrh"
+                              onClick={() => toggleComments(feature.id)}
+                              className="flex items-center gap-1 px-3 py-1.5 text-white/50 hover:text-white hover:bg-white/5 rounded-lg font-mono text-xs transition-all"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              Smazat
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              {feature.comments?.length || 0}
+                              {expandedComments.has(feature.id) ? (
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
                             </button>
-                          )}
+                            {/* Delete button - only for author */}
+                            {user?.sub === feature.authorId && (
+                              <button
+                                onClick={() => setDeleteConfirmId(feature.id)}
+                                className="flex items-center gap-1 px-3 py-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg font-mono text-xs transition-all"
+                                title="Smazat návrh"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Smazat
+                              </button>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Comments section */}
+                        {expandedComments.has(feature.id) && (
+                          <div className="mt-4 pt-4 border-t border-white/10">
+                            {/* Existing comments */}
+                            {feature.comments && feature.comments.length > 0 && (
+                              <div className="space-y-3 mb-4">
+                                {feature.comments.map(comment => (
+                                  <div key={comment.id} className="bg-white/5 rounded-lg p-3">
+                                    <p className="text-white/70 font-mono text-sm mb-2">
+                                      {comment.content}
+                                    </p>
+                                    <div className="flex items-center gap-2 text-white/30 text-[10px] font-mono">
+                                      <span className="text-white/40">{comment.authorName}</span>
+                                      <span>•</span>
+                                      <span>{new Date(comment.createdAt).toLocaleDateString('cs-CZ')}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* Add comment form */}
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={commentTexts[feature.id] || ''}
+                                onChange={(e) => setCommentTexts(prev => ({ ...prev, [feature.id]: e.target.value }))}
+                                placeholder="Napište komentář..."
+                                className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm placeholder-white/30 focus:outline-none focus:border-primary/50 transition-colors"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleAddComment(feature.id);
+                                  }
+                                }}
+                                disabled={submittingComment === feature.id}
+                              />
+                              <button
+                                onClick={() => handleAddComment(feature.id)}
+                                disabled={!commentTexts[feature.id]?.trim() || submittingComment === feature.id}
+                                className="px-3 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-lg text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {submittingComment === feature.id ? (
+                                  <Loader className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Send className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
