@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket, Wand2, Coins, Hash, Mail, Banknote, ScrollText, Pickaxe } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
+import { Footer } from '../components/Footer';
 
 export const ChangelogPage = () => {
   return (
@@ -276,11 +277,7 @@ export const ChangelogPage = () => {
         </main>
 
         {/* Footer */}
-        <footer className="relative z-10 text-center py-8 border-t border-white/10 mt-12">
-          <p className="text-white/30 font-mono text-xs">
-            © 2025 eArcheo · <a href="mailto:ahoj@earcheo.cz" className="hover:text-primary/70 transition-colors">ahoj@earcheo.cz</a>
-          </p>
-        </footer>
+        <Footer />
       </div>
     </>
   );

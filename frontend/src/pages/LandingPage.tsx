@@ -1,8 +1,9 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Search, FileText, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown, Coins, Mail, Medal, Target, Gem } from 'lucide-react';
+import { Map, Layers, Radar, ChevronRight, Search, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown, Coins, Mail, Medal, Target, Gem } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
+import { Footer } from '../components/Footer';
 import { useEffect, useState } from 'react';
 import { useStats } from '../hooks/useStats';
 
@@ -271,32 +272,24 @@ export const LandingPage = () => {
               icon={<Coins className="w-8 h-8" />}
               title="Numismatici"
               description="Mince a bankovky"
-              stats="Největší komunita v ČR"
-              highlights={['Obrovské FB skupiny', 'Silné burzy a aukce', 'Investiční zájem']}
               color="amber"
             />
             <CollectorCard 
               icon={<Mail className="w-8 h-8" />}
               title="Filatelisté"
               description="Poštovní známky"
-              stats="Historicky silná skupina"
-              highlights={['Desítky tisíc sběratelů', 'Silné kluby a katalogy', 'Tradice v ČR']}
               color="emerald"
             />
             <CollectorCard 
               icon={<Medal className="w-8 h-8" />}
               title="Militárie"
               description="Vojenské předměty"
-              stats="Extrémně aktivní"
-              highlights={['Odznaky a výstroj', 'Reenactment', 'Muzejnictví']}
               color="red"
             />
             <CollectorCard 
               icon={<Target className="w-8 h-8" />}
               title="Detektoráři"
               description="Hledání artefaktů"
-              stats="Nejrychleji rostoucí"
-              highlights={['Aktivní terénní komunita', 'Historie a archeologie', 'Masivní boom']}
               color="cyan"
             />
           </div>
@@ -438,27 +431,7 @@ export const LandingPage = () => {
       <TopFeatureRequests />
 
       {/* Footer */}
-      <footer className="relative z-10 text-center py-8 border-t border-white/10">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-          <Link
-            to="/changelog"
-            className="text-white/50 hover:text-primary font-mono text-xs transition-colors flex items-center gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            Changelog
-          </Link>
-          <span className="text-white/20">·</span>
-          <a
-            href="mailto:ahoj@earcheo.cz"
-            className="text-white/50 hover:text-primary font-mono text-xs transition-colors"
-          >
-            ahoj@earcheo.cz
-          </a>
-        </div>
-        <p className="text-white/30 font-mono text-xs">
-          © 2025 eArcheo
-        </p>
-      </footer>
+      <Footer />
 
       {/* CSS Animation */}
       <style>{`
@@ -597,8 +570,6 @@ interface CollectorCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  stats: string;
-  highlights: string[];
   color: 'amber' | 'emerald' | 'red' | 'cyan';
 }
 
@@ -645,7 +616,7 @@ const colorClasses = {
   },
 };
 
-const CollectorCard = ({ icon, title, description, stats, highlights, color }: CollectorCardProps) => {
+const CollectorCard = ({ icon, title, description, color }: CollectorCardProps) => {
   const classes = colorClasses[color];
   
   return (
@@ -661,23 +632,7 @@ const CollectorCard = ({ icon, title, description, stats, highlights, color }: C
         
         {/* Title & Description */}
         <h3 className="font-display text-white text-xl mb-1">{title}</h3>
-        <p className={`${classes.text} font-mono text-sm mb-3`}>{description}</p>
-        
-        {/* Stats badge */}
-        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 ${classes.bg} border ${classes.border} rounded-full mb-4`}>
-          <span className={`w-1.5 h-1.5 ${classes.dot} rounded-full animate-pulse`} />
-          <span className={`${classes.text} font-mono text-[10px] tracking-wider uppercase`}>{stats}</span>
-        </div>
-        
-        {/* Highlights */}
-        <ul className="space-y-1.5">
-          {highlights.map((highlight) => (
-            <li key={highlight} className="flex items-center gap-2 text-white/60 font-mono text-xs">
-              <div className={`w-1 h-1 rounded-full ${classes.dot}`} />
-              {highlight}
-            </li>
-          ))}
-        </ul>
+        <p className={`${classes.text} font-mono text-sm`}>{description}</p>
       </div>
     </div>
   );

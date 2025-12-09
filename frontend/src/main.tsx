@@ -12,6 +12,9 @@ import { MapPage } from './pages/MapPage';
 import { FeatureRequests } from './pages/FeatureRequests';
 import { FindingsPage } from './pages/FindingsPage';
 import { ChangelogPage } from './pages/ChangelogPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { DataDeletionPage } from './pages/DataDeletionPage';
 import { FeaturesLayout } from './layouts/FeaturesLayout';
 import { registerServiceWorker } from './utils/registerServiceWorker';
 import './index.css';
@@ -43,6 +46,9 @@ createRoot(document.getElementById('root')!).render(
           {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/changelog" element={<ChangelogPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/data-deletion" element={<DataDeletionPage />} />
           
           {/* Protected routes */}
           <Route 
