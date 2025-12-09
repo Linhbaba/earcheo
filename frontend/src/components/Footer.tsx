@@ -6,9 +6,7 @@ import {
   Shield, 
   Trash2,
   ExternalLink,
-  Sparkles,
-  Github,
-  Heart
+  Sparkles
 } from 'lucide-react';
 
 export const Footer = () => {
