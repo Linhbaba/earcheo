@@ -85,9 +85,21 @@ export const MapSideSelector = ({
 
   const getConfigLabel = (config: MapSideConfig): string => {
     if (config.source === 'ARCHIVE' && config.archiveYear) {
-      return `'${String(config.archiveYear).slice(-2)}`; // '07, '21 etc.
+      return `Archiv '${String(config.archiveYear).slice(-2)}`; // Archiv '07, '21 etc.
     }
     return MAP_SOURCE_META[config.source].shortLabel;
+  };
+  
+  // Speciální barvy pro archiv
+  const getConfigColors = (config: MapSideConfig, isActive: boolean) => {
+    if (config.source === 'ARCHIVE') {
+      return isActive 
+        ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+        : "bg-amber-900/30 text-amber-200/70 border-amber-500/20 hover:bg-amber-500/20 hover:text-amber-200";
+    }
+    return isActive
+      ? "bg-primary/20 text-primary border-primary/40"
+      : "bg-black/40 text-white/70 border-white/10 hover:bg-white/10 hover:text-white";
   };
 
   const getConfigIcon = (config: MapSideConfig) => {
@@ -111,6 +123,9 @@ export const MapSideSelector = ({
               const isSelected = currentConfig.source === source;
               const isArchive = source === 'ARCHIVE';
               
+              // Pro archiv - je vybrán pokud source matches A máme konkrétní rok
+              const isArchiveSelected = isArchive && currentConfig.source === 'ARCHIVE' && currentConfig.archiveYear;
+              
               return (
                 <div key={source} className="relative">
                   <button
@@ -123,35 +138,61 @@ export const MapSideSelector = ({
                     }}
                     className={clsx(
                       "w-full flex items-center gap-3 px-3 py-2 text-left text-xs transition-colors",
-                      isSelected && !isArchive
-                        ? "bg-primary/20 text-primary"
+                      // Zvýraznit i archiv když je vybrán
+                      isSelected
+                        ? isArchive
+                          ? "bg-amber-500/20 text-amber-300" // Archiv má speciální barvu
+                          : "bg-primary/20 text-primary"
                         : "text-white/70 hover:bg-white/10 hover:text-white"
                     )}
                   >
                     <Icon className="w-4 h-4" />
                     <span className="flex-1">{meta.label}</span>
-                    {isArchive && <ChevronRight className="w-3 h-3 text-white/40" />}
+                    {/* Archiv - zobrazit šipku nebo rok + check */}
+                    {isArchive && (
+                      <>
+                        {isArchiveSelected && (
+                          <span className="text-[10px] font-mono text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded">
+                            {currentConfig.archiveYear}
+                          </span>
+                        )}
+                        <ChevronRight className={clsx(
+                          "w-3 h-3 transition-transform",
+                          archiveSubmenu === side ? "rotate-90 text-amber-300" : "text-white/40"
+                        )} />
+                      </>
+                    )}
+                    {/* Check mark pro ne-archiv zdroje */}
                     {isSelected && !isArchive && <Check className="w-3 h-3" />}
                   </button>
                   
                   {/* Archiv submenu - inline pod tlačítkem */}
                   {isArchive && archiveSubmenu === side && (
-                    <div className="bg-black/30 border-t border-white/5">
-                      <div className="grid grid-cols-4 gap-0.5 p-2">
-                        {ARCHIVE_YEARS.map((year) => (
-                          <button
-                            key={year}
-                            onClick={() => handleSourceSelect(side, 'ARCHIVE', year)}
-                            className={clsx(
-                              "px-2 py-1.5 text-[10px] font-mono rounded transition-colors",
-                              currentConfig.source === 'ARCHIVE' && currentConfig.archiveYear === year
-                                ? "bg-amber-500/30 text-amber-300 border border-amber-500/50"
-                                : "text-white/60 hover:bg-white/10 hover:text-white"
-                            )}
-                          >
-                            {year}
-                          </button>
-                        ))}
+                    <div className="bg-black/40 border-t border-amber-500/20">
+                      <div className="px-3 py-1.5 text-[9px] uppercase tracking-wider text-amber-400/60 font-mono">
+                        Vyberte rok
+                      </div>
+                      <div className="grid grid-cols-5 gap-1 p-2 pt-0 max-h-48 overflow-y-auto">
+                        {ARCHIVE_YEARS.map((year) => {
+                          const isYearSelected = currentConfig.source === 'ARCHIVE' && currentConfig.archiveYear === year;
+                          return (
+                            <button
+                              key={year}
+                              onClick={() => handleSourceSelect(side, 'ARCHIVE', year)}
+                              className={clsx(
+                                "relative px-2 py-1.5 text-[10px] font-mono rounded transition-all",
+                                isYearSelected
+                                  ? "bg-amber-500/40 text-amber-200 border border-amber-400/60 shadow-lg shadow-amber-500/20"
+                                  : "text-white/60 hover:bg-amber-500/20 hover:text-amber-200 border border-transparent"
+                              )}
+                            >
+                              {year}
+                              {isYearSelected && (
+                                <Check className="absolute -top-1 -right-1 w-3 h-3 text-amber-400 bg-surface rounded-full p-0.5" />
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -179,9 +220,7 @@ export const MapSideSelector = ({
           }}
           className={clsx(
             "flex items-center gap-2 px-3 py-2 rounded-lg transition-all font-mono text-xs border whitespace-nowrap",
-            activeFilterSide === 'left'
-              ? "bg-primary/20 text-primary border-primary/40"
-              : "bg-black/40 text-white/70 border-white/10 hover:bg-white/10 hover:text-white"
+            getConfigColors(leftConfig, activeFilterSide === 'left')
           )}
         >
           <PanelLeftIcon className="w-5 h-5" />
@@ -207,9 +246,7 @@ export const MapSideSelector = ({
             }}
             className={clsx(
               "flex items-center gap-2 px-3 py-2 rounded-lg transition-all font-mono text-xs border whitespace-nowrap",
-              activeFilterSide === 'right'
-                ? "bg-primary/20 text-primary border-primary/40"
-                : "bg-black/40 text-white/70 border-white/10 hover:bg-white/10 hover:text-white"
+              getConfigColors(rightConfig, activeFilterSide === 'right')
             )}
           >
             <PanelRightIcon className="w-5 h-5" />

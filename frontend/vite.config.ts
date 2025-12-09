@@ -6,7 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Development proxy - routes API calls to Vercel in dev mode
+      // WMS proxy - goes to local backend for proper ČÚZK proxy
+      '/api/proxy': {
+        target: 'http://localhost:3010',
+        changeOrigin: true,
+      },
+      // Other API calls go to production
       '/api': {
         target: process.env.VITE_API_URL || 'https://earcheo.cz',
         changeOrigin: true,

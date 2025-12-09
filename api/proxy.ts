@@ -16,11 +16,11 @@ const TARGETS = {
 
 type ProxyType = keyof typeof TARGETS;
 
-// Validní roky pro archivní ortofoto
+// Validní roky pro archivní ortofoto (podle WMS Capabilities ČÚZK)
 const ARCHIVE_VALID_YEARS = [
-  1998, 1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
   2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-  2019, 2020, 2021, 2022, 2023, 2024
+  2019, 2020, 2021, 2022
 ];
 
 export default async function handler(request: Request): Promise<Response> {
@@ -53,7 +53,8 @@ export default async function handler(request: Request): Promise<Response> {
       });
     }
     
-    url.searchParams.set('layers', `orto_${year}`);
+    // ČÚZK WMS layers jsou pojmenované jen jako rok (např. "2010", ne "orto_2010")
+    url.searchParams.set('layers', String(year));
     url.searchParams.delete('year');
   }
 

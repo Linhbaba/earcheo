@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth0 } from '@auth0/auth0-react';
 import type { User, UpdateProfileRequest, CreateProfileRequest } from '../types/database';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 export function useProfile() {
-  const { getAccessTokenSilently, user: auth0User } = useAuth0();
-  const [profile, setProfile] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { getAccessTokenSilently, user: auth0User, isAuthenticated } = useAuth0();
+  const queryClient = useQueryClient();
 
-  // Fetch profile
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  // Fetch profile with React Query - shared cache across all components
+  const { 
+    data: profile, 
+    isLoading: loading, 
+    error: queryError,
+    refetch: fetchProfile 
+  } = useQuery<User | null>({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      if (!isAuthenticated) return null;
+      
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/api/profile`, {
         headers: {
@@ -29,60 +32,40 @@ export function useProfile() {
           throw new Error('User email is required for profile creation');
         }
         
-        return await createProfile({
-          email: auth0User.email,
-          nickname: auth0User.nickname,
-          avatarUrl: auth0User.picture,
+        const createResponse = await fetch(`${API_URL}/api/profile`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: auth0User.email,
+            nickname: auth0User.nickname,
+            avatarUrl: auth0User.picture,
+          } as CreateProfileRequest),
         });
+
+        if (!createResponse.ok) {
+          throw new Error('Failed to create profile');
+        }
+
+        return await createResponse.json();
       }
 
       if (!response.ok) {
         throw new Error('Failed to fetch profile');
       }
 
-      const data = await response.json();
-      setProfile(data);
-      return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+      return await response.json();
+    },
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minut - nebude refetchovat
+    gcTime: 30 * 60 * 1000, // 30 minut v cache
+  });
 
-  // Create profile (first login)
-  const createProfile = async (data: CreateProfileRequest) => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/profile`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create profile');
-      }
-
-      const newProfile = await response.json();
-      setProfile(newProfile);
-      return newProfile;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    }
-  };
-
-  // Update profile
-  const updateProfile = async (data: UpdateProfileRequest) => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  // Update profile mutation
+  const updateMutation = useMutation({
+    mutationFn: async (data: UpdateProfileRequest) => {
       console.log('[useProfile] Updating profile with:', data);
       
       const token = await getAccessTokenSilently();
@@ -103,30 +86,25 @@ export function useProfile() {
 
       const updated = await response.json();
       console.log('[useProfile] Profile updated:', updated);
-      setProfile(updated);
       return updated;
-    } catch (err) {
-      console.error('[useProfile] Update error:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    },
+    onSuccess: (data) => {
+      // Update cache after successful mutation
+      queryClient.setQueryData(['profile'], data);
+    },
+  });
+
+  const updateProfile = async (data: UpdateProfileRequest) => {
+    return updateMutation.mutateAsync(data);
   };
 
-  // Load profile on mount
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const error = queryError ? (queryError as Error).message : null;
 
   return {
-    profile,
+    profile: profile ?? null,
     loading,
     error,
     fetchProfile,
     updateProfile,
   };
 }
-
-
-

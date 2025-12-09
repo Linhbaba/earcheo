@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth0 } from '@auth0/auth0-react';
 import type { Finding, CreateFindingRequest, UpdateFindingRequest, UploadImageRequest } from '../types/database';
 
@@ -12,19 +12,23 @@ interface UseFindingsOptions {
 }
 
 export function useFindings(options: UseFindingsOptions = {}) {
-  const { getAccessTokenSilently } = useAuth0();
-  const [findings, setFindings] = useState<Finding[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const queryClient = useQueryClient();
 
   const { category, isPublic, limit = 50, autoFetch = true } = options;
 
-  // Fetch findings
-  const fetchFindings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Query key includes options for proper caching
+  const queryKey = ['findings', { category, isPublic, limit }];
 
+  // Fetch findings with React Query
+  const { 
+    data: findings = [], 
+    isLoading: loading, 
+    error: queryError,
+    refetch: fetchFindings 
+  } = useQuery<Finding[]>({
+    queryKey,
+    queryFn: async () => {
       const token = await getAccessTokenSilently();
       const params = new URLSearchParams();
       
@@ -42,43 +46,32 @@ export function useFindings(options: UseFindingsOptions = {}) {
         throw new Error('Failed to fetch findings');
       }
 
-      const data = await response.json();
-      setFindings(data);
-      return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+      return await response.json();
+    },
+    enabled: isAuthenticated && autoFetch,
+    staleTime: 2 * 60 * 1000, // 2 minuty
+    gcTime: 10 * 60 * 1000, // 10 minut v cache
+  });
 
   // Get single finding
   const getFinding = async (id: string) => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/findings/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+    const token = await getAccessTokenSilently();
+    const response = await fetch(`${API_URL}/api/findings/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch finding');
-      }
-
-      return await response.json();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
+    if (!response.ok) {
+      throw new Error('Failed to fetch finding');
     }
+
+    return await response.json();
   };
 
-  // Create finding
-  const createFinding = async (data: CreateFindingRequest) => {
-    try {
-      setError(null);
-
+  // Create finding mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: CreateFindingRequest) => {
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/api/findings`, {
         method: 'POST',
@@ -93,20 +86,17 @@ export function useFindings(options: UseFindingsOptions = {}) {
         throw new Error('Failed to create finding');
       }
 
-      const newFinding = await response.json();
-      setFindings(prev => [newFinding, ...prev]);
-      return newFinding;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    }
-  };
+      return await response.json();
+    },
+    onSuccess: (newFinding) => {
+      // Add to cache
+      queryClient.setQueryData<Finding[]>(queryKey, (old = []) => [newFinding, ...old]);
+    },
+  });
 
-  // Update finding
-  const updateFinding = async (id: string, data: UpdateFindingRequest) => {
-    try {
-      setError(null);
-
+  // Update finding mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateFindingRequest }) => {
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/api/findings/${id}`, {
         method: 'PUT',
@@ -121,20 +111,18 @@ export function useFindings(options: UseFindingsOptions = {}) {
         throw new Error('Failed to update finding');
       }
 
-      const updated = await response.json();
-      setFindings(prev => prev.map(f => f.id === id ? updated : f));
-      return updated;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    }
-  };
+      return await response.json();
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Finding[]>(queryKey, (old = []) => 
+        old.map(f => f.id === updated.id ? updated : f)
+      );
+    },
+  });
 
-  // Delete finding
-  const deleteFinding = async (id: string) => {
-    try {
-      setError(null);
-
+  // Delete finding mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/api/findings/${id}`, {
         method: 'DELETE',
@@ -147,102 +135,83 @@ export function useFindings(options: UseFindingsOptions = {}) {
         throw new Error('Failed to delete finding');
       }
 
-      setFindings(prev => prev.filter(f => f.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    }
-  };
+      return id;
+    },
+    onSuccess: (deletedId) => {
+      queryClient.setQueryData<Finding[]>(queryKey, (old = []) => 
+        old.filter(f => f.id !== deletedId)
+      );
+    },
+  });
 
   // Upload image
   const uploadImage = async (findingId: string, file: File) => {
-    try {
-      setError(null);
+    // Convert file to base64
+    const base64 = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
 
-      // Convert file to base64
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
+    const token = await getAccessTokenSilently();
+    const response = await fetch(`${API_URL}/api/findings/${findingId}/images`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: base64,
+        filename: file.name,
+      } as UploadImageRequest),
+    });
 
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/findings/${findingId}/images`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image: base64,
-          filename: file.name,
-        } as UploadImageRequest),
-      });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload image');
+    }
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to upload image');
-      }
-
-      const image = await response.json();
-      
-      // Update finding in state with new image
-      setFindings(prev => prev.map(f => {
+    const image = await response.json();
+    
+    // Update finding in cache with new image
+    queryClient.setQueryData<Finding[]>(queryKey, (old = []) => 
+      old.map(f => {
         if (f.id === findingId) {
-          return {
-            ...f,
-            images: [...f.images, image],
-          };
+          return { ...f, images: [...f.images, image] };
         }
         return f;
-      }));
+      })
+    );
 
-      return image;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    }
+    return image;
   };
 
   // Delete image
   const deleteImage = async (findingId: string, imageId: string) => {
-    try {
-      setError(null);
+    const token = await getAccessTokenSilently();
+    const response = await fetch(`${API_URL}/api/findings/${findingId}/images?imageId=${imageId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/api/findings/${findingId}/images?imageId=${imageId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+    if (!response.ok) {
+      throw new Error('Failed to delete image');
+    }
 
-      if (!response.ok) {
-        throw new Error('Failed to delete image');
-      }
-
-      // Update finding in state
-      setFindings(prev => prev.map(f => {
+    // Update finding in cache
+    queryClient.setQueryData<Finding[]>(queryKey, (old = []) => 
+      old.map(f => {
         if (f.id === findingId) {
-          return {
-            ...f,
-            images: f.images.filter(img => img.id !== imageId),
-          };
+          return { ...f, images: f.images.filter(img => img.id !== imageId) };
         }
         return f;
-      }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      throw err;
-    }
+      })
+    );
   };
 
-  // Load findings on mount if autoFetch is true
-  useEffect(() => {
-    if (autoFetch) {
-      fetchFindings();
-    }
-  }, [category, isPublic, limit]);
+  const error = queryError ? (queryError as Error).message : null;
 
   return {
     findings,
@@ -250,11 +219,10 @@ export function useFindings(options: UseFindingsOptions = {}) {
     error,
     fetchFindings,
     getFinding,
-    createFinding,
-    updateFinding,
-    deleteFinding,
+    createFinding: (data: CreateFindingRequest) => createMutation.mutateAsync(data),
+    updateFinding: (id: string, data: UpdateFindingRequest) => updateMutation.mutateAsync({ id, data }),
+    deleteFinding: (id: string) => deleteMutation.mutateAsync(id),
     uploadImage,
     deleteImage,
   };
 }
-

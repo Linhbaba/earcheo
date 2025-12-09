@@ -126,6 +126,66 @@ app.get('/api/katastr-proxy', async (req, res) => {
     }
 });
 
+// UNIFIED PROXY ENDPOINT (matches Vercel API)
+const ARCHIVE_VALID_YEARS = [
+    1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+    2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+    2019, 2020, 2021, 2022
+];
+
+app.get('/api/proxy', async (req, res) => {
+    const type = req.query.type;
+    
+    const TARGETS = {
+        wms: 'https://ags.cuzk.cz/arcgis2/services/dmr5g/ImageServer/WMSServer',
+        ortofoto: 'https://geoportal.cuzk.gov.cz/WMS_ORTOFOTO_PUB/service.svc/get',
+        katastr: 'https://services.cuzk.gov.cz/wms/wms.asp',
+        zabaged: 'https://ags.cuzk.gov.cz/arcgis/services/ZABAGED_VRSTEVNICE/MapServer/WMSServer',
+        archive: 'https://geoportal.cuzk.gov.cz/WMS_ORTOFOTO_ARCHIV/WMService.aspx',
+    };
+
+    if (!type || !TARGETS[type]) {
+        return res.status(400).json({ error: `Invalid type. Valid types: ${Object.keys(TARGETS).join(', ')}` });
+    }
+
+    try {
+        // Clone query params and remove 'type'
+        const params = { ...req.query };
+        delete params.type;
+
+        // Special handling for archive - year parameter
+        if (type === 'archive') {
+            const year = parseInt(params.year, 10) || 2003;
+            if (!ARCHIVE_VALID_YEARS.includes(year)) {
+                return res.status(400).json({ error: `Invalid year. Valid years: ${ARCHIVE_VALID_YEARS.join(', ')}` });
+            }
+            // ČÚZK WMS layers jsou pojmenované jen jako rok (např. "2010")
+            params.layers = String(year);
+            delete params.year;
+        }
+
+        const response = await axios.get(TARGETS[type], {
+            params,
+            responseType: 'arraybuffer',
+            httpsAgent: agent,
+            timeout: 25000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://geoportal.cuzk.cz/',
+                'Accept': 'image/png,image/*,*/*;q=0.8'
+            }
+        });
+
+        res.set('Content-Type', response.headers['content-type'] || 'image/png');
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+        res.send(response.data);
+
+    } catch (error) {
+        console.error(`Proxy Error (${type}):`, error.message);
+        res.status(500).send(`Error fetching ${type}`);
+    }
+});
+
 // ZABAGED VRSTEVNICE PROXY
 app.get('/api/zabaged-proxy', async (req, res) => {
     try {

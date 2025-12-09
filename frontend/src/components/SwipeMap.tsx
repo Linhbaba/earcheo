@@ -231,16 +231,29 @@ export const SwipeMap = ({
     });
 
     return () => {
-      map.off('zoomstart', handleGAZoomStart);
-      map.off('zoomend', handleGAZoomEnd);
-      map.off('moveend', handleGAMoveEnd);
+      // Bezpečný cleanup - mapa může být už zničená při změně key
+      try {
+        if (map && map.getCanvas()) {
+          map.off('zoomstart', handleGAZoomStart);
+          map.off('zoomend', handleGAZoomEnd);
+          map.off('moveend', handleGAMoveEnd);
 
-      interactiveLayers.forEach((layerName) => {
-        const handler = layerClickHandlers[layerName];
-        if (handler && map.getLayer(layerName)) {
-          map.off('click', layerName, handler);
+          interactiveLayers.forEach((layerName) => {
+            const handler = layerClickHandlers[layerName];
+            if (handler) {
+              try {
+                if (map.getLayer(layerName)) {
+                  map.off('click', layerName, handler);
+                }
+              } catch {
+                // Layer už neexistuje, ignorujeme
+              }
+            }
+          });
         }
-      });
+      } catch {
+        // Mapa byla zničena, ignorujeme cleanup
+      }
     };
   }, [leftMapRef.current, handleGAZoomStart, handleGAZoomEnd, handleGAMoveEnd]);
 
@@ -959,7 +972,7 @@ export const SwipeMap = ({
 
     return (
       <>
-        {/* Terrain DEM pro 3D efekt */}
+        {/* Terrain DEM pro 3D efekt - statické ID */}
         <Source id={`terrain-dem-${side}`} type="raster-dem" tiles={['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png']} encoding="terrarium" tileSize={256} maxzoom={15} />
 
         {/* LiDAR Hillshade */}
@@ -976,9 +989,14 @@ export const SwipeMap = ({
           </Source>
         )}
 
-        {/* Archivní ortofoto */}
+        {/* Archivní ortofoto - statické ID, key na Map zajistí překreslení */}
         {source === 'ARCHIVE' && archiveYear && (
-          <Source id={`archive-${side}`} type="raster" tiles={[getArchiveUrl(archiveYear)]} tileSize={256}>
+          <Source 
+            id={`archive-${side}`} 
+            type="raster" 
+            tiles={[getArchiveUrl(archiveYear)]} 
+            tileSize={256}
+          >
             <Layer id={`archive-layer-${side}`} type="raster" paint={{ 'raster-opacity': 1 }} />
           </Source>
         )}
@@ -1048,8 +1066,22 @@ export const SwipeMap = ({
   const drawingCursor = (isDrawingMode || isMeasuring) ? 'crosshair' : undefined;
 
   // --- RENDER MAPS ---
+  // Generujeme unikátní key pro mapu - při změně source nebo roku se mapa kompletně překreslí
+  const getMapKey = (config: MapSideConfig, side: 'left' | 'right') => {
+    if (config.source === 'ARCHIVE' && config.archiveYear) {
+      return `map-${side}-archive-${config.archiveYear}`;
+    }
+    return `map-${side}-${config.source}`;
+  };
+
+  // Terrain source ID - statické pro každou stranu
+  const getTerrainSourceId = (_config: MapSideConfig, side: 'left' | 'right') => {
+    return `terrain-dem-${side}`;
+  };
+
   const renderMap = (config: MapSideConfig, side: 'left' | 'right', ref: React.RefObject<MapRef>) => (
     <Map
+      key={getMapKey(config, side)}
       ref={ref}
       {...viewState}
       onMove={evt => setViewState(evt.viewState)}
@@ -1058,7 +1090,7 @@ export const SwipeMap = ({
       onContextMenu={handleContextMenu}
       doubleClickZoom={!onMapDoubleClick}
       mapStyle={getMapStyle(config.source) as any}
-      terrain={{ source: `terrain-dem-${side}`, exaggeration }}
+      terrain={{ source: getTerrainSourceId(config, side), exaggeration }}
       style={{ ...getFilterStyle(side), cursor: drawingCursor }}
       cursor={drawingCursor}
     >
@@ -1114,13 +1146,13 @@ export const SwipeMap = ({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        {/* Slider line */}
-        <div 
-          className={`absolute bg-primary transition-all pointer-events-none ${
-            isHorizontal 
-              ? 'left-0 right-0 h-1 top-1/2 -translate-y-1/2' 
-              : 'top-0 bottom-0 w-1 left-1/2 -translate-x-1/2'
-          }`} 
+        {/* Slider line - 2px */}
+        <div
+          className={`absolute bg-primary/80 transition-all pointer-events-none ${
+            isHorizontal
+              ? 'left-0 right-0 h-0.5 top-1/2 -translate-y-1/2'
+              : 'top-0 bottom-0 w-0.5 left-1/2 -translate-x-1/2'
+          }`}
         />
         
         {/* Handle s tlačítky +/- */}
