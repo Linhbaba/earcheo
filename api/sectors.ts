@@ -148,7 +148,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         });
       }
 
-      const { name, description, geometry, stripWidth } = validation.data;
+      const { name, description, geometry, stripWidth, walkingSpeed } = validation.data;
 
       const sector = await prisma.sector.create({
         data: {
@@ -156,6 +156,7 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
           description,
           geometry,
           stripWidth,
+          walkingSpeed,
           userId,
         },
         include: {
