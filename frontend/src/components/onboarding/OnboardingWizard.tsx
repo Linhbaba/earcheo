@@ -102,9 +102,9 @@ export const OnboardingWizard = ({ isOpen, onComplete, onSkip }: OnboardingWizar
       
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="w-full max-w-2xl bg-surface/95 backdrop-blur-md border border-primary/30 rounded-2xl shadow-2xl shadow-primary/20 overflow-hidden pointer-events-auto">
+        <div className="relative w-full max-w-2xl max-h-[90vh] bg-surface/95 backdrop-blur-md border border-primary/30 rounded-2xl shadow-2xl shadow-primary/20 overflow-hidden pointer-events-auto flex flex-col">
           {/* Header */}
-          <div className="relative px-6 py-5 border-b border-white/10">
+          <div className="relative px-6 py-5 border-b border-white/10 flex-shrink-0">
             {/* Corner decorations */}
             <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary/50 rounded-tl-2xl" />
             <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary/50 rounded-tr-2xl" />
@@ -135,7 +135,7 @@ export const OnboardingWizard = ({ isOpen, onComplete, onSkip }: OnboardingWizar
           </div>
           
           {/* Content */}
-          <div className="px-6 py-6">
+          <div className="px-6 py-6 overflow-y-auto flex-1 min-h-0">
             <p className="text-white/70 font-mono text-sm mb-6 text-center">
               Vyberte, co vás zajímá. Můžete vybrat více možností.<br />
               <span className="text-white/40">Toto nastavení můžete kdykoliv změnit v profilu.</span>
@@ -198,7 +198,7 @@ export const OnboardingWizard = ({ isOpen, onComplete, onSkip }: OnboardingWizar
           </div>
           
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between flex-shrink-0">
             <button
               onClick={handleSkip}
               className="px-4 py-2 text-white/50 hover:text-white font-mono text-sm transition-colors"
