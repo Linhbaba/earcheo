@@ -127,7 +127,7 @@ export const FunkcePage = () => {
           <section className="max-w-6xl mx-auto px-4 sm:px-8 py-12">
             <div className="text-center mb-10">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full mb-4">
-                <span className="text-primary text-xs tracking-wider">VERZE 1.2</span>
+                <span className="text-primary text-xs tracking-wider">VERZE 1.3</span>
               </div>
               <h2 className="font-display text-3xl sm:text-4xl text-white mb-2">
                 Nástroje pro objevitele

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket, Wand2, Coins, Hash, Mail, Banknote, ScrollText, Pickaxe } from 'lucide-react';
+import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket, Wand2, Coins, Hash, Mail, Banknote, ScrollText, Pickaxe, BookOpen, Type, Layout } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
@@ -53,12 +53,39 @@ export const ChangelogPage = () => {
           {/* Changelog Entries */}
           <div className="space-y-12">
 
+            {/* v1.3 - MAGAZÍN & UI */}
+            <ChangelogEntry
+              version="1.3"
+              date="10. prosince 2025"
+              badge="NEW ✨"
+              badgeColor="primary"
+            >
+              <ChangeItem icon={<BookOpen />} title="Magazín - sekce s články">
+                Nová sekce Magazín s články o numismatice, archeologii a historii. 4 úvodní články s obrázky, interními odkazy a zdroji.
+              </ChangeItem>
+              <ChangeItem icon={<Layout />} title="Stránka Funkce">
+                Samostatná stránka s kompletním přehledem všech funkcí platformy - mapové vrstvy, nástroje pro sběratele, kategorie uživatelů.
+              </ChangeItem>
+              <ChangeItem icon={<Type />} title="Font Inter s českou diakritikou">
+                Změna hlavního fontu na Inter pro lepší čitelnost a plnou podporu české diakritiky napříč celou aplikací.
+              </ChangeItem>
+              <ChangeItem icon={<Image />} title="Lightbox pro obrázky v článcích">
+                Kliknutím na obrázek v článku se zobrazí v plné velikosti s možností zavření.
+              </ChangeItem>
+              <ChangeItem icon={<Layers />} title="Aktualizovaná navigace">
+                Přepracované menu s odkazy na Funkce a Magazín. Changelog a verze přesunuty do patičky.
+              </ChangeItem>
+              <ChangeItem icon={<Search />} title="SEO optimalizace">
+                Vylepšené meta tagy, JSON-LD strukturovaná data pro články, aktualizovaný sitemap.xml.
+              </ChangeItem>
+            </ChangelogEntry>
+
             {/* v1.2 - ROZŠÍŘENÁ EVIDENCE PRO SBĚRATELE */}
             <ChangelogEntry
               version="1.2"
               date="7. prosince 2025"
-              badge="NEW ✨"
-              badgeColor="primary"
+              badge="STABLE"
+              badgeColor="green"
             >
               <ChangeItem icon={<Mail />} title="Filatelie - kompletní evidence">
                 Nová pole pro známky: Pofis/Michel katalogy, typ položky (Celistvost, FDC, Aršík), perforace, typ tisku, barva, papír, lep, vodoznak a razítko.
@@ -337,4 +364,3 @@ const ChangeItem = ({ icon, title, children }: ChangeItemProps) => (
     </div>
   </div>
 );
-

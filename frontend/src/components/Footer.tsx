@@ -48,7 +48,7 @@ export const Footer = () => {
             </p>
             <div className="flex items-center gap-3">
               <span className="px-2.5 py-1 bg-primary/10 border border-primary/30 rounded-lg text-primary text-[10px] tracking-wider">
-                v1.2
+                v1.3
               </span>
               <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-[10px] tracking-wider flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
