@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, ChevronLeft, Grid3X3 } from 'lucide-react';
+import { X, ChevronLeft, Grid3X3, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import clsx from 'clsx';
 import { useSectors } from '../../hooks/useSectors';
 import { useTracks } from '../../hooks/useTracks';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import type { Sector, GeoJSONPolygon, GeoJSONLineString } from '../../types/database';
 import { SectorList } from './SectorList';
 import { SectorDetail } from './SectorDetail';
@@ -48,18 +50,31 @@ export const SectorPanel = ({
   onStripPreviewChange,
   onFocusSector,
 }: SectorPanelProps) => {
+  const isMobile = useIsMobile();
   const { sectors, loading, createSector, updateSector, deleteSector } = useSectors();
   const { tracks, fetchTracks, createTracks } = useTracks();
   
   const [view, setView] = useState<PanelView>('list');
   const [stripWidth, setStripWidth] = useState(3);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  // Check if currently drawing polygon
+  const isDrawing = drawingPolygon.length > 0;
 
   // Reset view when panel opens/closes
   useEffect(() => {
     if (!isOpen) {
       setView('list');
+      setIsMinimized(false);
     }
   }, [isOpen]);
+
+  // Auto-minimize on mobile when drawing starts
+  useEffect(() => {
+    if (isMobile && isDrawing) {
+      setIsMinimized(true);
+    }
+  }, [isMobile, isDrawing]);
 
   // When a sector is selected, load its tracks and set strip width
   useEffect(() => {
@@ -242,6 +257,131 @@ export const SectorPanel = ({
 
   if (!isOpen) return null;
 
+  // Mobile: bottom sheet layout
+  if (isMobile) {
+    return (
+      <div 
+        className={clsx(
+          "fixed left-0 right-0 z-40 bg-surface/95 backdrop-blur-xl border-t border-white/10 shadow-2xl shadow-black/50 transition-all duration-300",
+          isMinimized 
+            ? "bottom-20 h-14" // Minimized - just header visible above MobileBottomBar
+            : "bottom-20 max-h-[60vh]" // Expanded
+        )}
+      >
+        {/* Drag handle / Minimize toggle */}
+        <button
+          onClick={() => setIsMinimized(!isMinimized)}
+          className="absolute left-1/2 -translate-x-1/2 -top-3 w-12 h-6 bg-surface border border-white/20 rounded-t-xl flex items-center justify-center"
+        >
+          {isMinimized ? (
+            <ChevronUp className="w-4 h-4 text-white/50" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-white/50" />
+          )}
+        </button>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
+          <div className="flex items-center gap-2">
+            {view !== 'list' && !isMinimized && (
+              <button
+                onClick={() => {
+                  setView('list');
+                  onSelectSector(null);
+                }}
+                className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
+            <Grid3X3 className="w-5 h-5 text-emerald-400" />
+            <span className="font-display text-white text-sm">
+              {view === 'list' && 'Sektory'}
+              {view === 'detail' && selectedSector?.name}
+              {view === 'create' && (isDrawing ? 'Kreslete na mapu ☝️' : 'Nový sektor')}
+              {view === 'edit' && 'Upravit sektor'}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Content - only when not minimized */}
+        {!isMinimized && (
+          <div className="flex-1 overflow-y-auto p-4 max-h-[calc(60vh-56px)]">
+            {/* List View */}
+            {view === 'list' && (
+              <SectorList
+                sectors={sectors}
+                loading={loading}
+                onSelect={(sector) => {
+                  onSelectSector(sector);
+                  setView('detail');
+                }}
+                onNewSector={() => {
+                  setView('create');
+                  onStartDrawing();
+                }}
+                onFocusSector={onFocusSector}
+              />
+            )}
+
+            {/* Create View */}
+            {view === 'create' && (
+              <SectorForm
+                drawnPolygon={drawnPolygon}
+                drawingPolygon={drawingPolygon}
+                stripWidth={stripWidth}
+                onStripWidthChange={setStripWidth}
+                onSubmit={handleCreate}
+                onCancel={() => {
+                  setView('list');
+                  onClearDrawing();
+                }}
+                onEditPolygon={onEditPolygon}
+                onStripsGenerated={onStripPreviewChange}
+              />
+            )}
+
+            {/* Edit View */}
+            {view === 'edit' && selectedSector && (
+              <SectorForm
+                initialName={selectedSector.name}
+                initialDescription={selectedSector.description || ''}
+                initialWalkingSpeed={selectedSector.walkingSpeed}
+                drawnPolygon={selectedSector.geometry}
+                stripWidth={stripWidth}
+                onStripWidthChange={setStripWidth}
+                onSubmit={(name, desc, speed) => handleUpdate(selectedSector.id, name, desc, speed)}
+                onCancel={() => setView('detail')}
+                onStripsGenerated={onStripPreviewChange}
+                isEdit
+              />
+            )}
+
+            {/* Detail View */}
+            {view === 'detail' && selectedSector && (
+              <SectorDetail
+                sector={selectedSector}
+                tracks={tracks}
+                stripWidth={stripWidth}
+                onEdit={() => setView('edit')}
+                onDelete={() => handleDelete(selectedSector.id)}
+                onExport={handleExport}
+                onFocus={onFocusSector ? () => onFocusSector(selectedSector) : undefined}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop: side panel layout
   return (
     <div className="absolute top-24 left-6 z-40 w-80 max-h-[calc(100vh-140px)] bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col">
       {/* Header */}
