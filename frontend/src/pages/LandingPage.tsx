@@ -33,7 +33,7 @@ export const LandingPage = () => {
     <>
       <SEOHead
         title="Pro objevitele"
-        description="Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele."
+        description="Evidence sbírek pro numismatiky, filatelisty a detektoráře. Spravujte mince, známky a nálezy s LiDAR mapou České republiky. Zdarma."
         keywords="lidar, dmr5g, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie, historické mapy"
         canonicalUrl="/"
         ogType="website"

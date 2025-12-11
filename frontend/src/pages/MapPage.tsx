@@ -361,7 +361,7 @@ export const MapPage = () => {
     <>
       <SEOHead
         title="Interaktivní mapa"
-        description="Interaktivní 3D vizualizace terénu České republiky. Prohlížejte LiDAR data, ortofoto a historické mapy v reálném čase. Nástroje pro terénní analýzu a archeologický průzkum."
+        description="LiDAR mapa České republiky s ortofoto a historickými snímky. 3D terén, katastrální mapy a nástroje pro průzkum krajiny."
         keywords="interaktivní mapa, lidar visualizace, 3d terén, ortofoto mapa, historické mapy, terénní analýza"
         canonicalUrl="/map"
         noindex={true}

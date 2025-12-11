@@ -9,8 +9,8 @@ export const ChangelogPage = () => {
   return (
     <>
       <SEOHead
-        title="Changelog - Historie změn | eArcheo"
-        description="Sledujte vývoj platformy eArcheo - všechny nové funkce, vylepšení a opravy."
+        title="Changelog"
+        description="Historie aktualizací eArcheo. Nové funkce, vylepšení a opravy v každé verzi."
         canonicalUrl="/changelog"
       />
       <div className="min-h-screen bg-background text-white">

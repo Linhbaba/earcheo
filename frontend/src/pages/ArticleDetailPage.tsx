@@ -84,7 +84,7 @@ export const ArticleDetailPage = () => {
   return (
     <>
       <SEOHead
-        title={`${article.title} | eArcheo Magazín`}
+        title={article.title}
         description={article.excerpt}
         keywords={`${article.focusKeyword}, ${categoryLabels[article.category]}, numismatika, archeologie`}
         canonicalUrl={`/magazin/${article.slug}`}

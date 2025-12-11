@@ -8,7 +8,7 @@ export const NotFoundPage = () => {
   return (
     <>
       <SEOHead
-        title="Stránka nenalezena | eArcheo"
+        title="Stránka nenalezena"
         description="Požadovaná stránka nebyla nalezena."
         canonicalUrl="/404"
       />

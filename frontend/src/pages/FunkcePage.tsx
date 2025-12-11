@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   ChevronDown, ChevronRight, Search, User, Package, Bookmark, 
   Calendar, Split, Sparkles, Mountain, Map, Layers, Radar,
-  Coins, Mail, Medal, Target
+
 } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { Navbar } from '../components/Navbar';
@@ -19,8 +19,8 @@ export const FunkcePage = () => {
   return (
     <>
       <SEOHead
-        title="Funkce a nástroje | eArcheo"
-        description="Kompletní přehled funkcí eArcheo platformy. Správa nálezů, mapové vrstvy, LiDAR data, historické ortofoto, nástroje pro sběratele a detektoráře."
+        title="Funkce a nástroje"
+        description="LiDAR mapy, evidence nálezů, ortofoto archiv 2007-2022 a další nástroje pro sběratele. Prozkoumejte všechny funkce eArcheo."
         keywords="funkce eArcheo, nástroje pro detektoráře, správa nálezů, LiDAR mapa, ortofoto archiv, katastrální mapy, numismatika aplikace, evidence sbírek"
         canonicalUrl="/funkce"
         ogType="website"
@@ -50,43 +50,6 @@ export const FunkcePage = () => {
             </Link>
           </section>
 
-          {/* Collector Types */}
-          <section className="max-w-6xl mx-auto px-4 sm:px-8 py-12">
-            <div className="text-center mb-10">
-              <h2 className="font-display text-3xl sm:text-4xl text-white mb-2">
-                Pro koho je eArcheo
-              </h2>
-              <p className="text-white/50 text-sm sm:text-base">
-                Platforma pro všechny vášnivé sběratele a badatele
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <CollectorCard 
-                icon={<Coins className="w-8 h-8" />}
-                title="Numismatici"
-                description="Mince a bankovky"
-                color="amber"
-              />
-              <CollectorCard 
-                icon={<Mail className="w-8 h-8" />}
-                title="Filatelisté"
-                description="Poštovní známky"
-                color="emerald"
-              />
-              <CollectorCard 
-                icon={<Medal className="w-8 h-8" />}
-                title="Militárie"
-                description="Vojenské předměty"
-                color="red"
-              />
-              <CollectorCard 
-                icon={<Target className="w-8 h-8" />}
-                title="Detektoráři"
-                description="Hledání artefaktů"
-                color="cyan"
-              />
-            </div>
-          </section>
 
           {/* Map Features */}
           <section className="max-w-5xl mx-auto px-4 sm:px-8 py-12">
@@ -335,65 +298,3 @@ const NewFeatureCard = ({ icon, title, description, features }: NewFeatureCardPr
 );
 
 // Collector card
-interface CollectorCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  color: 'amber' | 'emerald' | 'red' | 'cyan';
-}
-
-const colorClasses = {
-  amber: {
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/30',
-    hoverBorder: 'hover:border-amber-500/50',
-    iconBg: 'bg-amber-500/20',
-    iconBorder: 'border-amber-500/30',
-    text: 'text-amber-400',
-    glow: 'group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)]',
-  },
-  emerald: {
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/30',
-    hoverBorder: 'hover:border-emerald-500/50',
-    iconBg: 'bg-emerald-500/20',
-    iconBorder: 'border-emerald-500/30',
-    text: 'text-emerald-400',
-    glow: 'group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)]',
-  },
-  red: {
-    bg: 'bg-red-500/10',
-    border: 'border-red-500/30',
-    hoverBorder: 'hover:border-red-500/50',
-    iconBg: 'bg-red-500/20',
-    iconBorder: 'border-red-500/30',
-    text: 'text-red-400',
-    glow: 'group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)]',
-  },
-  cyan: {
-    bg: 'bg-primary/10',
-    border: 'border-primary/30',
-    hoverBorder: 'hover:border-primary/50',
-    iconBg: 'bg-primary/20',
-    iconBorder: 'border-primary/30',
-    text: 'text-primary',
-    glow: 'group-hover:shadow-[0_0_30px_rgba(0,243,255,0.2)]',
-  },
-};
-
-const CollectorCard = ({ icon, title, description, color }: CollectorCardProps) => {
-  const classes = colorClasses[color];
-  
-  return (
-    <div className={`group relative p-6 ${classes.bg} backdrop-blur-sm border ${classes.border} ${classes.hoverBorder} rounded-2xl transition-all duration-300 ${classes.glow}`}>
-      <div className={`absolute top-0 right-0 w-20 h-20 ${classes.bg} rounded-bl-[100px] opacity-50`} />
-      <div className="relative z-10">
-        <div className={`w-16 h-16 rounded-2xl ${classes.iconBg} border ${classes.iconBorder} flex items-center justify-center ${classes.text} mb-4 transition-all ${classes.glow}`}>
-          {icon}
-        </div>
-        <h3 className="font-display text-white text-xl mb-1">{title}</h3>
-        <p className={`${classes.text} text-sm`}>{description}</p>
-      </div>
-    </div>
-  );
-};

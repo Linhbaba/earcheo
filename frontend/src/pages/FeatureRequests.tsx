@@ -165,7 +165,7 @@ export const FeatureRequests = () => {
     <>
       <SEOHead
         title="Návrhy funkcí"
-        description="Navrhujte nové funkce a hlasujte o tom, co chcete vidět dál v eArcheo. Komunitní návrhy a prioritizace funkcí pro dálkový archeologický průzkum."
+        description="Navrhněte nové funkce nebo hlasujte pro existující návrhy. Pomozte nám vytvořit lepší eArcheo."
         keywords="návrhy funkcí, nové funkce, hlasování, komunita, feature requests, eArcheo roadmap"
         canonicalUrl="/features"
         noindex={true}

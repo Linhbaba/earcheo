@@ -32,8 +32,8 @@ export const MagazinPage = () => {
   return (
     <>
       <SEOHead
-        title="Magazín | eArcheo"
-        description="Články o numismatice, archeologii a historii. Zajímavé nálezy mincí, pokladů a historických artefaktů z celého světa."
+        title="Magazín"
+        description="Příběhy o nálezech mincí, pokladů a artefaktů. Numismatika, archeologie a historie pro sběratele a badatele."
         keywords="numismatika, archeologie, mince, poklady, historie, nálezy, detektoring"
         canonicalUrl="/magazin"
         ogType="website"
