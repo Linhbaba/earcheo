@@ -1,28 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap&subset=latin-ext'); /* Google Fonts with Czech diacritics */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap&subset=latin-ext');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  background-color: #0f172a; /* Deep Space Grey */
+  background-color: #0f172a;
   color: #e2e8f0;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Share Tech Mono', monospace; /* Default data look */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
 }
 
-/* Zabraň pull-to-refresh na mobilech během tažení slideru */
 body.dragging-slider {
   overscroll-behavior-y: contain;
 }
 
 h1, h2, h3, h4, h5, h6, .font-display {
-  font-family: 'Exo 2', sans-serif; /* Sci-fi Headers with Czech diacritics */
+  font-family: 'Exo 2', sans-serif;
+}
+
+/* Override font-mono to use Inter everywhere */
+.font-mono {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* Only use monospace for actual code elements */
+code, pre, .code-block {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', ui-monospace, monospace;
 }
 
 /* Custom Scrollbar for Webkit */
@@ -41,24 +50,55 @@ h1, h2, h3, h4, h5, h6, .font-display {
   background: #00f3ff; 
 }
 
-/* Mapbox Overrides for Cyber Look */
+/* Mapbox Overrides */
 .mapboxgl-ctrl-attrib {
     background: rgba(15, 23, 42, 0.8) !important;
     color: #64748b !important;
-    font-family: 'Share Tech Mono', monospace !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
-/* Cyber Scanline Effect Overlay (optional, adds retro feel) */
-.scanlines::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 999;
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Print Styles */
+@media print {
+  nav, footer, aside, .no-print, button, [role="tablist"] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  article {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  article h1, article h2, article h3 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+  article p, article li {
+    color: #333 !important;
+  }
+  article a {
+    color: #333 !important;
+    text-decoration: underline;
+  }
+  article img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+  }
+  a[href^="/"]::after {
+    content: "";
+  }
 }

@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Shield, User, Clock, Users, Lock, Cookie, Mail } from 'lucide-react';
+
+import { Shield, User, Clock, Users, Lock, Cookie, Mail } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { Footer } from '../components/Footer';
+import { Navbar } from '../components/Navbar';
 
 export const PrivacyPage = () => {
   return (
@@ -32,17 +33,7 @@ export const PrivacyPage = () => {
         </div>
 
         {/* Header */}
-        <header className="relative z-10 border-b border-white/10 bg-surface/50 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto px-4 sm:px-8 py-4">
-            <Link 
-              to="/"
-              className="inline-flex items-center gap-2 text-white/50 hover:text-primary font-mono text-sm transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Zpět na hlavní stránku
-            </Link>
-          </div>
-        </header>
+        <Navbar />
 
         {/* Content */}
         <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16">
@@ -427,6 +418,9 @@ const CookieCard = ({ type, description, color }: CookieCardProps) => {
     </div>
   );
 };
+
+
+
 
 
 

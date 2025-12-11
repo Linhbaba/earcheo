@@ -7,26 +7,95 @@
   <!-- Homepage - Main landing page -->
   <url>
     <loc>https://earcheo.cz/</loc>
-    <lastmod>2025-11-25</lastmod>
+    <lastmod>2024-12-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  
+  <!-- Magazin - Articles listing -->
+  <url>
+    <loc>https://earcheo.cz/magazin</loc>
+    <lastmod>2024-12-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Article: Senon Roman Coins -->
+  <url>
+    <loc>https://earcheo.cz/magazin/senon-40-000-rimskych-minci</loc>
+    <lastmod>2024-12-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Article: Elizabeth I Ship Ryal -->
+  <url>
+    <loc>https://earcheo.cz/magazin/elizabeth-i-ship-ryal-rekordni-prodej</loc>
+    <lastmod>2024-11-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Article: Supernova 1181 -->
+  <url>
+    <loc>https://earcheo.cz/magazin/arabske-texty-supernova-1181</loc>
+    <lastmod>2024-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Article: Swedish Silver Coins -->
+  <url>
+    <loc>https://earcheo.cz/magazin/svedsko-20-000-stribrnych-minci</loc>
+    <lastmod>2024-11-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   
   <!-- Map Page - Interactive map (protected, but listed for reference) -->
   <url>
     <loc>https://earcheo.cz/map</loc>
-    <lastmod>2025-11-25</lastmod>
+    <lastmod>2024-12-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
   
-  <!-- Feature Requests Page (protected, but listed for reference) -->
+  <!-- Changelog -->
+  <url>
+    <loc>https://earcheo.cz/changelog</loc>
+    <lastmod>2024-12-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Feature Requests Page -->
   <url>
     <loc>https://earcheo.cz/features</loc>
-    <lastmod>2025-11-25</lastmod>
+    <lastmod>2024-12-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://earcheo.cz/terms</loc>
+    <lastmod>2024-12-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://earcheo.cz/privacy</loc>
+    <lastmod>2024-12-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://earcheo.cz/data-deletion</loc>
+    <lastmod>2024-12-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
 </urlset>
-

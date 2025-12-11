@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
+
 import { ArrowLeft, Package, User, Map, Search, Zap, Shield, Image, MapPin, Layers, Bookmark, Settings, Trash2, Mountain, Calendar, Smartphone, Wrench, Target, Users, Ruler, BarChart3, Rocket, Wand2, Coins, Hash, Mail, Banknote, ScrollText, Pickaxe } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { Footer } from '../components/Footer';
+import { Navbar } from '../components/Navbar';
 
 export const ChangelogPage = () => {
   return (
@@ -30,17 +32,7 @@ export const ChangelogPage = () => {
         </div>
 
         {/* Header */}
-        <header className="relative z-10 border-b border-white/10 bg-surface/80 backdrop-blur-md">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-            <Link 
-              to="/" 
-              className="inline-flex items-center gap-2 text-white/70 hover:text-primary transition-colors font-mono text-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Zpět
-            </Link>
-          </div>
-        </header>
+        <Navbar />
 
         {/* Content */}
         <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">

@@ -1,20 +1,19 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
-import { Map, Layers, Radar, ChevronRight, Search, User, Package, Bookmark, Calendar, Split, Sparkles, Mountain, ChevronDown, Coins, Mail, Medal, Target, Gem } from 'lucide-react';
+import { ChevronRight, User, Coins, Mail, Medal, Target, Gem } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { TopFeatureRequests } from '../components/TopFeatureRequests';
 import { Footer } from '../components/Footer';
 import { useEffect, useState } from 'react';
 import { useStats } from '../hooks/useStats';
+import { Navbar } from '../components/Navbar';
+import { ArticleCard } from '../components/ArticleCard';
+import { articles } from '../data/articles';
 
 export const LandingPage = () => {
   const { loginWithRedirect } = useAuth0();
-  const [openCategory, setOpenCategory] = useState<string | null>(null); // 'findings' | 'maps' | 'tools' | null
   const { data: stats } = useStats();
 
-  const toggleCategory = (category: string) => {
-    setOpenCategory(openCategory === category ? null : category);
-  };
 
   const handleLogin = () => {
     loginWithRedirect({
@@ -33,7 +32,7 @@ export const LandingPage = () => {
   return (
     <>
       <SEOHead
-        title="Dálkový průzkum krajiny České republiky"
+        title="Pro objevitele"
         description="Prozkoumejte krajinu České republiky pomocí pokročilých LiDAR dat a leteckých snímků. Interaktivní 3D vizualizace terénu pro archeology, historiky a badatele."
         keywords="lidar, dmr5g, čúzk, archeologický průzkum, digitální model reliéfu, ortofoto, mapa česká republika, 3D terén, dálkový průzkum, archeologie, letecká archeologie, historické mapy"
         canonicalUrl="/"
@@ -113,50 +112,7 @@ export const LandingPage = () => {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border border-primary/30 flex items-center justify-center flex-shrink-0">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6">
-              <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" className="text-primary/60" strokeWidth="1.5"/>
-              <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" className="text-primary/80" strokeWidth="1.5"/>
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" className="text-primary"/>
-              <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" className="text-primary/50" strokeWidth="1.5"/>
-              <line x1="12" y1="18" x2="12" y2="22" stroke="currentColor" className="text-primary/50" strokeWidth="1.5"/>
-              <line x1="2" y1="12" x2="6" y2="12" stroke="currentColor" className="text-primary/50" strokeWidth="1.5"/>
-              <line x1="18" y1="12" x2="22" y2="12" stroke="currentColor" className="text-primary/50" strokeWidth="1.5"/>
-            </svg>
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-display text-base sm:text-lg text-white tracking-wider">eArcheo</h1>
-            <p className="text-[9px] sm:text-[10px] text-white/40 font-mono tracking-widest uppercase hidden xs:block">Dálkový průzkum krajiny</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-1.5 sm:gap-4">
-          <Link
-            to="/changelog"
-            className="px-2 py-1.5 sm:px-3 sm:py-2 text-white/50 hover:text-white font-mono text-xs transition-colors hidden sm:block"
-          >
-            Changelog
-          </Link>
-          <span className="px-2 py-1 sm:px-3 bg-primary/20 border border-primary/30 rounded-lg text-primary text-[9px] sm:text-[10px] font-mono tracking-wider">
-            v1.2
-          </span>
-          <button
-            onClick={handleLogin}
-            className="px-2 py-1.5 sm:px-4 sm:py-2 text-white/70 hover:text-white font-mono text-xs sm:text-sm transition-colors"
-          >
-            <span className="hidden sm:inline">Přihlásit se</span>
-            <span className="sm:hidden">Přihlásit</span>
-          </button>
-          <button
-            onClick={handleSignUp}
-            className="px-3 py-1.5 sm:px-5 sm:py-2.5 bg-primary/20 hover:bg-primary/30 border border-primary/50 hover:border-primary rounded-lg text-primary font-mono text-xs sm:text-sm transition-all hover:shadow-[0_0_20px_rgba(0,243,255,0.3)]"
-          >
-            Registrace
-          </button>
-        </div>
-      </header>
+      <Navbar variant="transparent" />
 
       {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-center px-4 sm:px-8 pt-8 sm:pt-12 pb-8">
@@ -295,139 +251,40 @@ export const LandingPage = () => {
           </div>
         </div>
 
-        {/* Core feature tiles */}
-        <div className="mt-20 max-w-5xl w-full px-4">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full mb-4">
-              <span className="text-white/60 font-mono text-xs tracking-wider">TECHNOLOGIE</span>
-            </div>
-            <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
-              Klíčové mapové vrstvy
-            </h3>
-            <p className="text-white/50 font-mono text-sm sm:text-base">
-              Pracujte s nejpřesnějšími daty pro průzkum krajiny
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard 
-              icon={<Layers className="w-6 h-6" />}
-              title="LiDAR Data"
-              description="Vysoké rozlišení z ČÚZK"
-              image="/lidar.webp"
-            />
-            <FeatureCard 
-              icon={<Map className="w-6 h-6" />}
-              title="Více vrstev"
-              description="Satelitní snímky, ortofoto ČÚZK"
-              image="/vrstvy.webp"
-            />
-            <FeatureCard 
-              icon={<Radar className="w-6 h-6" />}
-              title="3D Terén"
-              description="Interaktivní vizualizace reliéfu"
-              image="/3D.webp"
-            />
-          </div>
-        </div>
 
-        {/* New feature tiles - Categorized */}
-        <div className="mt-20 max-w-6xl w-full px-4">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full mb-4">
-              <span className="text-primary font-mono text-xs tracking-wider">NOVINKY VE VERZI 1.2</span>
-            </div>
-            <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
-              Nástroje pro objevitele
-            </h3>
-            <p className="text-white/50 font-mono text-sm sm:text-base">
-              Přehled funkcí pro evidenci nálezů, výprav a studium map
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {/* Category 1: Findings & Profile */}
-            <FeatureCategory 
-              title="Správa nálezů a profil" 
-              isOpen={openCategory === 'findings'} 
-              onToggle={() => toggleCategory('findings')}
-            >
-              <NewFeatureCard
-                icon={<User className="w-7 h-7" />}
-                title="Profil"
-                description="Správa profilu s statistikami, achievementy a nastavením"
-                features={['Editace profilu', 'Statistiky nálezů', 'Avatar a bio']}
-              />
-              <NewFeatureCard
-                icon={<Search className="w-7 h-7" />}
-                title="Nálezy"
-                description="Wizard pro výběr typu nálezu s rozšířenými poli"
-                features={['Mince, Známky, Militárie, Terén', 'Dynamická pole podle typu', 'Vlastní uživatelská pole', 'Fotogalerie + GPS']}
-              />
-              <NewFeatureCard
-                icon={<Package className="w-7 h-7" />}
-                title="Vybavení"
-                description="Správa vašeho archeologického vybavení"
-                features={['Detektory kovů', 'GPS zařízení', 'Další nástroje', 'Statistiky použití']}
-              />
-            </FeatureCategory>
-
-            {/* Category 2: Map Data */}
-            <FeatureCategory 
-              title="Mapová data a historie" 
-              isOpen={openCategory === 'maps'} 
-              onToggle={() => toggleCategory('maps')}
-            >
-              <NewFeatureCard
-                icon={<Calendar className="w-7 h-7" />}
-                title="Ortofoto archiv"
-                description="Historické snímky ČÚZK od 2007 do 2022"
-                features={['16 let historie', 'HD kvalita', 'Celé území ČR', 'Rychlá volba roku']}
-              />
-              <NewFeatureCard
-                icon={<Mountain className="w-7 h-7" />}
-                title="ZABAGED vrstevnice"
-                description="Přesné výškopisné linie pro čtení terénu"
-                features={['1m krok', 'Plynulé překrytí', 'Nastavitelná průhlednost', 'Ideální pro analýzu reliéfu']}
-              />
-              <NewFeatureCard
-                icon={<Map className="w-7 h-7" />}
-                title="Katastrální mapy"
-                description="Aktuální parcely z ČÚZK jako overlay"
-                features={['Čísla parcel', 'Kombinace s LiDAR', 'Řízení opacity', 'Rychlé přepínání']}
-              />
-            </FeatureCategory>
-
-            {/* Category 3: Tools & UI */}
-            <FeatureCategory 
-              title="Pokročilé nástroje a UI" 
-              isOpen={openCategory === 'tools'} 
-              onToggle={() => toggleCategory('tools')}
-            >
-              <NewFeatureCard
-                icon={<Split className="w-7 h-7" />}
-                title="Custom L/R setup"
-                description="Porovnání dvou map s nezávislými vrstvami"
-                features={['Swipe & split režim', 'Horizontální porovnání', 'Individuální filtry', 'Plynulé přepínání']}
-              />
-              <NewFeatureCard
-                icon={<Bookmark className="w-7 h-7" />}
-                title="Uložené pohledy"
-                description="Vytvářejte presety s kompletním nastavením mapy"
-                features={['Až 10 presetů', 'Uloží vrstvy i zoom', 'Sdílení připravujeme', 'Přehledné spravování']}
-              />
-              <NewFeatureCard
-                icon={<Sparkles className="w-7 h-7" />}
-                title="Vylepšené UI"
-                description="Moderní rozhraní navržené pro rychlou práci v terénu"
-                features={['Floating action button', 'Bottom bar pro mobil', 'Jednotné ovládání', 'Rychlé akce']}
-              />
-            </FeatureCategory>
-          </div>
-        </div>
 
       </main>
 
-      {/* Top Feature Requests */}
+      {/* Magazín - Nejnovější články */}
+        <section className="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 py-16">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full mb-4">
+              <span className="text-amber-400 font-mono text-xs tracking-wider">MAGAZÍN</span>
+            </div>
+            <h3 className="font-display text-3xl sm:text-4xl text-white mb-2">
+              Nejnovější články
+            </h3>
+            <p className="text-white/50 font-mono text-sm sm:text-base">
+              Příběhy z historie, archeologie a numismatiky
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {articles.slice(0, 3).map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+          <div className="text-center">
+            <Link
+              to="/magazin"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/50 rounded-lg text-amber-400 font-mono text-sm transition-all"
+            >
+              Všechny články
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+
+        {/* Top Feature Requests */}
       <TopFeatureRequests />
 
       {/* Footer */}
@@ -481,89 +338,7 @@ export const LandingPage = () => {
   );
 };
 
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  image?: string;
-}
 
-const FeatureCard = ({ icon, title, description, image }: FeatureCardProps) => (
-  <div className="group relative overflow-hidden p-6 bg-surface/40 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all hover:bg-surface/60">
-    {image && (
-      <>
-        <img 
-          src={image} 
-          alt="" 
-          className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a] via-[#0f172a]/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/40 to-transparent" />
-      </>
-    )}
-    <div className="relative z-10">
-      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_20px_rgba(0,243,255,0.2)] transition-all">
-        {icon}
-      </div>
-      <h3 className="font-display text-white text-lg mb-2">{title}</h3>
-      <p className="text-white/50 font-mono text-sm leading-relaxed max-w-[80%]">{description}</p>
-    </div>
-  </div>
-);
-
-interface FeatureCategoryProps {
-  title: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-const FeatureCategory = ({ title, isOpen, onToggle, children }: FeatureCategoryProps) => (
-  <div 
-    className={`
-      rounded-xl overflow-hidden bg-surface/40 backdrop-blur-sm transition-all duration-300 border
-      ${isOpen ? 'border-primary/50 shadow-[0_0_20px_rgba(0,243,255,0.15)]' : 'border-white/10 hover:border-primary/30'}
-    `}
-  >
-    <button
-      onClick={onToggle}
-      className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-all duration-300"
-    >
-      <h3 className="font-display text-lg text-white">{title}</h3>
-      <ChevronDown className={`w-5 h-5 text-white/50 group-hover:text-primary transition-all duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
-    </button>
-    {isOpen && (
-      <div className="p-4 pt-0 grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in mt-2">
-        {children}
-      </div>
-    )}
-  </div>
-);
-
-interface NewFeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  features: string[];
-}
-
-const NewFeatureCard = ({ icon, title, description, features }: NewFeatureCardProps) => (
-  <div className="p-6 bg-surface/60 backdrop-blur-sm border border-white/10 rounded-2xl hover:border-primary/30 transition-all group">
-    <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:shadow-[0_0_25px_rgba(0,243,255,0.25)] transition-all">
-      {icon}
-    </div>
-    <h3 className="font-display text-white text-xl mb-2">{title}</h3>
-    <p className="text-white/60 font-mono text-sm mb-4 leading-relaxed">{description}</p>
-    <ul className="space-y-2">
-      {features.map((feature) => (
-        <li key={feature} className="flex items-center gap-2 text-white/50 font-mono text-xs">
-          <div className="w-1 h-1 rounded-full bg-primary" />
-          {feature}
-        </li>
-      ))}
-    </ul>
-  </div>
-);
 
 // Collector type card component
 interface CollectorCardProps {

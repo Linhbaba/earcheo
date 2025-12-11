@@ -6,7 +6,9 @@ import {
   Shield, 
   Trash2,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  BookOpen,
+  Layers
 } from 'lucide-react';
 
 export const Footer = () => {
@@ -24,7 +26,7 @@ export const Footer = () => {
           {/* Brand Section */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border border-primary/30 flex items-center justify-center flex-shrink-0 group-hover:shadow-[0_0_20px_rgba(0,243,255,0.3)] transition-all">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0a1628] to-[#0d1f35] border border-primary/30 flex items-center justify-center flex-shrink-0">
                 <svg viewBox="0 0 24 24" className="w-6 h-6">
                   <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" className="text-primary/60" strokeWidth="1.5"/>
                   <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" className="text-primary/80" strokeWidth="1.5"/>
@@ -37,18 +39,18 @@ export const Footer = () => {
               </div>
               <div>
                 <h3 className="font-display text-lg text-white tracking-wider">eArcheo</h3>
-                <span className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">Pro objevitele</span>
+                <span className="text-[10px] text-primary/60 tracking-widest uppercase">Pro objevitele</span>
               </div>
             </div>
-            <p className="text-white/40 font-mono text-xs leading-relaxed mb-6 max-w-xs">
+            <p className="text-white/40 text-xs leading-relaxed mb-6 max-w-xs">
               Moderní platforma pro evidenci sbírek a průzkum krajiny. 
               LiDAR, ortofoto a historické mapy pro archeology, numismatiky i detektoráře.
             </p>
             <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 bg-primary/10 border border-primary/30 rounded-lg text-primary text-[10px] font-mono tracking-wider">
+              <span className="px-2.5 py-1 bg-primary/10 border border-primary/30 rounded-lg text-primary text-[10px] tracking-wider">
                 v1.2
               </span>
-              <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-[10px] font-mono tracking-wider flex items-center gap-1.5">
+              <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-[10px] tracking-wider flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                 Online
               </span>
@@ -64,6 +66,12 @@ export const Footer = () => {
             <ul className="space-y-2.5">
               <FooterLink to="/map" icon={<Map className="w-3.5 h-3.5" />}>
                 Interaktivní mapa
+              </FooterLink>
+              <FooterLink to="/funkce" icon={<Layers className="w-3.5 h-3.5" />}>
+                Funkce
+              </FooterLink>
+              <FooterLink to="/magazin" icon={<BookOpen className="w-3.5 h-3.5" />}>
+                Magazín
               </FooterLink>
               <FooterLink to="/features" icon={<Sparkles className="w-3.5 h-3.5" />}>
                 Požadavky na funkce
@@ -103,7 +111,7 @@ export const Footer = () => {
               <li>
                 <a 
                   href="mailto:ahoj@earcheo.cz"
-                  className="group flex items-center gap-2.5 text-white/50 hover:text-primary font-mono text-xs transition-all"
+                  className="group flex items-center gap-2.5 text-white/50 hover:text-primary text-xs transition-all"
                 >
                   <Mail className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   ahoj@earcheo.cz
@@ -112,7 +120,7 @@ export const Footer = () => {
               <li>
                 <a 
                   href="mailto:podpora@earcheo.cz"
-                  className="group flex items-center gap-2.5 text-white/50 hover:text-primary font-mono text-xs transition-all"
+                  className="group flex items-center gap-2.5 text-white/50 hover:text-primary text-xs transition-all"
                 >
                   <Mail className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   podpora@earcheo.cz
@@ -122,7 +130,7 @@ export const Footer = () => {
             
             {/* Company info */}
             <div className="mt-6 pt-4 border-t border-white/5">
-              <p className="text-white/30 font-mono text-[10px] leading-relaxed">
+              <p className="text-white/30 text-[10px] leading-relaxed">
                 Golden Nose s.r.o.<br />
                 IČO: 24142484<br />
                 Praha 4 – Braník
@@ -135,13 +143,13 @@ export const Footer = () => {
         <div className="pt-8 border-t border-white/5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Copyright */}
-            <p className="text-white/30 font-mono text-xs flex items-center gap-2">
+            <p className="text-white/30 text-xs flex items-center gap-2">
               © {currentYear} eArcheo · Všechna práva vyhrazena
             </p>
             
             {/* Made by PicturesControl */}
             <div className="flex items-center gap-2">
-              <span className="text-white/30 font-mono text-[10px]">Vytvořilo</span>
+              <span className="text-white/30 text-[10px]">Vytvořilo</span>
               <a 
                 href="https://picturescontrol.cz" 
                 target="_blank" 
@@ -174,7 +182,7 @@ interface FooterLinkProps {
 }
 
 const FooterLink = ({ to, icon, external, children }: FooterLinkProps) => {
-  const className = "group flex items-center gap-2.5 text-white/50 hover:text-primary font-mono text-xs transition-all";
+  const className = "group flex items-center gap-2.5 text-white/50 hover:text-primary text-xs transition-all";
   
   if (external) {
     return (
@@ -197,4 +205,3 @@ const FooterLink = ({ to, icon, external, children }: FooterLinkProps) => {
     </li>
   );
 };
-

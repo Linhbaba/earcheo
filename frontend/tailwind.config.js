@@ -1,4 +1,3 @@
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -9,25 +8,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Deep Space Grey - Pozadí
-        background: '#050b14', // Darker for better contrast with neon
-        // Neon Cyan - Data/Aktivní prvky
+        background: '#050b14',
         primary: '#00f3ff',
-        // Amber Orange - Detekce/Výstrahy
         alert: '#ffae00',
-        // UI Surface colors
         surface: '#0f172a', 
         surface_highlight: '#1e293b',
       },
       fontFamily: {
-        sans: ['Share Tech Mono', 'ui-monospace', 'SFMono-Regular'], // Default text is now tech mono
-        display: ['Exo 2', 'sans-serif'], // For headers (with Czech diacritics)
-        mono: ['Share Tech Mono', 'monospace'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Exo 2', 'sans-serif'],
+        mono: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'], // Inter všude
       },
       letterSpacing: {
         widest: '.25em',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }

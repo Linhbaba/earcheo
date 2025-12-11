@@ -15,6 +15,10 @@ import { ChangelogPage } from './pages/ChangelogPage';
 import { TermsPage } from './pages/TermsPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { DataDeletionPage } from './pages/DataDeletionPage';
+import { MagazinPage } from './pages/MagazinPage';
+import { ArticleDetailPage } from './pages/ArticleDetailPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { FunkcePage } from './pages/FunkcePage';
 import { FeaturesLayout } from './layouts/FeaturesLayout';
 import { registerServiceWorker } from './utils/registerServiceWorker';
 import './index.css';
@@ -23,6 +27,11 @@ import './index.css';
 if (import.meta.env.PROD) {
   registerServiceWorker();
 }
+
+// Dispatch event for prerendering
+const dispatchRenderEvent = () => {
+  document.dispatchEvent(new Event('render-event'));
+};
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -50,6 +59,13 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/data-deletion" element={<DataDeletionPage />} />
           
+          {/* Funkce */}
+          <Route path="/funkce" element={<FunkcePage />} />
+          
+          {/* Magazin routes */}
+          <Route path="/magazin" element={<MagazinPage />} />
+          <Route path="/magazin/:slug" element={<ArticleDetailPage />} />
+          
           {/* Protected routes */}
           <Route 
             path="/map" 
@@ -75,6 +91,9 @@ createRoot(document.getElementById('root')!).render(
               </FeaturesLayout>
             } 
           />
+          
+          {/* 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </QueryProvider>
       </Auth0ProviderWithNavigate>
@@ -82,3 +101,6 @@ createRoot(document.getElementById('root')!).render(
     </HelmetProvider>
   </StrictMode>,
 );
+
+// Trigger prerender event after initial render
+setTimeout(dispatchRenderEvent, 100);

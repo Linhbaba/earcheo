@@ -1,3 +1,6 @@
 -- AlterTable
 ALTER TABLE "Sector" ADD COLUMN "walkingSpeed" DOUBLE PRECISION NOT NULL DEFAULT 2.5;
 
+
+
+
