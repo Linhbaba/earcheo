@@ -18,19 +18,21 @@ export const ArticleCard = ({ article, featured = false }: ArticleCardProps) => 
         to={`/magazin/${article.slug}`}
         className="group block relative overflow-hidden rounded-2xl border border-white/10 hover:border-primary/30 transition-all duration-300"
       >
-        <div className="aspect-[21/9] relative">
+        {/* Mobile: stacked layout, Desktop: overlay layout */}
+        <div className="sm:aspect-[21/9] relative">
           <img
             src={article.coverImage}
             alt=""
             loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-48 sm:h-full sm:absolute sm:inset-0 object-cover group-hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-transparent" />
+          <div className="hidden sm:block absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-background/80 to-transparent" />
         </div>
         
-        <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-          <div className="flex items-center gap-3 mb-3">
+        {/* Mobile: below image, Desktop: overlay */}
+        <div className="p-5 sm:p-8 sm:absolute sm:bottom-0 sm:left-0 sm:right-0 bg-background/95 sm:bg-transparent">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
             <span className={`px-2.5 py-1 rounded-lg text-xs font-mono ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border} border`}>
               {categoryLabels[article.category]}
             </span>
@@ -40,11 +42,11 @@ export const ArticleCard = ({ article, featured = false }: ArticleCardProps) => 
             </div>
           </div>
           
-          <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl text-white mb-3 group-hover:text-primary transition-colors">
+          <h2 className="font-display text-xl sm:text-3xl lg:text-4xl text-white mb-2 sm:mb-3 group-hover:text-primary transition-colors">
             {article.title}
           </h2>
           
-          <p className="text-white/60 font-mono text-sm sm:text-base leading-relaxed max-w-2xl mb-4">
+          <p className="text-white/60 font-mono text-sm sm:text-base leading-relaxed max-w-2xl mb-3 sm:mb-4 line-clamp-3 sm:line-clamp-none">
             {article.excerpt}
           </p>
           

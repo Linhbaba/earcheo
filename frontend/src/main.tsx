@@ -20,6 +20,7 @@ import { ArticleDetailPage } from './pages/ArticleDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { FunkcePage } from './pages/FunkcePage';
 import { FeaturesLayout } from './layouts/FeaturesLayout';
+import { ScrollToTop } from './components/ScrollToTop';
 import { registerServiceWorker } from './utils/registerServiceWorker';
 import './index.css';
 
@@ -37,6 +38,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
     <BrowserRouter>
+      <ScrollToTop />
       <Auth0ProviderWithNavigate>
         <QueryProvider>
         <Toaster 
