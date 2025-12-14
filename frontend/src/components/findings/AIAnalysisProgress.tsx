@@ -25,7 +25,7 @@ export const AIAnalysisProgress = ({
   const currentIndex = PHASES.findIndex(p => p.id === currentPhase);
   
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center">
       <style>{`
         @keyframes scan {
           0% { transform: translateY(-100%); }
