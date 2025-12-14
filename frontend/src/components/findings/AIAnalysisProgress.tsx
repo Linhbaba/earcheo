@@ -28,12 +28,16 @@ export const AIAnalysisProgress = ({
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center">
       <style>{`
         @keyframes scan {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(400%); }
+          0%, 100% { top: -10%; }
+          50% { top: 100%; }
         }
         @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(168, 162, 158, 0.3); }
-          50% { box-shadow: 0 0 40px rgba(168, 162, 158, 0.6); }
+          0%, 100% { box-shadow: 0 0 15px rgba(168, 162, 158, 0.4); }
+          50% { box-shadow: 0 0 30px rgba(168, 162, 158, 0.7), 0 0 60px rgba(168, 162, 158, 0.3); }
+        }
+        @keyframes mesh-move {
+          0% { background-position: 0 0; }
+          100% { background-position: 20px 20px; }
         }
       `}</style>
       
@@ -53,7 +57,7 @@ export const AIAnalysisProgress = ({
             {images.slice(0, 4).map((img, idx) => (
               <div 
                 key={idx}
-                className="relative w-20 h-20 rounded-lg overflow-hidden border border-primary/30"
+                className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-primary/50"
                 style={{ animation: 'pulse-glow 2s ease-in-out infinite' }}
               >
                 <img 
@@ -61,20 +65,33 @@ export const AIAnalysisProgress = ({
                   alt={`Foto ${idx + 1}`}
                   className="w-full h-full object-cover"
                 />
-                {/* Scan line overlay */}
+                {/* Mesh/grid overlay */}
                 <div 
-                  className="absolute inset-0 overflow-hidden pointer-events-none"
-                >
-                  <div 
-                    className="absolute left-0 right-0 h-1 bg-gradient-to-b from-transparent via-primary to-transparent opacity-80"
-                    style={{ 
-                      animation: 'scan 1.5s ease-in-out infinite',
-                      animationDelay: `${idx * 0.2}s`
-                    }}
-                  />
-                </div>
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  className="absolute inset-0 pointer-events-none opacity-30"
+                  style={{
+                    backgroundImage: `
+                      linear-gradient(rgba(168,162,158,0.3) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(168,162,158,0.3) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '8px 8px',
+                    animation: 'mesh-move 2s linear infinite',
+                  }}
+                />
+                {/* Scan line */}
+                <div 
+                  className="absolute left-0 right-0 h-1 pointer-events-none"
+                  style={{ 
+                    background: 'linear-gradient(to bottom, transparent, rgba(168,162,158,0.9), rgba(168,162,158,0.4), transparent)',
+                    boxShadow: '0 0 20px rgba(168,162,158,0.8), 0 0 40px rgba(168,162,158,0.4)',
+                    animation: 'scan 2s ease-in-out infinite',
+                    animationDelay: `${idx * 0.3}s`,
+                  }}
+                />
+                {/* Corner markers */}
+                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary" />
+                <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary" />
+                <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-primary" />
               </div>
             ))}
           </div>
