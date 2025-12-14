@@ -1,10 +1,12 @@
 // Database types for frontend
 // Generated from Prisma schema
 
+import { type FindingType } from '../utils/findingFieldsConfig';
+
 export type EquipmentType = 'DETECTOR' | 'GPS' | 'MAGNIFIER' | 'CATALOG' | 'STORAGE' | 'OTHER';
 export type FindingVisibility = 'PRIVATE' | 'ANONYMOUS' | 'PUBLIC';
 export type CollectorType = 'NUMISMATIST' | 'PHILATELIST' | 'MILITARIA' | 'DETECTORIST';
-export type FindingType = 'COIN' | 'STAMP' | 'MILITARY' | 'TERRAIN' | 'GENERAL';
+export type { FindingType };
 export type CustomFieldType = 'text' | 'number' | 'date' | 'select';
 
 export interface User {

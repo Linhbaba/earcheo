@@ -170,6 +170,7 @@ model Finding {
   images            FindingImage[]
   equipment         FindingEquipment[]
   customFieldValues CustomFieldValue[]
+  analyses          FindingAnalysis[]
 
   @@index([category])
   @@index([date])
@@ -275,18 +276,18 @@ enum TrackStatus {
 }
 
 model User {
-  id                  String             @id
-  email               String             @unique
+  id                  String               @id
+  email               String               @unique
   nickname            String?
   bio                 String?
   avatarUrl           String?
   location            String?
   contact             String?
   experience          String?
-  collectorTypes      CollectorType[]    @default([])
-  onboardingCompleted Boolean            @default(false)
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  collectorTypes      CollectorType[]      @default([])
+  onboardingCompleted Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   equipment           Equipment[]
   favoriteLocations   FavoriteLocation[]
   featureRequests     FeatureRequest[]
@@ -297,6 +298,8 @@ model User {
   sectors             Sector[]
   socialLinks         SocialLink[]
   customFields        CustomField[]
+  credits             UserCredits?
+  creditTransactions  CreditTransaction[]
 
   @@index([email])
 }
@@ -355,4 +358,51 @@ enum FeatureStatus {
   PLANNED
   IN_PROGRESS
   DONE
+}
+
+// === AI ANALÝZA A KREDITY ===
+
+model UserCredits {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Int      @default(0)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CreditTransaction {
+  id          String          @id @default(cuid())
+  userId      String
+  amount      Int             // + připsání, - odepsání
+  type        TransactionType
+  description String?
+  metadata    Json?           // { findingId, analysisId, model, tokens... }
+  createdAt   DateTime        @default(now())
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model FindingAnalysis {
+  id          String   @id @default(cuid())
+  findingId   String
+  model       String   // gpt-5, o3-deep-research
+  level       String   // quick, detailed, expert
+  result      Json     // Strukturovaný výsledek analýzy
+  tokensUsed  Int
+  creditsCost Int
+  createdAt   DateTime @default(now())
+  finding     Finding  @relation(fields: [findingId], references: [id], onDelete: Cascade)
+
+  @@index([findingId])
+  @@index([createdAt])
+}
+
+enum TransactionType {
+  PURCHASE      // Nákup kreditů
+  ANALYSIS      // Spotřeba na analýzu
+  BONUS         // Bonus (registrace, promo)
+  REFUND        // Vrácení (chyba API)
+  ADMIN_GRANT   // Manuální přidělení adminem
 }

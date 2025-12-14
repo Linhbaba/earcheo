@@ -1,14 +1,17 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { X, Loader, ChevronDown, ChevronUp, MapPin, Lock, Eye, Globe, ArrowLeft, Plus } from 'lucide-react';
+import { X, Loader, ChevronDown, ChevronUp, MapPin, Lock, Eye, Globe, ArrowLeft, Plus, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import { useFindings } from '../../hooks/useFindings';
 import { useProfile } from '../../hooks/useProfile';
 import { useCustomFields } from '../../hooks/useCustomFields';
+import { useCredits } from '../../hooks/useCredits';
 import { ImageUploader } from './ImageUploader';
 import { LocationPicker } from './LocationPicker';
 import { FindingTypeSelector } from './FindingTypeSelector';
 import { DynamicField } from './DynamicField';
+import { AIAnalysisOptions, type AnalysisLevel } from './AIAnalysisOptions';
+import { KnownInfoInput, type KnownInfo } from './KnownInfoInput';
 import { CustomFieldInput } from '../customFields';
 import { TagInput } from '../shared';
 import { getCategoriesForCollectorTypes, getDefaultFindingType } from '../../utils/collectorPresets';
@@ -25,12 +28,13 @@ interface FindingFormProps {
   onSuccess?: () => void;
 }
 
-type WizardStep = 'type' | 'form';
+type WizardStep = 'type' | 'photos' | 'form';
 
 export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) => {
   const { createFinding, updateFinding, uploadImage } = useFindings({ autoFetch: false });
   const { profile } = useProfile();
   const { customFields } = useCustomFields();
+  const { balance: userCredits, loading: creditsLoading } = useCredits();
   const [loading, setLoading] = useState(false);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const isEditing = !!finding;
@@ -40,6 +44,16 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
   const [selectedType, setSelectedType] = useState<FindingType>(
     (finding?.findingType as FindingType) || 'GENERAL'
   );
+  
+  // AI Analysis state
+  const [analysisLevel, setAnalysisLevel] = useState<AnalysisLevel>('none');
+  const [knownInfo, setKnownInfo] = useState<KnownInfo>({
+    materialTags: [],
+    periodTags: [],
+    originTags: [],
+    notes: '',
+  });
+  const [aiLoading, setAiLoading] = useState(false);
   
   // Collapsible sections
   const [showIdentification, setShowIdentification] = useState(true);
@@ -157,6 +171,30 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
   const handleTypeSelect = (type: FindingType) => {
     setSelectedType(type);
     setFormData(prev => ({ ...prev, findingType: type }));
+    // Pokud je typ UNKNOWN, AI je povinná
+    if (type === 'UNKNOWN') {
+      setAnalysisLevel('quick');
+    }
+    setWizardStep('photos');
+  };
+
+  // Handle photos step continue
+  const handlePhotosStepContinue = async () => {
+    // Pokud je vybraná AI analýza, spustíme ji
+    if (analysisLevel !== 'none' && pendingImages.length > 0) {
+      setAiLoading(true);
+      try {
+        // TODO: Implementovat skutečnou AI analýzu
+        // Pro teď jen simulujeme loading a přejdeme na form
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        toast.success('AI analýza dokončena (simulace)');
+      } catch (error) {
+        console.error('AI Analysis error:', error);
+        toast.error('Chyba při AI analýze');
+      } finally {
+        setAiLoading(false);
+      }
+    }
     setWizardStep('form');
   };
 
@@ -292,16 +330,22 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            {wizardStep === 'form' && !isEditing && (
+            {(wizardStep === 'photos' || wizardStep === 'form') && !isEditing && (
               <button
-                onClick={() => setWizardStep('type')}
+                onClick={() => setWizardStep(wizardStep === 'form' ? 'photos' : 'type')}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 text-white/50" />
               </button>
             )}
             <h2 className="font-display text-2xl text-primary">
-              {isEditing ? 'Upravit nález' : wizardStep === 'type' ? 'Nový nález' : `Nový nález · ${typeMeta.label.split(' / ')[0]}`}
+              {isEditing 
+                ? 'Upravit nález' 
+                : wizardStep === 'type' 
+                  ? 'Nový nález' 
+                  : wizardStep === 'photos'
+                    ? 'Fotografie'
+                    : `Nový nález · ${typeMeta?.label?.split(' / ')[0] || 'Obecný'}`}
             </h2>
           </div>
           <button
@@ -321,7 +365,130 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
           />
         )}
 
-        {/* Wizard Step 2: Form */}
+        {/* Wizard Step 2: Photos + AI */}
+        {wizardStep === 'photos' && (
+          <div className="space-y-6">
+            {/* Fotografie */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-xs text-white/70 font-mono uppercase tracking-wider">
+                  📸 Fotografie {selectedType === 'UNKNOWN' ? '*' : '(volitelné)'}
+                </label>
+                {pendingImages.length > 0 && (
+                  <span className="text-xs text-primary font-mono">
+                    {pendingImages.length} {pendingImages.length === 1 ? 'fotka' : pendingImages.length < 5 ? 'fotky' : 'fotek'}
+                  </span>
+                )}
+              </div>
+
+              {pendingImages.length > 0 && (
+                <div className="mb-4">
+                  <div className="grid grid-cols-4 gap-2">
+                    {pendingImages.map((file, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-black/20 group">
+                        <img 
+                          src={URL.createObjectURL(file)} 
+                          alt={`Preview ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePendingImage(idx)}
+                          className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!showImageUploader && (
+                <button
+                  type="button"
+                  onClick={() => setShowImageUploader(true)}
+                  className="w-full px-4 py-6 bg-white/5 hover:bg-white/10 border border-dashed border-white/20 hover:border-primary/30 rounded-xl text-white/60 hover:text-white/80 font-mono text-sm transition-all flex flex-col items-center gap-2"
+                >
+                  <Plus className="w-6 h-6" />
+                  {pendingImages.length > 0 ? 'Přidat další fotky' : 'Nahrát fotografie'}
+                </button>
+              )}
+
+              {showImageUploader && (
+                <div className="space-y-3">
+                  <ImageUploader onUpload={handleUploadPhotos} />
+                  <button
+                    type="button"
+                    onClick={() => setShowImageUploader(false)}
+                    className="text-xs text-white/50 hover:text-white/70 font-mono transition-colors"
+                  >
+                    Zrušit
+                  </button>
+                </div>
+              )}
+
+              {selectedType === 'COIN' && pendingImages.length > 0 && pendingImages.length < 2 && (
+                <p className="mt-2 text-xs text-amber-400/80 font-mono flex items-center gap-1">
+                  💡 Pro lepší analýzu mince přidej obě strany (avers a revers)
+                </p>
+              )}
+            </div>
+
+            {/* AI Analýza */}
+            <AIAnalysisOptions
+              selectedLevel={analysisLevel}
+              onSelect={setAnalysisLevel}
+              userCredits={userCredits}
+              isRequired={selectedType === 'UNKNOWN'}
+              disabled={creditsLoading || aiLoading}
+            />
+
+            {/* Známé informace */}
+            {analysisLevel !== 'none' && (
+              <KnownInfoInput
+                value={knownInfo}
+                onChange={setKnownInfo}
+                findingType={selectedType}
+                disabled={aiLoading}
+              />
+            )}
+
+            {/* Pokračovat tlačítko */}
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setWizardStep('type')}
+                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/70 font-mono text-sm transition-colors"
+                disabled={aiLoading}
+              >
+                Zpět
+              </button>
+              <button
+                type="button"
+                onClick={handlePhotosStepContinue}
+                disabled={aiLoading || (selectedType === 'UNKNOWN' && pendingImages.length === 0)}
+                className="flex-1 px-4 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-lg text-primary font-mono text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {aiLoading ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    AI analyzuje...
+                  </>
+                ) : analysisLevel !== 'none' && pendingImages.length > 0 ? (
+                  <>
+                    <Bot className="w-4 h-4" />
+                    Analyzovat a pokračovat
+                  </>
+                ) : (
+                  'Pokračovat'
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Wizard Step 3: Form */}
         {wizardStep === 'form' && (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* === ZÁKLADNÍ INFORMACE === */}

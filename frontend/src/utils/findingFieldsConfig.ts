@@ -8,6 +8,7 @@ export const FINDING_TYPES = {
   MILITARY: 'MILITARY',
   TERRAIN: 'TERRAIN',
   GENERAL: 'GENERAL',
+  UNKNOWN: 'UNKNOWN',
 } as const;
 
 export type FindingType = typeof FINDING_TYPES[keyof typeof FINDING_TYPES];
@@ -83,6 +84,18 @@ export const FINDING_TYPE_META: Record<FindingType, {
       border: 'border-slate-500/30',
       hoverBorder: 'hover:border-slate-500/50',
       glow: 'group-hover:shadow-[0_0_20px_rgba(148,163,184,0.2)]',
+    },
+  },
+  UNKNOWN: {
+    label: 'Nevím / Jiné',
+    description: 'Nechám AI určit typ',
+    icon: 'HelpCircle',
+    color: {
+      text: 'text-purple-400',
+      bg: 'bg-purple-500/10',
+      border: 'border-purple-500/30',
+      hoverBorder: 'hover:border-purple-500/50',
+      glow: 'group-hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]',
     },
   },
 };

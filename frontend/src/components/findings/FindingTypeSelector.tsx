@@ -1,4 +1,4 @@
-import { Coins, Mail, Medal, Target, Package } from 'lucide-react';
+import { Coins, Mail, Medal, Target, Package, HelpCircle } from 'lucide-react';
 import { FINDING_TYPE_META, type FindingType } from '../../utils/findingFieldsConfig';
 
 interface FindingTypeSelectorProps {
@@ -14,6 +14,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Medal,
   Target,
   Package,
+  HelpCircle,
 };
 
 export const FindingTypeSelector = ({ selectedType, onSelect, suggestedType }: FindingTypeSelectorProps) => {
@@ -30,7 +31,7 @@ export const FindingTypeSelector = ({ selectedType, onSelect, suggestedType }: F
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {types.map(([type, meta]) => {
           const Icon = ICONS[meta.icon];
           const isSelected = selectedType === type;
@@ -89,16 +90,6 @@ export const FindingTypeSelector = ({ selectedType, onSelect, suggestedType }: F
         })}
       </div>
 
-      {/* Skip option */}
-      <div className="text-center pt-2">
-        <button
-          type="button"
-          onClick={() => onSelect('GENERAL')}
-          className="text-xs text-white/40 hover:text-white/60 font-mono transition-colors"
-        >
-          Přeskočit výběr (obecný předmět)
-        </button>
-      </div>
     </div>
   );
 };

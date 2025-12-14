@@ -305,6 +305,15 @@ app.all('/api/custom-fields/:id', (req, res) => proxyToVercel(req, res, `/api/cu
 // Stats API
 app.all('/api/stats', (req, res) => proxyToVercel(req, res, '/api/stats'));
 
+// Credits API (AI analýza)
+app.all('/api/credits', (req, res) => proxyToVercel(req, res, '/api/credits'));
+
+// Admin Credits API
+app.all('/api/admin/credits', (req, res) => proxyToVercel(req, res, '/api/admin/credits'));
+
+// Finding Analysis API
+app.all('/api/findings/:id/analyze', (req, res) => proxyToVercel(req, res, `/api/findings/${req.params.id}/analyze`));
+
 const PORT = 3010;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`[SYSTEM] Backend Proxy Online on port ${PORT} (IPv4 + IPv6)`);

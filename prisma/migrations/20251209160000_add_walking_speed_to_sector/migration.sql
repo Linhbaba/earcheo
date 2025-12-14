@@ -4,3 +4,6 @@ ALTER TABLE "Sector" ADD COLUMN "walkingSpeed" DOUBLE PRECISION NOT NULL DEFAULT
 
 
 
+
+
+

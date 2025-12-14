@@ -424,3 +424,6 @@ const CookieCard = ({ type, description, color }: CookieCardProps) => {
 
 
 
+
+
+

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package, Lock, Eye, Globe } from 'lucide-react';
+import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package, Lock, Eye, Globe, Bot, Loader, Sparkles } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { toast } from 'sonner';
 import { PhotoGallery } from './PhotoGallery';
@@ -8,6 +8,7 @@ import { DynamicFieldDisplay } from './DynamicField';
 import { CustomFieldDisplay } from '../customFields';
 import { ConfirmDialog } from '../shared';
 import { useFindings } from '../../hooks/useFindings';
+import { useCredits } from '../../hooks/useCredits';
 import { 
   getFieldsForSection, 
   FINDING_TYPE_META,
@@ -24,13 +25,17 @@ interface FindingDetailProps {
 
 export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDelete }: FindingDetailProps) => {
   const { findings, uploadImage, deleteImage, deleteFinding } = useFindings();
+  const { balance: userCredits } = useCredits();
   const [showIdentification, setShowIdentification] = useState(true);
   const [showSpecific, setShowSpecific] = useState(true);
   const [showProvenance, setShowProvenance] = useState(false);
   const [showCustomFields, setShowCustomFields] = useState(false);
+  const [showAIAnalysis, setShowAIAnalysis] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
+  const [_showAnalyzeModal, setShowAnalyzeModal] = useState(false);
+  const [analyzing, _setAnalyzing] = useState(false);
 
   // Use live finding data from findings array (updates after image upload)
   const finding = findings.find(f => f.id === initialFinding.id) || initialFinding;
@@ -427,6 +432,64 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
                     )}
                   </div>
                 )}
+
+                {/* AI Analysis section */}
+                <div className="border-t border-white/10 pt-6">
+                  <button
+                    onClick={() => setShowAIAnalysis(!showAIAnalysis)}
+                    className="flex items-center justify-between w-full text-left group"
+                  >
+                    <h3 className="font-mono text-xs text-purple-400 uppercase tracking-wider group-hover:text-purple-300 transition-colors flex items-center gap-2">
+                      <Bot className="w-4 h-4" />
+                      AI Analýza
+                    </h3>
+                    {showAIAnalysis ? (
+                      <ChevronUp className="w-4 h-4 text-purple-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-purple-400 transition-colors" />
+                    )}
+                  </button>
+
+                  {showAIAnalysis && (
+                    <div className="mt-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                      {/* TODO: Zobrazit historii analýz z finding.analyses */}
+                      <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-xl">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-sm text-white/70">
+                            Nech AI analyzovat fotografie a vyplnit pole.
+                          </p>
+                          <span className="text-xs text-purple-400 font-mono">
+                            🪙 {userCredits} kreditů
+                          </span>
+                        </div>
+                        
+                        {finding.images.length === 0 ? (
+                          <p className="text-xs text-amber-400">
+                            ⚠️ Pro AI analýzu je potřeba přidat alespoň jednu fotku
+                          </p>
+                        ) : (
+                          <button
+                            onClick={() => setShowAnalyzeModal(true)}
+                            disabled={analyzing || userCredits < 1}
+                            className="w-full px-4 py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-400 font-mono text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {analyzing ? (
+                              <>
+                                <Loader className="w-4 h-4 animate-spin" />
+                                Analyzuji...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-4 h-4" />
+                                Spustit AI analýzu
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

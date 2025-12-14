@@ -1,3 +1,4 @@
+import { Bot } from 'lucide-react';
 import type { FieldDefinition } from '../../utils/findingFieldsConfig';
 
 interface DynamicFieldProps {
@@ -5,9 +6,10 @@ interface DynamicFieldProps {
   value: string | number | null | undefined;
   onChange: (key: string, value: string | number | null) => void;
   disabled?: boolean;
+  isAIFilled?: boolean;
 }
 
-export const DynamicField = ({ field, value, onChange, disabled }: DynamicFieldProps) => {
+export const DynamicField = ({ field, value, onChange, disabled, isAIFilled }: DynamicFieldProps) => {
   const handleChange = (newValue: string) => {
     if (field.type === 'number') {
       const numValue = newValue === '' ? null : parseFloat(newValue);
@@ -17,15 +19,27 @@ export const DynamicField = ({ field, value, onChange, disabled }: DynamicFieldP
     }
   };
 
-  const baseInputClasses = "w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-primary/50 transition-colors disabled:opacity-50";
+  const baseInputClasses = `w-full px-4 py-3 bg-black/40 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-primary/50 transition-colors disabled:opacity-50 ${
+    isAIFilled ? 'border-purple-500/30 bg-purple-500/5' : 'border-white/10'
+  }`;
+
+  const LabelWithAI = () => (
+    <label className="flex items-center gap-2 text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
+      {field.label}
+      {isAIFilled && (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-[9px] text-purple-400 normal-case">
+          <Bot className="w-2.5 h-2.5" />
+          AI
+        </span>
+      )}
+    </label>
+  );
 
   // Text input
   if (field.type === 'text') {
     return (
       <div>
-        <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
-          {field.label}
-        </label>
+        <LabelWithAI />
         <div className="relative">
           <input
             type="text"
@@ -49,9 +63,7 @@ export const DynamicField = ({ field, value, onChange, disabled }: DynamicFieldP
   if (field.type === 'number') {
     return (
       <div>
-        <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
-          {field.label}
-        </label>
+        <LabelWithAI />
         <div className="relative">
           <input
             type="number"
@@ -76,9 +88,7 @@ export const DynamicField = ({ field, value, onChange, disabled }: DynamicFieldP
   if (field.type === 'date') {
     return (
       <div>
-        <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
-          {field.label}
-        </label>
+        <LabelWithAI />
         <input
           type="date"
           value={value ?? ''}
@@ -94,9 +104,7 @@ export const DynamicField = ({ field, value, onChange, disabled }: DynamicFieldP
   if (field.type === 'select' && field.options) {
     return (
       <div>
-        <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
-          {field.label}
-        </label>
+        <LabelWithAI />
         <select
           value={value ?? ''}
           onChange={(e) => handleChange(e.target.value)}
@@ -117,9 +125,7 @@ export const DynamicField = ({ field, value, onChange, disabled }: DynamicFieldP
   if (field.type === 'textarea') {
     return (
       <div>
-        <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
-          {field.label}
-        </label>
+        <LabelWithAI />
         <textarea
           rows={3}
           value={value ?? ''}
