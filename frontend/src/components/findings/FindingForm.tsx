@@ -86,6 +86,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
 
   const [categories, setCategories] = useState<string[]>([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
+  const [pendingImagePreviews, setPendingImagePreviews] = useState<string[]>([]); // Blob URLs pro preview
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
 
@@ -435,13 +436,19 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
       }
       setShowImageUploader(false);
     } else {
+      // Přidej soubory a vytvoř preview URLs
+      const newPreviews = files.map(f => URL.createObjectURL(f));
       setPendingImages(prev => [...prev, ...files]);
+      setPendingImagePreviews(prev => [...prev, ...newPreviews]);
       setShowImageUploader(false);
     }
   };
 
   const removePendingImage = (index: number) => {
+    // Uvolni blob URL
+    URL.revokeObjectURL(pendingImagePreviews[index]);
     setPendingImages(prev => prev.filter((_, i) => i !== index));
+    setPendingImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSelectLocation = (latitude: number, longitude: number) => {
@@ -462,6 +469,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
           currentPhase={analysisPhase}
           estimatedTime={analysisLevel === 'expert' ? '2-5 min' : '5-15s'}
           onCancel={handleCancelAnalysis}
+          images={pendingImagePreviews}
         />
       )}
       
@@ -524,10 +532,10 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
               {pendingImages.length > 0 && (
                 <div className="mb-4">
                   <div className="grid grid-cols-4 gap-2">
-                    {pendingImages.map((file, idx) => (
+                    {pendingImages.map((_, idx) => (
                       <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-black/20 group">
                         <img 
-                          src={URL.createObjectURL(file)} 
+                          src={pendingImagePreviews[idx]} 
                           alt={`Preview ${idx + 1}`}
                           className="w-full h-full object-cover"
                         />
@@ -958,10 +966,10 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
                     {pendingImages.length} {pendingImages.length === 1 ? 'fotka' : pendingImages.length < 5 ? 'fotky' : 'fotek'} připraveno
                   </p>
                   <div className="grid grid-cols-4 gap-2">
-                    {pendingImages.map((file, idx) => (
+                    {pendingImages.map((_, idx) => (
                       <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-black/20 group">
-                        <img 
-                          src={URL.createObjectURL(file)} 
+                        <img
+                          src={pendingImagePreviews[idx]}
                           alt={`Preview ${idx + 1}`}
                           className="w-full h-full object-cover"
                         />
