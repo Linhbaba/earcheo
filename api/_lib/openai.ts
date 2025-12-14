@@ -12,9 +12,10 @@ export type AnalysisLevel = 'quick' | 'detailed' | 'expert';
 // Konfigurace modelů podle úrovně (aktualizováno pro 2025)
 // Docs: https://platform.openai.com/docs/models
 export const MODEL_CONFIG: Record<AnalysisLevel, { model: string; maxTokens: number }> = {
-  quick: { model: 'gpt-4.1-nano', maxTokens: 1000 },      // Rychlý, levný pro základní analýzu
-  detailed: { model: 'gpt-4.1', maxTokens: 2500 },        // Plný model pro detailní analýzu
-  expert: { model: 'o3-deep-research', maxTokens: 8000 }, // Deep research pro expertní analýzu
+  quick: { model: 'gpt-4o-mini', maxTokens: 1000 },   // Rychlý, levný pro základní analýzu
+  detailed: { model: 'gpt-4o', maxTokens: 2500 },     // Plný vision model pro detailní analýzu
+  expert: { model: 'gpt-4o', maxTokens: 8000 },       // Plný model s více tokeny pro expertní analýzu
+  // TODO: Až bude o3 dostupný s vision, použít pro expert level
 };
 
 // Ceny v kreditech
