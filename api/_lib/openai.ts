@@ -9,11 +9,12 @@ export const openai = new OpenAI({
 export type FindingType = 'COIN' | 'STAMP' | 'MILITARY' | 'TERRAIN' | 'GENERAL' | 'UNKNOWN';
 export type AnalysisLevel = 'quick' | 'detailed' | 'expert';
 
-// Konfigurace modelů podle úrovně
+// Konfigurace modelů podle úrovně (aktualizováno pro 2025)
+// Docs: https://platform.openai.com/docs/models
 export const MODEL_CONFIG: Record<AnalysisLevel, { model: string; maxTokens: number }> = {
-  quick: { model: 'gpt-4o', maxTokens: 1000 },
-  detailed: { model: 'gpt-4o', maxTokens: 2000 },
-  expert: { model: 'gpt-4o', maxTokens: 4000 }, // o3-deep-research až bude dostupný
+  quick: { model: 'gpt-4.1-nano', maxTokens: 1000 },      // Rychlý, levný pro základní analýzu
+  detailed: { model: 'gpt-4.1', maxTokens: 2500 },        // Plný model pro detailní analýzu
+  expert: { model: 'o3-deep-research', maxTokens: 8000 }, // Deep research pro expertní analýzu
 };
 
 // Ceny v kreditech
@@ -347,8 +348,16 @@ function buildSystemPrompt(
   let prompt = SYSTEM_PROMPTS[findingType];
   
   if (level === 'expert') {
-    prompt += `\n\nProveď důkladnou expertní analýzu. Uveď zdroje a reference, pokud jsou známé.
-Poskytni co nejpřesnější katalogová čísla a odhad hodnoty.`;
+    prompt += `\n\n=== EXPERTNÍ ANALÝZA ===
+Proveď důkladný hloubkový výzkum tohoto nálezu:
+1. Vyhledej relevantní katalogy a databáze (Krause, Pick, Pofis, Michel, atd.)
+2. Porovnej s podobnými autentifikovanými kusy
+3. Ověř historický kontext a období
+4. Poskytni přesná katalogová čísla s referencemi
+5. Odhadni tržní hodnotu na základě aktuálních aukčních výsledků
+6. Uveď všechny použité zdroje a reference v poli 'sources'
+
+Buď důkladný a uvádej konkrétní zdroje pro každé tvrzení.`;
   }
   
   prompt += `\n\nOdpověz ve strukturovaném JSON formátu v češtině.`;
