@@ -3,6 +3,52 @@ import { prisma } from './_lib/db';
 import { withAuth } from './_lib/auth';
 import { z } from 'zod';
 import { deleteImage } from './_lib/image-processor';
+import { FindingVisibility } from '@prisma/client';
+
+// PUBLIC handler - no auth required
+async function publicHandler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { limit = '50', offset = '0', category } = req.query;
+
+    const where: any = {
+      visibility: { in: [FindingVisibility.PUBLIC, FindingVisibility.ANONYMOUS] },
+    };
+
+    if (category && typeof category === 'string') {
+      where.category = category;
+    }
+
+    const findings = await prisma.finding.findMany({
+      where,
+      include: {
+        images: { orderBy: { order: 'asc' } },
+        equipment: { include: { equipment: true } },
+        user: { select: { id: true, nickname: true, avatarUrl: true } },
+      },
+      orderBy: { date: 'desc' },
+      take: parseInt(limit as string),
+      skip: parseInt(offset as string),
+    });
+
+    const sanitizedFindings = findings.map(finding => {
+      const isAnonymous = finding.visibility === 'ANONYMOUS';
+      return {
+        ...finding,
+        user: isAnonymous ? null : finding.user,
+        equipment: finding.equipment.map(fe => fe.equipment),
+      };
+    });
+
+    return res.status(200).json(sanitizedFindings);
+  } catch (error) {
+    console.error('Get public findings error:', error);
+    return res.status(500).json({ error: 'Failed to get public findings' });
+  }
+}
 
 // Validation schema for creating
 const createFindingSchema = z.object({
@@ -433,5 +479,13 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-export default withAuth(handler);
+// Route dispatcher - public or authenticated
+export default async function (req: VercelRequest, res: VercelResponse) {
+  // Public route - no auth
+  if (req.query.public === 'true') {
+    return publicHandler(req, res);
+  }
+  // Authenticated routes
+  return withAuth(handler)(req, res);
+}
 

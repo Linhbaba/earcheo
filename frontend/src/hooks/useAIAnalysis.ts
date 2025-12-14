@@ -98,7 +98,7 @@ export const useAIAnalysis = () => {
       // Pokud máme findingId, použijeme existující endpoint
       // Jinak vytvoříme dočasný finding nebo použijeme jiný endpoint
       const endpoint = options.findingId 
-        ? `/api/findings/${options.findingId}/analyze`
+        ? `/api/findings/${options.findingId}/images?action=analyze`
         : '/api/findings/analyze-temp'; // Pro analýzu před vytvořením nálezu
       
       const response = await fetch(endpoint, {
