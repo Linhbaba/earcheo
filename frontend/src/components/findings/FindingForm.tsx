@@ -238,7 +238,10 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
             dimensions: result.dimensions || prev.dimensions,
             weight: result.weight || prev.weight,
             historicalContext: result.historicalContext || prev.historicalContext,
-            estimatedValue: result.estimatedValue || prev.estimatedValue,
+            // Zkrátit estimatedValue na max 100 znaků (DB limit)
+            estimatedValue: result.estimatedValue 
+              ? result.estimatedValue.substring(0, 100) 
+              : prev.estimatedValue,
             // Numismatika - kompletní
             coinItemType: result.coinItemType || prev.coinItemType,
             denomination: result.denomination || prev.denomination,

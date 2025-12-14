@@ -23,7 +23,7 @@ export const AIAnalysisProgress = ({
   const currentIndex = PHASES.findIndex(p => p.id === currentPhase);
   
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center">
       <div className="bg-slate-900 border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4 space-y-6">
         {/* Header */}
         <div className="text-center">

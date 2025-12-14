@@ -107,7 +107,11 @@ export const useAIAnalysis = () => {
     try {
       // Pro expert level (2-5 min) refreshni token předem
       if (options.level === 'expert') {
-        await getAccessTokenSilently({ cacheMode: 'off' });
+        try {
+          await getAccessTokenSilently({ cacheMode: 'off' });
+        } catch (refreshError) {
+          console.warn('Token refresh failed, using cached token:', refreshError);
+        }
       }
       
       const token = await getAccessTokenSilently();
