@@ -452,7 +452,32 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
 
                   {showAIAnalysis && (
                     <div className="mt-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
-                      {/* TODO: Zobrazit historii analýz z finding.analyses */}
+                      {/* Historie analýz */}
+                      {(finding as unknown as { analyses?: Array<{ level: string; createdAt: string }> }).analyses && 
+                       (finding as unknown as { analyses?: Array<{ level: string; createdAt: string }> }).analyses!.length > 0 ? (
+                        <div className="space-y-2 mb-4">
+                          <p className="text-xs text-white/50 font-mono">Historie analýz:</p>
+                          {(finding as unknown as { analyses: Array<{ level: string; createdAt: string }> }).analyses.slice(0, 3).map((analysis, idx) => (
+                            <div 
+                              key={idx}
+                              className="p-2 bg-white/5 rounded-lg text-xs"
+                            >
+                              <div className="flex justify-between">
+                                <span className="text-purple-400">
+                                  {analysis.level === 'quick' ? '⚡ Rychlá' : 
+                                   analysis.level === 'detailed' ? '🔍 Detailní' : '🎓 Expertní'}
+                                </span>
+                                <span className="text-white/40">
+                                  {new Date(analysis.createdAt).toLocaleDateString('cs')}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-white/40 mb-4">Zatím žádné analýzy</p>
+                      )}
+                      
                       <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-xl">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-sm text-white/70">

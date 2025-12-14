@@ -36,6 +36,13 @@ export interface AIAnalysisResult {
   pickNumber?: string;
   grade?: string;
   
+  // Numismatika bankovky - rozšíření
+  series?: string;
+  emission?: string;
+  prefix?: string;
+  signature?: string;
+  securityFeatures?: string;
+  
   // Filatelie
   stampYear?: number;
   stampCatalogNumber?: string;
@@ -45,6 +52,11 @@ export interface AIAnalysisResult {
   perforation?: string;
   printType?: string;
   stampColor?: string;
+  // STAMP rozšíření
+  cancellation?: string;
+  paperType?: string;
+  gumType?: string;
+  watermark?: string;
   
   // Militárie
   army?: string;
@@ -89,10 +101,15 @@ export const useAIAnalysis = () => {
     duration: 0,
   });
 
-  const analyze = useCallback(async (options: AnalyzeOptions): Promise<AIAnalysisResult | null> => {
+  const analyze = useCallback(async (options: AnalyzeOptions, signal?: AbortSignal): Promise<AIAnalysisResult | null> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
+      // Pro expert level (2-5 min) refreshni token předem
+      if (options.level === 'expert') {
+        await getAccessTokenSilently({ cacheMode: 'off' });
+      }
+      
       const token = await getAccessTokenSilently();
       
       // Pro existující nález použij findings API, jinak credits API
@@ -132,6 +149,7 @@ export const useAIAnalysis = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
+        signal,
       });
 
       if (!response.ok) {

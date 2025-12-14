@@ -12,6 +12,7 @@ import { LocationPicker } from './LocationPicker';
 import { FindingTypeSelector } from './FindingTypeSelector';
 import { DynamicField } from './DynamicField';
 import { AIAnalysisOptions, type AnalysisLevel } from './AIAnalysisOptions';
+import { AIAnalysisProgress, type AnalysisPhase } from './AIAnalysisProgress';
 import { KnownInfoInput, type KnownInfo } from './KnownInfoInput';
 import { CustomFieldInput } from '../customFields';
 import { TagInput } from '../shared';
@@ -56,6 +57,9 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
     notes: '',
   });
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
+  const [analysisPhase, setAnalysisPhase] = useState<AnalysisPhase>('upload');
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   
   // Collapsible sections
   const [showIdentification, setShowIdentification] = useState(true);
@@ -190,24 +194,37 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
     });
   };
 
+  // Cancel handler pro abort
+  const handleCancelAnalysis = () => {
+    abortController?.abort();
+  };
+
   // Handle photos step continue
   const handlePhotosStepContinue = async () => {
     // Pokud je vybraná AI analýza, spustíme ji
     if (analysisLevel !== 'none' && pendingImages.length > 0) {
+      const controller = new AbortController();
+      setAbortController(controller);
       setAiLoading(true);
+      
       try {
-        // Připrav obrázky jako base64
+        // Fáze 1: Upload
+        setAnalysisPhase('upload');
         const imageUrls = await Promise.all(pendingImages.map(fileToBase64));
         
-        // Spusť AI analýzu
+        // Fáze 2: Analýza
+        setAnalysisPhase('analyze');
         const result = await runAIAnalysis({
           imageUrls,
           findingType: selectedType,
           level: analysisLevel,
           context: knownInfo,
-        });
+        }, controller.signal);
         
         if (result) {
+          // Fáze 3: Zpracování
+          setAnalysisPhase('process');
+          
           // Předvyplň formulář z AI výsledku
           setFormData(prev => ({
             ...prev,
@@ -222,25 +239,53 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
             weight: result.weight || prev.weight,
             historicalContext: result.historicalContext || prev.historicalContext,
             estimatedValue: result.estimatedValue || prev.estimatedValue,
-            // Numismatika
+            // Numismatika - kompletní
+            coinItemType: result.coinItemType || prev.coinItemType,
             denomination: result.denomination || prev.denomination,
             mintYear: result.mintYear || prev.mintYear,
             mint: result.mint || prev.mint,
             catalogNumber: result.catalogNumber || prev.catalogNumber,
+            pickNumber: result.pickNumber || prev.pickNumber,
             grade: result.grade || prev.grade,
-            // Filatelie
+            // COIN bankovky - rozšíření
+            series: result.series || prev.series,
+            emission: result.emission || prev.emission,
+            prefix: result.prefix || prev.prefix,
+            signature: result.signature || prev.signature,
+            securityFeatures: result.securityFeatures || prev.securityFeatures,
+            // Filatelie - kompletní
             stampYear: result.stampYear || prev.stampYear,
             stampCatalogNumber: result.stampCatalogNumber || prev.stampCatalogNumber,
+            pofisNumber: result.pofisNumber || prev.pofisNumber,
+            michelNumber: result.michelNumber || prev.michelNumber,
+            stampItemType: result.stampItemType || prev.stampItemType,
             perforation: result.perforation || prev.perforation,
             printType: result.printType || prev.printType,
+            stampColor: result.stampColor || prev.stampColor,
+            // STAMP rozšíření
+            cancellation: result.cancellation || prev.cancellation,
+            paperType: result.paperType || prev.paperType,
+            gumType: result.gumType || prev.gumType,
+            watermark: result.watermark || prev.watermark,
             // Militárie
             army: result.army || prev.army,
             conflict: result.conflict || prev.conflict,
             unit: result.unit || prev.unit,
             authenticity: result.authenticity || prev.authenticity,
+            // Terén
+            interpretation: result.interpretation || prev.interpretation,
             // Původ
             origin: result.origin || prev.origin,
           }));
+          
+          // Spočítej vyplněná pole pro feedback a vizuální indikaci
+          const filledKeys = Object.entries(result)
+            .filter(([k, v]) => v !== null && v !== undefined && v !== '' && 
+              !['detectedType', 'typeConfidence', 'fullAnalysis', 'sources'].includes(k))
+            .map(([k]) => k);
+          
+          // Nastav AI-vyplněná pole pro vizuální indikaci
+          setAiFilledFields(new Set(filledKeys));
           
           // Pokud AI detekovala kategorii, přidej ji
           if (result.category && !categories.includes(result.category)) {
@@ -252,16 +297,29 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
             setSelectedType(result.detectedType);
           }
           
-          toast.success('AI analýza dokončena!');
+          // Feedback podle počtu vyplněných polí
+          if (filledKeys.length === 0) {
+            toast.warning('AI nedokázala rozpoznat žádné detaily. Zkuste lepší fotku.');
+          } else if (filledKeys.length < 3) {
+            toast.info(`AI vyplnila pouze ${filledKeys.length} pole. Zvažte detailnější analýzu.`);
+          } else {
+            toast.success(`AI vyplnila ${filledKeys.length} polí`);
+          }
+          
           refreshBalance(); // Aktualizuj zůstatek kreditů
         } else {
           toast.error('AI analýza nevrátila výsledky');
         }
       } catch (error) {
-        console.error('AI Analysis error:', error);
-        toast.error('Chyba při AI analýze');
+        if (error instanceof Error && error.name === 'AbortError') {
+          toast.info('Analýza zrušena');
+        } else {
+          console.error('AI Analysis error:', error);
+          toast.error('Analýza selhala. Zkuste to znovu.');
+        }
       } finally {
         setAiLoading(false);
+        setAbortController(null);
       }
     }
     setWizardStep('form');
@@ -394,9 +452,19 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
   const typeMeta = FINDING_TYPE_META[selectedType];
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-surface border border-primary/30 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
+    <>
+      {/* AI Analysis Progress Overlay */}
+      {aiLoading && (
+        <AIAnalysisProgress
+          currentPhase={analysisPhase}
+          estimatedTime={analysisLevel === 'expert' ? '2-5 min' : '5-15s'}
+          onCancel={handleCancelAnalysis}
+        />
+      )}
+      
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div className="bg-surface border border-primary/30 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             {(wizardStep === 'photos' || wizardStep === 'form') && !isEditing && (
@@ -748,6 +816,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
                           value={formData[field.key] as string | number | null}
                           onChange={handleFieldChange}
                           disabled={loading}
+                          isAIFilled={aiFilledFields.has(field.key)}
                         />
                       </div>
                     ))}
@@ -783,6 +852,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
                           value={formData[field.key] as string | number | null}
                           onChange={handleFieldChange}
                           disabled={loading}
+                          isAIFilled={aiFilledFields.has(field.key)}
                         />
                       </div>
                     ))}
@@ -818,6 +888,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
                           value={formData[field.key] as string | number | null}
                           onChange={handleFieldChange}
                           disabled={loading}
+                          isAIFilled={aiFilledFields.has(field.key)}
                         />
                       </div>
                     ))}
@@ -961,6 +1032,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
         initialLatitude={formData.latitude as number}
         initialLongitude={formData.longitude as number}
       />
-    </div>
+      </div>
+    </>
   );
 };

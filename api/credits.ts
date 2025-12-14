@@ -83,6 +83,16 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
           return res.status(400).json({ error: 'Images are required' });
         }
 
+        // Validace velikosti obrázků (max 4MB per image, ~5.3MB base64)
+        const MAX_BASE64_SIZE = 5 * 1024 * 1024; // 5MB
+        for (const img of images) {
+          if (img.length > MAX_BASE64_SIZE) {
+            return res.status(400).json({ 
+              error: 'Image too large. Maximum size is 4MB per image.' 
+            });
+          }
+        }
+
         if (!['quick', 'detailed', 'expert'].includes(level)) {
           return res.status(400).json({ error: 'Invalid analysis level' });
         }

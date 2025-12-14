@@ -132,29 +132,68 @@ const ANALYSIS_SCHEMA = {
     estimatedValue: { type: 'string', description: 'Odhadovaná hodnota' },
     
     // Numismatika
-    coinItemType: { type: 'string', description: 'Typ položky (Mince, Bankovka, Medaile, Žeton)' },
+    coinItemType: { 
+      type: 'string', 
+      enum: ['Mince', 'Bankovka', 'Medaile', 'Žeton', 'Notgeld'],
+      description: 'Typ položky' 
+    },
     denomination: { type: 'string', description: 'Nominál' },
     mintYear: { type: 'integer', description: 'Rok ražby/vydání' },
     mint: { type: 'string', description: 'Mincovna/Tiskárna' },
     catalogNumber: { type: 'string', description: 'Katalogové číslo' },
     pickNumber: { type: 'string', description: 'Pick katalogové číslo (bankovky)' },
-    grade: { type: 'string', description: 'Kvalita/grading' },
+    grade: { 
+      type: 'string', 
+      enum: ['G (Good)', 'VG (Very Good)', 'F (Fine)', 'VF (Very Fine)', 'XF (Extremely Fine)', 'AU (About Uncirculated)', 'UNC (Uncirculated)', 'Proof', 'PMG graded', 'PCGS graded'],
+      description: 'Kvalita/grading' 
+    },
+    // COIN bankovky - rozšíření
+    series: { type: 'string', description: 'Série' },
+    emission: { type: 'string', description: 'Emise' },
+    prefix: { type: 'string', description: 'Prefix série' },
+    signature: { type: 'string', description: 'Podpis' },
+    securityFeatures: { type: 'string', description: 'Ochranné prvky' },
     
     // Filatelie
     stampYear: { type: 'integer', description: 'Rok vydání' },
     stampCatalogNumber: { type: 'string', description: 'Katalogové číslo' },
     pofisNumber: { type: 'string', description: 'Pofis katalogové číslo' },
     michelNumber: { type: 'string', description: 'Michel katalogové číslo' },
-    stampItemType: { type: 'string', description: 'Typ položky' },
+    stampItemType: { 
+      type: 'string', 
+      enum: ['Známka', 'Celistvost', 'FDC', 'Dopis', 'Výstřižek', 'Aršík', 'Kupón', 'Pohlednice'],
+      description: 'Typ položky' 
+    },
     perforation: { type: 'string', description: 'Perforace' },
-    printType: { type: 'string', description: 'Typ tisku' },
+    printType: { 
+      type: 'string', 
+      enum: ['Ocelotisk', 'Hlubotisk', 'Knihtisk', 'Ofset', 'Kombinovaný'],
+      description: 'Typ tisku' 
+    },
     stampColor: { type: 'string', description: 'Barva' },
+    // STAMP rozšíření
+    cancellation: { 
+      type: 'string', 
+      enum: ['Neražená', 'Denní razítko', 'Příležitostné razítko', 'Ručně (pero)', 'Strojové'],
+      description: 'Razítko' 
+    },
+    paperType: { type: 'string', description: 'Typ papíru' },
+    gumType: { 
+      type: 'string', 
+      enum: ['Originální', 'Bez lepu', 'Přelep', 'Narušený'],
+      description: 'Lep' 
+    },
+    watermark: { type: 'string', description: 'Vodoznak' },
     
     // Militárie
     army: { type: 'string', description: 'Armáda/země' },
     conflict: { type: 'string', description: 'Konflikt/období' },
     unit: { type: 'string', description: 'Jednotka' },
-    authenticity: { type: 'string', description: 'Autenticita' },
+    authenticity: { 
+      type: 'string', 
+      enum: ['Originál', 'Dobová reprodukce', 'Moderní reprodukce', 'Neověřeno'],
+      description: 'Autenticita' 
+    },
     
     // Terén
     interpretation: { type: 'string', description: 'Interpretace nálezu' },
@@ -206,6 +245,12 @@ export interface AnalysisResult {
   perforation?: string;
   printType?: string;
   stampColor?: string;
+  // STAMP rozšíření
+  cancellation?: string;
+  paperType?: string;
+  gumType?: string;
+  watermark?: string;
+  // Militárie
   army?: string;
   conflict?: string;
   unit?: string;
@@ -214,6 +259,12 @@ export interface AnalysisResult {
   origin?: string;
   fullAnalysis: string;
   sources?: string[];
+  // COIN bankovky
+  series?: string;
+  emission?: string;
+  prefix?: string;
+  signature?: string;
+  securityFeatures?: string;
 }
 
 // Rozhraní pro kontext od uživatele
@@ -274,7 +325,14 @@ export async function analyzeImages(
     throw new Error('No response from OpenAI');
   }
 
-  const result = JSON.parse(content) as AnalysisResult;
+  let result: AnalysisResult;
+  try {
+    result = JSON.parse(content) as AnalysisResult;
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI response:', content);
+    throw new Error('Invalid response format from AI');
+  }
+  
   const tokensUsed = response.usage?.total_tokens || 0;
 
   return { result, tokensUsed };
