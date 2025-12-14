@@ -1,6 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { prisma } from './_lib/db';
 import { withAuth } from './_lib/auth';
+import { 
+  analyzeImages, 
+  estimateCost,
+  type FindingType,
+  type AnalysisLevel,
+  type UserContext,
+} from './_lib/openai';
 
 // Admin user IDs
 const ADMIN_USER_IDS = [
@@ -53,8 +60,118 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
     }
   }
 
-  // POST: Rezervovat kredity (před analýzou)
+  // POST: Analýza nebo rezervace kreditů
   if (req.method === 'POST') {
+    const { action } = req.body;
+
+    // AI Analýza obrázků (bez existujícího nálezu)
+    if (action === 'analyze') {
+      try {
+        const { 
+          images, // base64 nebo URL
+          level = 'quick',
+          findingType = 'GENERAL',
+          context,
+        } = req.body as {
+          images: string[];
+          level?: AnalysisLevel;
+          findingType?: FindingType;
+          context?: UserContext;
+        };
+
+        if (!images || !Array.isArray(images) || images.length === 0) {
+          return res.status(400).json({ error: 'Images are required' });
+        }
+
+        if (!['quick', 'detailed', 'expert'].includes(level)) {
+          return res.status(400).json({ error: 'Invalid analysis level' });
+        }
+
+        // Limit obrázků
+        const maxImages = level === 'expert' ? 6 : 4;
+        const imagesToAnalyze = images.slice(0, maxImages);
+
+        // Spočítej cenu
+        const creditsCost = estimateCost(level, imagesToAnalyze.length);
+
+        // Ověř kredity
+        const userCredits = await prisma.userCredits.findUnique({
+          where: { userId },
+        });
+
+        if (!userCredits || userCredits.balance < creditsCost) {
+          return res.status(400).json({
+            error: 'Insufficient credits',
+            balance: userCredits?.balance || 0,
+            required: creditsCost,
+          });
+        }
+
+        // Odečti kredity
+        await prisma.userCredits.update({
+          where: { userId },
+          data: { balance: { decrement: creditsCost } },
+        });
+
+        // Zaznamenej transakci
+        await prisma.creditTransaction.create({
+          data: {
+            userId,
+            amount: -creditsCost,
+            type: 'ANALYSIS',
+            description: `AI analýza (${level})`,
+            metadata: { level, imageCount: imagesToAnalyze.length },
+          },
+        });
+
+        const analysisStartTime = Date.now();
+
+        try {
+          const { result, tokensUsed } = await analyzeImages(
+            imagesToAnalyze,
+            findingType as FindingType,
+            level,
+            context
+          );
+
+          // Získej aktualizovaný zůstatek
+          const updatedCredits = await prisma.userCredits.findUnique({
+            where: { userId },
+          });
+
+          return res.status(200).json({
+            result,
+            tokensUsed,
+            balance: updatedCredits?.balance || 0,
+            duration: Date.now() - analysisStartTime,
+          });
+        } catch (analysisError) {
+          // Vrať kredity při chybě
+          await prisma.userCredits.update({
+            where: { userId },
+            data: { balance: { increment: creditsCost } },
+          });
+
+          await prisma.creditTransaction.create({
+            data: {
+              userId,
+              amount: creditsCost,
+              type: 'REFUND',
+              description: 'Vrácení za neúspěšnou analýzu',
+              metadata: { error: String(analysisError) },
+            },
+          });
+
+          console.error('Analysis error:', analysisError);
+          return res.status(500).json({ error: 'Analysis failed, credits refunded' });
+        }
+      } catch (error) {
+        console.error('Analyze error:', error);
+        return res.status(500).json({ error: 'Failed to analyze' });
+      }
+    }
+
+    // Rezervace kreditů (původní funkcionalita)
     try {
       const { amount, description } = req.body;
 
@@ -62,7 +179,6 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         return res.status(400).json({ error: 'Invalid amount' });
       }
 
-      // Získej aktuální zůstatek
       const userCredits = await prisma.userCredits.findUnique({
         where: { userId },
       });
@@ -75,7 +191,6 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         });
       }
 
-      // Odečti kredity
       const updated = await prisma.userCredits.update({
         where: { userId },
         data: {
@@ -83,7 +198,6 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
         },
       });
 
-      // Zaznamenej transakci
       const transaction = await prisma.creditTransaction.create({
         data: {
           userId,

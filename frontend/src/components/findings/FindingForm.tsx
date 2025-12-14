@@ -6,6 +6,7 @@ import { useFindings } from '../../hooks/useFindings';
 import { useProfile } from '../../hooks/useProfile';
 import { useCustomFields } from '../../hooks/useCustomFields';
 import { useCredits } from '../../hooks/useCredits';
+import { useAIAnalysis } from '../../hooks/useAIAnalysis';
 import { ImageUploader } from './ImageUploader';
 import { LocationPicker } from './LocationPicker';
 import { FindingTypeSelector } from './FindingTypeSelector';
@@ -34,7 +35,8 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
   const { createFinding, updateFinding, uploadImage } = useFindings({ autoFetch: false });
   const { profile } = useProfile();
   const { customFields } = useCustomFields();
-  const { balance: userCredits, loading: creditsLoading } = useCredits();
+  const { balance: userCredits, loading: creditsLoading, refreshBalance } = useCredits();
+  const { analyze: runAIAnalysis } = useAIAnalysis();
   const [loading, setLoading] = useState(false);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const isEditing = !!finding;
@@ -178,16 +180,83 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
     setWizardStep('photos');
   };
 
+  // Pomocná funkce pro konverzi File na base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Handle photos step continue
   const handlePhotosStepContinue = async () => {
     // Pokud je vybraná AI analýza, spustíme ji
     if (analysisLevel !== 'none' && pendingImages.length > 0) {
       setAiLoading(true);
       try {
-        // TODO: Implementovat skutečnou AI analýzu
-        // Pro teď jen simulujeme loading a přejdeme na form
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        toast.success('AI analýza dokončena (simulace)');
+        // Připrav obrázky jako base64
+        const imageUrls = await Promise.all(pendingImages.map(fileToBase64));
+        
+        // Spusť AI analýzu
+        const result = await runAIAnalysis({
+          imageUrls,
+          findingType: selectedType,
+          level: analysisLevel,
+          context: knownInfo,
+        });
+        
+        if (result) {
+          // Předvyplň formulář z AI výsledku
+          setFormData(prev => ({
+            ...prev,
+            title: result.title || prev.title,
+            description: result.description || result.fullAnalysis || prev.description,
+            condition: result.condition || prev.condition,
+            material: result.material || prev.material,
+            period: result.period || prev.period,
+            periodFrom: result.periodFrom || prev.periodFrom,
+            periodTo: result.periodTo || prev.periodTo,
+            dimensions: result.dimensions || prev.dimensions,
+            weight: result.weight || prev.weight,
+            historicalContext: result.historicalContext || prev.historicalContext,
+            estimatedValue: result.estimatedValue || prev.estimatedValue,
+            // Numismatika
+            denomination: result.denomination || prev.denomination,
+            mintYear: result.mintYear || prev.mintYear,
+            mint: result.mint || prev.mint,
+            catalogNumber: result.catalogNumber || prev.catalogNumber,
+            grade: result.grade || prev.grade,
+            // Filatelie
+            stampYear: result.stampYear || prev.stampYear,
+            stampCatalogNumber: result.stampCatalogNumber || prev.stampCatalogNumber,
+            perforation: result.perforation || prev.perforation,
+            printType: result.printType || prev.printType,
+            // Militárie
+            army: result.army || prev.army,
+            conflict: result.conflict || prev.conflict,
+            unit: result.unit || prev.unit,
+            authenticity: result.authenticity || prev.authenticity,
+            // Původ
+            origin: result.origin || prev.origin,
+          }));
+          
+          // Pokud AI detekovala kategorii, přidej ji
+          if (result.category && !categories.includes(result.category)) {
+            setCategories(prev => [...prev, result.category!]);
+          }
+          
+          // Aktualizuj typ pokud AI detekovala jiný
+          if (result.detectedType && selectedType === 'UNKNOWN') {
+            setSelectedType(result.detectedType);
+          }
+          
+          toast.success('AI analýza dokončena!');
+          refreshBalance(); // Aktualizuj zůstatek kreditů
+        } else {
+          toast.error('AI analýza nevrátila výsledky');
+        }
       } catch (error) {
         console.error('AI Analysis error:', error);
         toast.error('Chyba při AI analýze');

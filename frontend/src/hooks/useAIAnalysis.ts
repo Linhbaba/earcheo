@@ -95,11 +95,35 @@ export const useAIAnalysis = () => {
     try {
       const token = await getAccessTokenSilently();
       
-      // Pokud máme findingId, použijeme existující endpoint
-      // Jinak vytvoříme dočasný finding nebo použijeme jiný endpoint
+      // Pro existující nález použij findings API, jinak credits API
       const endpoint = options.findingId 
         ? `/api/findings/${options.findingId}/images?action=analyze`
-        : '/api/findings/analyze-temp'; // Pro analýzu před vytvořením nálezu
+        : '/api/credits';
+      
+      const body = options.findingId 
+        ? {
+            imageIds: [], // Použije všechny obrázky nálezu
+            level: options.level,
+            findingType: options.findingType,
+            context: options.context ? {
+              materialTags: options.context.materialTags,
+              periodTags: options.context.periodTags,
+              originTags: options.context.originTags,
+              notes: options.context.notes,
+            } : undefined,
+          }
+        : {
+            action: 'analyze',
+            images: options.imageUrls, // base64 nebo URL
+            level: options.level,
+            findingType: options.findingType,
+            context: options.context ? {
+              materialTags: options.context.materialTags,
+              periodTags: options.context.periodTags,
+              originTags: options.context.originTags,
+              notes: options.context.notes,
+            } : undefined,
+          };
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -107,17 +131,7 @@ export const useAIAnalysis = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          imageUrls: options.imageUrls,
-          level: options.level,
-          findingType: options.findingType,
-          context: options.context ? {
-            materialTags: options.context.materialTags,
-            periodTags: options.context.periodTags,
-            originTags: options.context.originTags,
-            notes: options.context.notes,
-          } : undefined,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
