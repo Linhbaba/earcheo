@@ -134,6 +134,9 @@ export interface Finding {
   estimatedValue?: string | null;
   storageLocation?: string | null;
   
+  // Příběh předmětu
+  story?: string | null;
+  
   visibility: FindingVisibility;
   isPublic?: boolean; // Legacy
   images: FindingImage[];
@@ -279,6 +282,9 @@ export interface CreateFindingRequest {
   estimatedValue?: string;
   storageLocation?: string;
   
+  // Příběh předmětu
+  story?: string;
+  
   visibility?: FindingVisibility;
   isPublic?: boolean;
   equipmentIds?: string[];
@@ -357,6 +363,9 @@ export interface UpdateFindingRequest {
   acquisitionMethod?: string;
   estimatedValue?: string;
   storageLocation?: string;
+  
+  // Příběh předmětu
+  story?: string;
   
   visibility?: FindingVisibility;
   isPublic?: boolean;

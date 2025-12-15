@@ -287,17 +287,32 @@ export async function analyzeImages(
 ): Promise<{ result: AnalysisResult; tokensUsed: number }> {
   const config = MODEL_CONFIG[level];
   const systemPrompt = buildSystemPrompt(findingType, level, userContext);
+  const userMessage = buildUserMessage(findingType, imageUrls.length, userContext);
   
-  // Sestavení zprávy s obrázky
-  const imageContent = imageUrls.map((url, index) => ({
+  // Pro expert level použij Responses API s web search
+  if (level === 'expert' && config.useWebSearch) {
+    return analyzeWithWebSearch(imageUrls, systemPrompt, userMessage, config);
+  }
+  
+  // Pro quick a detailed použij Chat Completions API
+  return analyzeWithChatCompletions(imageUrls, systemPrompt, userMessage, level, config);
+}
+
+// Chat Completions API (quick, detailed)
+async function analyzeWithChatCompletions(
+  imageUrls: string[],
+  systemPrompt: string,
+  userMessage: string,
+  level: AnalysisLevel,
+  config: { model: string; maxTokens: number }
+): Promise<{ result: AnalysisResult; tokensUsed: number }> {
+  const imageContent = imageUrls.map((url) => ({
     type: 'image_url' as const,
     image_url: {
       url,
       detail: level === 'quick' ? 'low' as const : 'high' as const,
     },
   }));
-  
-  const userMessage = buildUserMessage(findingType, imageUrls.length, userContext);
 
   const response = await openai.chat.completions.create({
     model: config.model,
@@ -336,8 +351,99 @@ export async function analyzeImages(
   }
   
   const tokensUsed = response.usage?.total_tokens || 0;
-
   return { result, tokensUsed };
+}
+
+// Responses API s web search (expert)
+async function analyzeWithWebSearch(
+  imageUrls: string[],
+  systemPrompt: string,
+  userMessage: string,
+  config: { model: string; maxTokens: number }
+): Promise<{ result: AnalysisResult; tokensUsed: number }> {
+  // Sestavení input pro Responses API
+  const inputContent: Array<{ type: string; image_url?: { url: string; detail: string }; text?: string }> = [];
+  
+  // Přidej obrázky
+  for (const url of imageUrls) {
+    inputContent.push({
+      type: 'input_image',
+      image_url: { url, detail: 'high' },
+    });
+  }
+  
+  // Přidej textový prompt
+  inputContent.push({
+    type: 'input_text',
+    text: `${systemPrompt}\n\n${userMessage}\n\nVrať odpověď jako validní JSON objekt s těmito povinnými poli: title, fullAnalysis. Ostatní pole vyplň podle nálezu.`,
+  });
+
+  try {
+    // Použij Responses API s web search
+    const response = await openai.responses.create({
+      model: config.model,
+      input: inputContent as any,
+      tools: [{ type: 'web_search' as any }],
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'finding_analysis',
+          schema: ANALYSIS_SCHEMA,
+          strict: false,
+        },
+      },
+    } as any);
+
+    // Extrahuj odpověď z Responses API
+    let content = '';
+    let tokensUsed = 0;
+    
+    // Responses API vrací output array
+    if (response.output && Array.isArray(response.output)) {
+      for (const item of response.output) {
+        if (item.type === 'message' && item.content) {
+          for (const contentItem of item.content) {
+            if (contentItem.type === 'output_text') {
+              content = contentItem.text;
+            }
+          }
+        }
+      }
+    }
+    
+    // Fallback - zkus najít text přímo
+    if (!content && (response as any).output_text) {
+      content = (response as any).output_text;
+    }
+
+    if (!content) {
+      throw new Error('No response content from Responses API');
+    }
+
+    // Parsuj JSON
+    let result: AnalysisResult;
+    try {
+      // Zkus najít JSON v odpovědi (může být obalený textem)
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        result = JSON.parse(jsonMatch[0]) as AnalysisResult;
+      } else {
+        result = JSON.parse(content) as AnalysisResult;
+      }
+    } catch (parseError) {
+      console.error('Failed to parse Responses API response:', content);
+      throw new Error('Invalid response format from AI');
+    }
+
+    // Odhadni tokeny (Responses API nevrací přesný počet)
+    tokensUsed = Math.round((content.length + systemPrompt.length + userMessage.length) / 4);
+
+    return { result, tokensUsed };
+  } catch (error) {
+    // Fallback na Chat Completions pokud Responses API selže
+    console.warn('Responses API failed, falling back to Chat Completions:', error);
+    return analyzeWithChatCompletions(imageUrls, systemPrompt, userMessage, 'detailed', config);
+  }
 }
 
 // Pomocná funkce pro sestavení systémového promptu
@@ -349,32 +455,158 @@ function buildSystemPrompt(
   let prompt = SYSTEM_PROMPTS[findingType];
   
   if (level === 'expert') {
-    prompt += `\n\n=== EXPERTNÍ ANALÝZA (GPT-5.2) ===
-Proveď důkladný hloubkový výzkum tohoto nálezu s využitím všech dostupných znalostí:
+    // Specifické expert instrukce podle typu
+    const expertInstructions: Record<FindingType, string> = {
+      COIN: `\n\n=== EXPERTNÍ NUMISMATICKÁ ANALÝZA ===
+Proveď hloubkový výzkum s využitím webového vyhledávání:
 
-📚 KATALOGY A DATABÁZE:
-- Krause World Coins pro mince
-- Pick Standard Catalog pro bankovky
-- Pofis pro české/slovenské známky
-- Michel pro mezinárodní známky
-- Specializované katalogy podle typu nálezu
+📚 KATALOGY (vyhledej online):
+- Krause World Coins - najdi přesné KM# číslo
+- Pick Standard Catalog - pro bankovky P# číslo
+- Numista.com - ověř varianty a vzácnost
+- CoinArchives.com - najdi aukční výsledky
 
 🔍 ANALÝZA:
-1. Identifikuj přesně typ, období a původ
-2. Najdi odpovídající katalogová čísla s referencemi
-3. Porovnej s podobnými autentifikovanými kusy
-4. Ověř historický kontext a vzácnost
-5. Zhodnoť autenticitu a stav
+1. Přesná identifikace (země, období, nominál, ročník)
+2. Mincovna a mincmistr (značky)
+3. Varianty a chyboražby
+4. Náklad a vzácnost
+5. Autenticita (známky falzifikátů)
+6. Grading podle Sheldon scale
+
+💰 HODNOTA (vyhledej aktuální ceny):
+- Heritage Auctions, Stack's Bowers
+- MA-Shops, VCoins
+- Aukro.cz, Sběratel.cz
+- Uveď cenové rozpětí podle stavu
+
+📖 V poli 'sources' uveď všechny URL a reference.`,
+
+      STAMP: `\n\n=== EXPERTNÍ FILATELISTICKÁ ANALÝZA ===
+Proveď hloubkový výzkum s využitím webového vyhledávání:
+
+📚 KATALOGY (vyhledej online):
+- Pofis - pro ČS/ČR známky
+- Michel - mezinárodní katalog
+- Stanley Gibbons - britské známky
+- Scott - americký katalog
+- Colnect.com - databáze známek
+
+🔍 ANALÝZA:
+1. Přesná katalogová čísla (Pofis, Michel)
+2. Typ tisku (ocelotisk, hlubotisk, ofset)
+3. Perforace (měření zoubkování)
+4. Papír a lep
+5. Barva a odstíny
+6. Vady a varietní tisky
+7. Razítka (denní, příležitostné)
+
+💰 HODNOTA (vyhledej aktuální ceny):
+- Burda Auction, Merkur Revue
+- Delcampe.net, Hipstamp
+- Filatelie Klim
+- Uveď ceny pro * a ** kvalitu
+
+📖 V poli 'sources' uveď všechny URL a reference.`,
+
+      MILITARY: `\n\n=== EXPERTNÍ ANALÝZA MILITÁRIÍ ===
+Proveď hloubkový výzkum s využitím webového vyhledávání:
+
+📚 DATABÁZE (vyhledej online):
+- Wehrmacht-Awards.com
+- Gentleman's Military Interest Club
+- Deutsches Historisches Museum
+- Imperial War Museum
+
+🔍 ANALÝZA:
+1. Přesná identifikace předmětu
+2. Armáda, jednotka, hodnost
+3. Období a konflikt
+4. Výrobce a značení
+5. Materiál a provedení
+6. Autenticita (známky originality vs. repliky)
+7. Provenance (historie vlastnictví)
+
+💰 HODNOTA (vyhledej aktuální ceny):
+- Hermann-Historica auctions
+- Weitze.net
+- Aukce militárií
+- Srovnej s prodanými kusy
+
+📖 V poli 'sources' uveď všechny URL a reference.`,
+
+      TERRAIN: `\n\n=== EXPERTNÍ ARCHEOLOGICKÁ ANALÝZA ===
+Proveď hloubkový výzkum s využitím webového vyhledávání:
+
+📚 DATABÁZE (vyhledej online):
+- Portable Antiquities Scheme (finds.org.uk)
+- Archaeology Data Service
+- Museum digitální sbírky
+- Academia.edu - odborné články
+
+🔍 ANALÝZA:
+1. Typologické zařazení
+2. Datace (absolutní i relativní)
+3. Kulturní kontext
+4. Analogie z publikovaných nálezů
+5. Stav a patina
+6. Doporučení pro konzervaci
+7. Vědecký význam
 
 💰 HODNOTA:
-- Odhadni tržní hodnotu na základě aukčních výsledků
-- Uveď cenové rozpětí v CZK
-- Zmíň faktory ovlivňující cenu
+- Sbíratelská vs. vědecká hodnota
+- Podobné nálezy v aukcích
+- Timeline Auctions, Roma Numismatics
 
-📖 ZDROJE:
-Uveď všechny použité zdroje v poli 'sources' (katalogy, aukční domy, literatura).
+📖 V poli 'sources' uveď všechny URL a reference.`,
 
-Buď maximálně důkladný a konkrétní.`;
+      GENERAL: `\n\n=== EXPERTNÍ ANALÝZA STAROŽITNOSTI ===
+Proveď hloubkový výzkum s využitím webového vyhledávání:
+
+📚 DATABÁZE (vyhledej online):
+- Christie's, Sotheby's archives
+- Invaluable.com
+- LiveAuctioneers
+- 1stDibs, Chairish
+
+🔍 ANALÝZA:
+1. Typ a funkce předmětu
+2. Období a styl
+3. Původ a provenience
+4. Materiál a technika
+5. Značky a signatury
+6. Stav a restaurování
+7. Podobné kusy ve sbírkách
+
+💰 HODNOTA:
+- Aukční výsledky
+- Antikvariáty a galerie
+- Faktory ovlivňující cenu
+
+📖 V poli 'sources' uveď všechny URL a reference.`,
+
+      UNKNOWN: `\n\n=== EXPERTNÍ IDENTIFIKACE ===
+Proveď hloubkový výzkum s využitím webového vyhledávání:
+
+🔍 PRVNÍ KROK - IDENTIFIKACE:
+1. Pomocí reverse image search najdi podobné předměty
+2. Urči kategorii (mince, známka, militárie, archeologie, jiné)
+3. Uveď míru jistoty v procentech
+
+📚 NÁSLEDNĚ:
+- Vyhledej v relevantních databázích podle určené kategorie
+- Najdi přesnou identifikaci
+- Porovnej s podobnými kusy
+
+💰 HODNOTA:
+- Vyhledej aukční výsledky
+- Uveď cenové rozpětí
+
+📖 V poli 'sources' uveď všechny URL a reference.`,
+    };
+
+    prompt += expertInstructions[findingType];
+    prompt += `\n\n🌐 Máš přístup k webovému vyhledávání - POUŽIJ HO pro ověření katalogových čísel, cen a zdrojů.`;
   }
   
   prompt += `\n\nOdpověz ve strukturovaném JSON formátu v češtině.`;

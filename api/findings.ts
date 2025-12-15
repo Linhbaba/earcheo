@@ -107,7 +107,10 @@ const createFindingSchema = z.object({
   estimatedValue: z.string().max(100).optional(),
   storageLocation: z.string().max(200).optional(),
   
-  visibility: z.enum(['PRIVATE', 'ANONYMOUS', 'PUBLIC']).default('PRIVATE'),
+  // Příběh předmětu
+  story: z.string().max(5000).optional(),
+  
+  visibility: z.enum(['PRIVATE', 'ANONYMOUS', 'PUBLIC']).default('PUBLIC'),
   isPublic: z.boolean().optional(),
   equipmentIds: z.array(z.string()).optional(),
   customFieldValues: z.array(z.object({
@@ -172,6 +175,9 @@ const updateFindingSchema = z.object({
   acquisitionMethod: z.string().max(50).optional(),
   estimatedValue: z.string().max(100).optional(),
   storageLocation: z.string().max(200).optional(),
+  
+  // Příběh předmětu
+  story: z.string().max(5000).optional(),
   
   visibility: z.enum(['PRIVATE', 'ANONYMOUS', 'PUBLIC']).optional(),
   isPublic: z.boolean().optional(),
@@ -442,6 +448,9 @@ async function handler(req: VercelRequest, res: VercelResponse, userId: string) 
           acquisitionMethod: findingData.acquisitionMethod,
           estimatedValue: findingData.estimatedValue,
           storageLocation: findingData.storageLocation,
+          
+          // Příběh
+          story: findingData.story,
           
           visibility: findingData.visibility,
           isPublic: findingData.visibility === 'PUBLIC',

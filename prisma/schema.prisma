@@ -159,6 +159,9 @@ model Finding {
   estimatedValue    String?            // Odhadovaná hodnota
   storageLocation   String?            // Úložné místo
   
+  // Příběh předmětu
+  story             String?            @db.Text // Lidský příběh o předmětu z doby jeho existence (~500 slov)
+  
   // Systémová pole
   visibility        FindingVisibility  @default(PRIVATE)
   isPublic          Boolean            @default(false)

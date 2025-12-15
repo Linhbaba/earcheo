@@ -80,8 +80,9 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
     description: '',
     category: '',
     findingType: 'GENERAL',
-    visibility: 'PRIVATE' as FindingVisibility,
-    isPublic: false,
+    visibility: 'PUBLIC' as FindingVisibility,
+    isPublic: true,
+    story: '',
   });
 
   const [categories, setCategories] = useState<string[]>([]);
@@ -157,6 +158,7 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
         acquisitionMethod: finding.acquisitionMethod || '',
         estimatedValue: finding.estimatedValue || '',
         storageLocation: finding.storageLocation || '',
+        story: finding.story || '',
       };
       
       setFormData(data);
@@ -375,7 +377,8 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
         'perforation', 'printType', 'cancellation', 'paperType', 'gumType', 'watermark', 'stampColor',
         'army', 'conflict', 'unit', 'authenticity',
         'detectorSignal', 'landType', 'soilConditions', 'stratigraphy', 'context', 'excavationMethod', 'interpretation', 'findingSituation',
-        'origin', 'acquisitionMethod', 'estimatedValue', 'storageLocation'
+        'origin', 'acquisitionMethod', 'estimatedValue', 'storageLocation',
+        'story'
       ];
 
       optionalFields.forEach(field => {
@@ -742,6 +745,23 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
                 />
               </div>
               
+              {/* Příběh předmětu */}
+              <div>
+                <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">
+                  📖 Příběh předmětu
+                </label>
+                <textarea
+                  rows={6}
+                  value={formData.story as string}
+                  onChange={(e) => setFormData({ ...formData, story: e.target.value })}
+                  className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-primary/50 transition-colors resize-none"
+                  placeholder="Napište lidský příběh o tomto předmětu z doby jeho existence. Jak asi vypadal každodenní život člověka, který ho používal? Jaké události mohl zažít? Vytvořte krátký příběh (cca 500 slov), který oživí historii tohoto nálezu..."
+                />
+                <p className="mt-1 text-xs text-white/40 font-mono">
+                  Příběh pomáhá oživit historii nálezu. Popište možný příběh člověka, který předmět používal.
+                </p>
+              </div>
+
               {/* Visibility */}
               <div>
                 <label className="block text-xs text-white/70 font-mono uppercase tracking-wider mb-2">

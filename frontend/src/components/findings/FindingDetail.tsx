@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package, Lock, Eye, Globe, Bot, Loader, Sparkles, ChevronLeft, ChevronRight, Plus, ImageIcon } from 'lucide-react';
+import { X, MapPin, Calendar, Edit, Trash2, ChevronDown, ChevronUp, Package, Lock, Eye, Globe, Bot, Loader, Sparkles, ChevronLeft, ChevronRight, Plus, ImageIcon, BookOpen } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { toast } from 'sonner';
 import { clsx } from 'clsx';
@@ -174,7 +174,7 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
                     <img
                       src={currentImage.mediumUrl}
                       alt={finding.title}
-                      className="absolute inset-0 w-full h-full object-contain bg-black/60 cursor-pointer"
+                      className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                       onClick={() => setLightboxOpen(true)}
                     />
                     
@@ -365,6 +365,21 @@ export const FindingDetail = ({ finding: initialFinding, onClose, onEdit, onDele
                 <div>
                   <p className="text-white/80 leading-relaxed whitespace-pre-wrap">
                     {finding.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Story - Příběh předmětu */}
+              {finding.story && (
+                <div className="p-4 bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/20 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BookOpen className="w-4 h-4 text-amber-400" />
+                    <h3 className="font-mono text-sm text-amber-400 uppercase tracking-wider">
+                      Příběh předmětu
+                    </h3>
+                  </div>
+                  <p className="text-white/80 leading-relaxed whitespace-pre-wrap text-sm italic">
+                    {finding.story}
                   </p>
                 </div>
               )}
