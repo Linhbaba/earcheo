@@ -42,7 +42,10 @@ export interface AIAnalysisResult {
   prefix?: string;
   signature?: string;
   securityFeatures?: string;
-  
+
+  // Příběh
+  story?: string;
+
   // Filatelie
   stampYear?: number;
   stampCatalogNumber?: string;

@@ -63,49 +63,49 @@ const createFindingSchema = z.object({
   findingType: z.enum(['COIN', 'STAMP', 'MILITARY', 'TERRAIN', 'GENERAL']).default('GENERAL'),
   
   // Existující rozšířená pole
-  condition: z.string().max(100).optional(),
+  condition: z.string().max(200).optional(),
   depth: z.number().positive().optional(),
-  locationName: z.string().max(200).optional(),
-  historicalContext: z.string().max(2000).optional(),
-  material: z.string().max(100).optional(),
-  
+  locationName: z.string().max(300).optional(),
+  historicalContext: z.string().max(3000).optional(),
+  material: z.string().max(200).optional(),
+
   // Univerzální pole
-  period: z.string().max(100).optional(),
+  period: z.string().max(300).optional(),
   periodFrom: z.number().int().optional(),
   periodTo: z.number().int().optional(),
-  dimensions: z.string().max(100).optional(),
+  dimensions: z.string().max(200).optional(),
   weight: z.number().positive().optional(),
-  
+
   // Specifická pole - COIN
-  denomination: z.string().max(100).optional(),
+  denomination: z.string().max(200).optional(),
   mintYear: z.number().int().optional(),
-  mint: z.string().max(100).optional(),
-  catalogNumber: z.string().max(100).optional(),
-  grade: z.string().max(50).optional(),
-  
+  mint: z.string().max(200).optional(),
+  catalogNumber: z.string().max(200).optional(),
+  grade: z.string().max(100).optional(),
+
   // Specifická pole - STAMP
   stampYear: z.number().int().optional(),
-  stampCatalogNumber: z.string().max(100).optional(),
-  perforation: z.string().max(50).optional(),
-  printType: z.string().max(100).optional(),
-  cancellation: z.string().max(100).optional(),
-  
+  stampCatalogNumber: z.string().max(200).optional(),
+  perforation: z.string().max(100).optional(),
+  printType: z.string().max(200).optional(),
+  cancellation: z.string().max(200).optional(),
+
   // Specifická pole - MILITARY
-  army: z.string().max(100).optional(),
-  conflict: z.string().max(100).optional(),
-  unit: z.string().max(100).optional(),
-  authenticity: z.string().max(50).optional(),
-  
+  army: z.string().max(200).optional(),
+  conflict: z.string().max(200).optional(),
+  unit: z.string().max(200).optional(),
+  authenticity: z.string().max(100).optional(),
+
   // Specifická pole - TERRAIN
-  detectorSignal: z.string().max(100).optional(),
-  landType: z.string().max(100).optional(),
-  soilConditions: z.string().max(100).optional(),
-  
+  detectorSignal: z.string().max(200).optional(),
+  landType: z.string().max(200).optional(),
+  soilConditions: z.string().max(200).optional(),
+
   // Provenience
-  origin: z.string().max(100).optional(),
-  acquisitionMethod: z.string().max(50).optional(),
-  estimatedValue: z.string().max(100).optional(),
-  storageLocation: z.string().max(200).optional(),
+  origin: z.string().max(200).optional(),
+  acquisitionMethod: z.string().max(100).optional(),
+  estimatedValue: z.string().max(200).optional(),
+  storageLocation: z.string().max(300).optional(),
   
   // Příběh předmětu
   story: z.string().max(5000).optional(),
@@ -132,49 +132,49 @@ const updateFindingSchema = z.object({
   findingType: z.enum(['COIN', 'STAMP', 'MILITARY', 'TERRAIN', 'GENERAL']).optional(),
   
   // Existující rozšířená pole
-  condition: z.string().max(100).optional(),
+  condition: z.string().max(200).optional(),
   depth: z.number().positive().optional(),
-  locationName: z.string().max(200).optional(),
-  historicalContext: z.string().max(2000).optional(),
-  material: z.string().max(100).optional(),
-  
+  locationName: z.string().max(300).optional(),
+  historicalContext: z.string().max(3000).optional(),
+  material: z.string().max(200).optional(),
+
   // Univerzální pole
-  period: z.string().max(100).optional(),
+  period: z.string().max(300).optional(),
   periodFrom: z.number().int().optional(),
   periodTo: z.number().int().optional(),
-  dimensions: z.string().max(100).optional(),
+  dimensions: z.string().max(200).optional(),
   weight: z.number().positive().optional(),
-  
+
   // Specifická pole - COIN
-  denomination: z.string().max(100).optional(),
+  denomination: z.string().max(200).optional(),
   mintYear: z.number().int().optional(),
-  mint: z.string().max(100).optional(),
-  catalogNumber: z.string().max(100).optional(),
-  grade: z.string().max(50).optional(),
-  
+  mint: z.string().max(200).optional(),
+  catalogNumber: z.string().max(200).optional(),
+  grade: z.string().max(100).optional(),
+
   // Specifická pole - STAMP
   stampYear: z.number().int().optional(),
-  stampCatalogNumber: z.string().max(100).optional(),
-  perforation: z.string().max(50).optional(),
-  printType: z.string().max(100).optional(),
-  cancellation: z.string().max(100).optional(),
-  
+  stampCatalogNumber: z.string().max(200).optional(),
+  perforation: z.string().max(100).optional(),
+  printType: z.string().max(200).optional(),
+  cancellation: z.string().max(200).optional(),
+
   // Specifická pole - MILITARY
-  army: z.string().max(100).optional(),
-  conflict: z.string().max(100).optional(),
-  unit: z.string().max(100).optional(),
-  authenticity: z.string().max(50).optional(),
-  
+  army: z.string().max(200).optional(),
+  conflict: z.string().max(200).optional(),
+  unit: z.string().max(200).optional(),
+  authenticity: z.string().max(100).optional(),
+
   // Specifická pole - TERRAIN
-  detectorSignal: z.string().max(100).optional(),
-  landType: z.string().max(100).optional(),
-  soilConditions: z.string().max(100).optional(),
-  
+  detectorSignal: z.string().max(200).optional(),
+  landType: z.string().max(200).optional(),
+  soilConditions: z.string().max(200).optional(),
+
   // Provenience
-  origin: z.string().max(100).optional(),
-  acquisitionMethod: z.string().max(50).optional(),
-  estimatedValue: z.string().max(100).optional(),
-  storageLocation: z.string().max(200).optional(),
+  origin: z.string().max(200).optional(),
+  acquisitionMethod: z.string().max(100).optional(),
+  estimatedValue: z.string().max(200).optional(),
+  storageLocation: z.string().max(300).optional(),
   
   // Příběh předmětu
   story: z.string().max(5000).optional(),

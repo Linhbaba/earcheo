@@ -206,6 +206,12 @@ const ANALYSIS_SCHEMA = {
     // Plný text analýzy
     fullAnalysis: { type: 'string', description: 'Kompletní textová analýza' },
     
+    // Příběh předmětu - lidský příběh z doby existence předmětu
+    story: { 
+      type: 'string', 
+      description: 'Krátký lidský příběh o předmětu z doby jeho existence. Popiš možný každodenní život člověka, který ho používal. Jaké události mohl zažít? Vytvoř poutavý příběh (cca 300-500 slov), který oživí historii tohoto nálezu.' 
+    },
+    
     // Zdroje (pro expert level)
     sources: {
       type: 'array',
@@ -267,6 +273,8 @@ export interface AnalysisResult {
   prefix?: string;
   signature?: string;
   securityFeatures?: string;
+  // Příběh předmětu
+  story?: string;
 }
 
 // Rozhraní pro kontext od uživatele

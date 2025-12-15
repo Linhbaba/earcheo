@@ -282,6 +282,8 @@ export const FindingForm = ({ finding, onClose, onSuccess }: FindingFormProps) =
             interpretation: result.interpretation || prev.interpretation,
             // Původ
             origin: result.origin || prev.origin,
+            // Příběh předmětu
+            story: result.story || prev.story,
           }));
           
           // Spočítej vyplněná pole pro feedback a vizuální indikaci

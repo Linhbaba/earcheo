@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { ViewState } from 'react-map-gl';
-import { Plus, Package, Undo2, X, Hand, Pencil, Check } from 'lucide-react';
+import { Plus, Undo2, X, Hand, Pencil, Check } from 'lucide-react';
 import { trackLayerToggle } from '../hooks/useMapAnalytics';
 import { AuthHeader, type MapMode } from '../components/AuthHeader';
 import { CommandDeck } from '../components/CommandDeck';
@@ -506,16 +506,20 @@ export const MapPage = () => {
                     setShowAddFindingForm(true);
                     setIsFindingsOpen(true);
                   }}
-                  className="pointer-events-auto w-14 h-14 bg-gradient-to-br from-primary/30 to-primary/20 hover:from-primary/40 hover:to-primary/30 border-2 border-primary rounded-2xl flex items-center justify-center transition-all shadow-[0_0_25px_rgba(0,243,255,0.4)] hover:shadow-[0_0_35px_rgba(0,243,255,0.6)] group relative overflow-hidden"
-                  title="Přidat nový nález"
+                  className="pointer-events-auto flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-primary/20 to-primary/10 hover:from-primary/30 hover:to-primary/20 border-2 border-primary rounded-xl transition-all shadow-[0_0_25px_rgba(0,243,255,0.4)] hover:shadow-[0_0_35px_rgba(0,243,255,0.6)] group relative overflow-hidden backdrop-blur-sm"
                 >
-                  {/* Animated pulse ring */}
-                  <div className="absolute inset-0 rounded-2xl border-2 border-primary animate-ping opacity-20" />
+                  {/* Animated glow effect */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   
-                  {/* Icon - Truhla/Box pro archeologické nálezy */}
-                  <div className="relative w-8 h-8 rounded-full bg-primary/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Package className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(0,243,255,0.9)]" />
+                  {/* Plus icon in circle */}
+                  <div className="relative w-10 h-10 rounded-full bg-primary/30 border border-primary/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Plus className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(0,243,255,0.9)]" />
                   </div>
+                  
+                  {/* Text */}
+                  <span className="relative font-display text-lg text-primary drop-shadow-[0_0_10px_rgba(0,243,255,0.5)] group-hover:drop-shadow-[0_0_15px_rgba(0,243,255,0.8)] transition-all">
+                    Přidat nález
+                  </span>
                 </button>
               </div>
             )}
