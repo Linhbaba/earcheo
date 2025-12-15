@@ -34,7 +34,7 @@ const ANALYSIS_OPTIONS: {
     icon: Zap,
     label: 'Rychlá',
     description: '~5 sekund',
-    cost: 1,
+    cost: 5,
     features: ['Název a kategorie', 'Období a materiál', 'Základní popis'],
     color: 'blue',
   },
@@ -43,7 +43,7 @@ const ANALYSIS_OPTIONS: {
     icon: Search,
     label: 'Detailní',
     description: '~15 sekund',
-    cost: 5,
+    cost: 15,
     features: ['Vše z rychlé', 'Katalogová čísla', 'Mincovna/vydavatel', 'Stav a grading'],
     color: 'amber',
   },
@@ -51,9 +51,9 @@ const ANALYSIS_OPTIONS: {
     id: 'expert',
     icon: GraduationCap,
     label: 'Expertní',
-    description: '2-5 minut',
-    cost: '~25',
-    features: ['Vše z detailní', 'Prohledá katalogy', 'Aukční srovnání', 'Odhad hodnoty', 'Zdroje a citace'],
+    description: '~30 sekund',
+    cost: 30,
+    features: ['Vše z detailní', 'Internetové vyhledávání', 'Aukční srovnání', 'Odhad hodnoty', 'Zdroje a citace'],
     color: 'purple',
   },
 ];
@@ -119,7 +119,7 @@ export const AIAnalysisOptions = ({
         {filteredOptions.map((option) => {
           const colors = COLOR_CLASSES[option.color];
           const isSelected = selectedLevel === option.id;
-          const cost = typeof option.cost === 'number' ? option.cost : 25;
+          const cost = typeof option.cost === 'number' ? option.cost : 30;
           const canAfford = userCredits >= cost;
           const isDisabled = disabled || (!canAfford && option.id !== 'none');
 

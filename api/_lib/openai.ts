@@ -10,19 +10,19 @@ export type FindingType = 'COIN' | 'STAMP' | 'MILITARY' | 'TERRAIN' | 'GENERAL' 
 export type AnalysisLevel = 'quick' | 'detailed' | 'expert';
 
 // Konfigurace modelů podle úrovně (aktualizováno pro 2025)
-// Docs: https://platform.openai.com/docs/models
-export const MODEL_CONFIG: Record<AnalysisLevel, { model: string; maxTokens: number }> = {
-  quick: { model: 'gpt-4o-mini', maxTokens: 1000 },   // Rychlý, levný pro základní analýzu
-  detailed: { model: 'gpt-4o', maxTokens: 2500 },     // Plný vision model pro detailní analýzu
-  expert: { model: 'gpt-4o', maxTokens: 8000 },       // Plný model s více tokeny pro expertní analýzu
-  // TODO: Až bude o3 dostupný s vision, použít pro expert level
+// Docs: https://platform.openai.com/docs/models/gpt-4.1
+// Docs: https://platform.openai.com/docs/models/gpt-5.2
+export const MODEL_CONFIG: Record<AnalysisLevel, { model: string; maxTokens: number; useWebSearch?: boolean }> = {
+  quick: { model: 'gpt-4.1-mini', maxTokens: 1000 },      // Rychlý, levný pro základní analýzu
+  detailed: { model: 'gpt-4.1', maxTokens: 2500 },        // Plný vision model pro detailní analýzu
+  expert: { model: 'gpt-5.2', maxTokens: 8000, useWebSearch: true }, // GPT-5.2 Thinking s web search
 };
 
 // Ceny v kreditech
 export const CREDIT_COSTS: Record<AnalysisLevel, number> = {
-  quick: 1,
-  detailed: 5,
-  expert: 25,
+  quick: 5,
+  detailed: 15,
+  expert: 30,
 };
 
 // Systémové prompty podle typu nálezu
@@ -349,16 +349,32 @@ function buildSystemPrompt(
   let prompt = SYSTEM_PROMPTS[findingType];
   
   if (level === 'expert') {
-    prompt += `\n\n=== EXPERTNÍ ANALÝZA ===
-Proveď důkladný hloubkový výzkum tohoto nálezu:
-1. Vyhledej relevantní katalogy a databáze (Krause, Pick, Pofis, Michel, atd.)
-2. Porovnej s podobnými autentifikovanými kusy
-3. Ověř historický kontext a období
-4. Poskytni přesná katalogová čísla s referencemi
-5. Odhadni tržní hodnotu na základě aktuálních aukčních výsledků
-6. Uveď všechny použité zdroje a reference v poli 'sources'
+    prompt += `\n\n=== EXPERTNÍ ANALÝZA (GPT-5.2) ===
+Proveď důkladný hloubkový výzkum tohoto nálezu s využitím všech dostupných znalostí:
 
-Buď důkladný a uvádej konkrétní zdroje pro každé tvrzení.`;
+📚 KATALOGY A DATABÁZE:
+- Krause World Coins pro mince
+- Pick Standard Catalog pro bankovky
+- Pofis pro české/slovenské známky
+- Michel pro mezinárodní známky
+- Specializované katalogy podle typu nálezu
+
+🔍 ANALÝZA:
+1. Identifikuj přesně typ, období a původ
+2. Najdi odpovídající katalogová čísla s referencemi
+3. Porovnej s podobnými autentifikovanými kusy
+4. Ověř historický kontext a vzácnost
+5. Zhodnoť autenticitu a stav
+
+💰 HODNOTA:
+- Odhadni tržní hodnotu na základě aukčních výsledků
+- Uveď cenové rozpětí v CZK
+- Zmíň faktory ovlivňující cenu
+
+📖 ZDROJE:
+Uveď všechny použité zdroje v poli 'sources' (katalogy, aukční domy, literatura).
+
+Buď maximálně důkladný a konkrétní.`;
   }
   
   prompt += `\n\nOdpověz ve strukturovaném JSON formátu v češtině.`;
